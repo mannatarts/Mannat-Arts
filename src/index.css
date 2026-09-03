@@ -1,0 +1,142 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&family=Syne:wght@600;700;800&family=Outfit:wght@400;500;600;700;800;900&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,400;1,600&display=swap');
+@import 'tailwindcss';
+
+/* ── Keyframe Animations ─────────────────────────────────────────────────── */
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50%       { transform: translateY(-22px) rotate(8deg); }
+}
+@keyframes float-alt {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50%       { transform: translateY(-16px) rotate(-6deg); }
+}
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50%       { transform: translateY(-30px) rotate(4deg); }
+}
+@keyframes drift {
+  0%, 100% { transform: translate(0px, 0px) rotate(0deg); }
+  25%       { transform: translate(12px, -18px) rotate(90deg); }
+  50%       { transform: translate(-8px, -10px) rotate(180deg); }
+  75%       { transform: translate(-14px, 8px) rotate(270deg); }
+}
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes pulse-subtle {
+  0%, 100% { opacity: 0.05; }
+  50%       { opacity: 0.13; }
+}
+@keyframes wave-bar {
+  0%, 100% { transform: scaleY(0.4); }
+  50%       { transform: scaleY(1); }
+}
+@keyframes ticker {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+@keyframes shimmer-crimson {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
+@keyframes spotlight {
+  0%, 100% { opacity: 0.25; transform: rotate(-6deg) scaleX(0.8); }
+  50%       { opacity: 0.55; transform: rotate(6deg)  scaleX(1.2); }
+}
+@keyframes neon-flicker {
+  0%, 100% { opacity: 1; }
+  92%       { opacity: 1; }
+  93%       { opacity: 0.4; }
+  94%       { opacity: 1; }
+  96%       { opacity: 0.6; }
+  97%       { opacity: 1; }
+}
+@keyframes confetti-fall {
+  0%   { transform: translateY(-10px) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(30px) rotate(360deg); opacity: 0; }
+}
+
+/* ── Typography & Utility Classes ─────────────────────────────────────────── */
+
+.font-display { font-family: 'Syne', 'Outfit', sans-serif; letter-spacing: -0.02em; }
+.font-heading { font-family: 'Outfit', 'Syne', sans-serif; letter-spacing: -0.015em; }
+.font-body    { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; }
+.font-serif   { font-family: 'Cormorant Garamond', Georgia, serif; }
+
+.animate-float        { animation: float       4s  ease-in-out infinite; }
+.animate-float-alt    { animation: float-alt   5.5s ease-in-out infinite; }
+.animate-float-slow   { animation: float-slow  7s  ease-in-out infinite; }
+.animate-drift        { animation: drift       9s  ease-in-out infinite; }
+.animate-spin-slow    { animation: spin-slow  25s  linear     infinite; }
+.animate-pulse-subtle { animation: pulse-subtle 3s  ease-in-out infinite; }
+.animate-wave-bar     { animation: wave-bar    1s  ease-in-out infinite; }
+.animate-ticker       { animation: ticker     35s  linear     infinite; }
+.animate-spotlight    { animation: spotlight   4s  ease-in-out infinite; }
+.animate-neon         { animation: neon-flicker 6s ease-in-out infinite; }
+
+/* Rose-Pink & Crimson shimmer text */
+.shimmer-crimson,
+.shimmer-red,
+.shimmer-gold {
+  background: linear-gradient(90deg, #BE123C 0%, #E11D48 30%, #FB7185 50%, #E11D48 70%, #BE123C 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer-crimson 3s linear infinite;
+}
+
+/* Static gradient texts */
+.text-gradient-crimson,
+.text-gradient-ruby,
+.text-gradient-red,
+.text-gradient-gold {
+  background: linear-gradient(135deg, #9F1239 0%, #E11D48 50%, #FB7185 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.text-gradient-purple {
+  background: linear-gradient(135deg, #9F1239, #E11D48, #7C3AED);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Glass morphism card */
+.glass-card {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+}
+
+/* Card hover lifts */
+.card-hover {
+  transition: transform 0.4s ease, box-shadow 0.4s ease;
+}
+.card-hover:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 24px 60px -12px rgba(225, 29, 72, 0.2);
+}
+.card-hover-ruby:hover,
+.card-hover-red:hover,
+.card-hover-gold:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 24px 60px -12px rgba(225, 29, 72, 0.28);
+}
+
+/* Hide scrollbars */
+::-webkit-scrollbar { display: none; }
+* { scrollbar-width: none; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Poppins', system-ui, sans-serif;
+  color: #1A1A1A;
+  background: #FFF8F8;
+  overflow-x: hidden;
+}

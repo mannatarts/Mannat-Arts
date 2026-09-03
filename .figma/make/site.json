@@ -1,0 +1,11 @@
+{
+  "title": "Artistic vibe",
+  "description": "Connect with a diverse range of artists for any event, from weddings to corporate functions, and discover the perfect performer for your occasion.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
