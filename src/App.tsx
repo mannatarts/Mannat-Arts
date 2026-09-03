@@ -77,10 +77,10 @@ function IconGuitar({ className = "", style = {} }: SvgProps) {
     </svg>
   );
 }
-function IconMic({ className = "", style = {} }: SvgProps) {
+function IconSpark({ className = "", style = {} }: SvgProps) {
   return (
     <svg className={className} style={style} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-      <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm-1 1.93c-3.94-.49-7-3.85-7-7.93H2c0 4.96 3.57 9.09 8.4 9.83V22h3v-4.24c4.83-.74 8.4-4.87 8.4-9.83h-2c0 4.08-3.06 7.44-7 7.93V15h-1z" />
+      <path d="M12 2L14.4 9.4L22 9.4L15.8 13.9L18.2 21.3L12 16.8L5.8 21.3L8.2 13.9L2 9.4L9.6 9.4L12 2Z" />
     </svg>
   );
 }
@@ -190,9 +190,10 @@ interface NavbarProps {
   onScrollToFeatured: () => void;
   onBrowseArtists: () => void;
   onScrollToBlog: () => void;
+  onOpenAdmin: () => void;
 }
 
-function Navbar({ onHome, onBrowseGenres, onScrollToFeatured, onBrowseArtists, onScrollToBlog }: NavbarProps) {
+function Navbar({ onHome, onBrowseGenres, onScrollToFeatured, onBrowseArtists, onScrollToBlog, onOpenAdmin }: NavbarProps) {
   const [open, setOpen] = useState(false);
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 glass-card border-b border-white/40 shadow-sm">
@@ -203,7 +204,7 @@ function Navbar({ onHome, onBrowseGenres, onScrollToFeatured, onBrowseArtists, o
           onClick={onHome}
         >
           <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#E11D48] to-[#9333EA] flex items-center justify-center shadow-md">
-            <IconMic className="w-4 h-4 text-white" />
+            <IconSpark className="w-4 h-4 text-white" />
           </div>
           <span className="font-display font-bold text-xl text-[#1A1A1A] tracking-tight">StageBridge</span>
           <span className="text-[9px] font-body text-[#E11D48] font-bold tracking-[0.2em] uppercase bg-[#E11D48]/10 px-1.5 py-0.5 rounded-full">Pro</span>
@@ -247,9 +248,15 @@ function Navbar({ onHome, onBrowseGenres, onScrollToFeatured, onBrowseArtists, o
           <a href="#join-artist" className="font-body text-sm font-medium text-[#5B5B5B] hover:text-[#E11D48] hover:bg-[#FFF0F3] px-3.5 py-1.5 rounded-full transition-colors">
             For Artists
           </a>
+
+          {/* Admin Portal Button */}
+          <button
+            onClick={onOpenAdmin}
+            className="font-body text-xs font-bold text-[#E11D48] bg-[#FFF0F3] hover:bg-[#E11D48] hover:text-white border border-[#F3E5E8] px-3.5 py-1.5 rounded-full transition-all cursor-pointer flex items-center gap-1.5 shadow-xs ml-1"
+          >
+            <span>⚡ Admin Portal</span>
+          </button>
         </div>
-
-
 
         {/* Mobile Hamburger */}
         <button className="md:hidden text-[#1A1A1A] cursor-pointer" onClick={() => setOpen(o => !o)}>
@@ -279,6 +286,12 @@ function Navbar({ onHome, onBrowseGenres, onScrollToFeatured, onBrowseArtists, o
           <a href="#join-artist" onClick={() => setOpen(false)} className="block font-body py-1 text-sm text-[#5B5B5B]">
             For Artists
           </a>
+          <button
+            onClick={() => { onOpenAdmin(); setOpen(false); }}
+            className="block w-full text-center font-body py-2 px-4 rounded-xl text-xs font-bold text-white bg-[#E11D48] shadow-sm"
+          >
+            ⚡ Open Admin Control
+          </button>
         </div>
       )}
     </nav>
@@ -512,7 +525,7 @@ function PerformerTicker({ onSelectGenre }: { onSelectGenre: (g: "sufi" | "rock"
 
 function StatsBar() {
   const stats = [
-    { n: "2,800+", l: "Verified Artists", e: "🎤" },
+    { n: "2,800+", l: "Verified Artists", e: "🎭" },
     { n: "15,000+", l: "Events Booked", e: "🎪" },
     { n: "98%", l: "Client Satisfaction", e: "⭐" },
     { n: "42+", l: "Cities Covered", e: "📍" },
@@ -855,7 +868,7 @@ function JoinArtistCTA() {
       <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, #180206 0%, #2A050D 25%, #4C0519 50%, #881337 80%, #0F0104 100%)" }} />
 
       <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
-        <div className="text-5xl mb-6 animate-float inline-block">🎤</div>
+        <div className="text-5xl mb-6 animate-float inline-block">✨</div>
         <h2 className="font-display text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
           Are You a Performer?
           <br />
@@ -908,7 +921,7 @@ function Footer({ onSelectGenre, onBrowseArtists, onScrollToBlog, onSelectArticl
           <div className="md:col-span-2">
             <div className="flex items-center gap-2.5 mb-4">
               <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#E11D48] to-[#9333EA] flex items-center justify-center shadow-md">
-                <IconMic className="w-4 h-4 text-white" />
+                <IconSpark className="w-4 h-4 text-white" />
               </div>
               <span className="font-display font-bold text-xl">StageBridge</span>
               <span className="text-[9px] font-body text-[#E11D48] font-bold tracking-[0.2em] uppercase bg-[#E11D48]/10 px-1.5 py-0.5 rounded-full">Pro</span>
@@ -1290,6 +1303,11 @@ export default function App() {
           onScrollToFeatured={handleScrollToFeatured}
           onBrowseArtists={handleOpenArtists}
           onScrollToBlog={handleOpenJournal}
+          onOpenAdmin={() => {
+            setCurrentPage(isAdminAuthenticated ? "admin" : "admin-login");
+            window.location.hash = "#admin";
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }}
         />
       )}
 

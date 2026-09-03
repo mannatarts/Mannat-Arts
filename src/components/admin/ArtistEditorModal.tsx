@@ -246,7 +246,7 @@ export function ArtistEditorModal({ artist, isOpen, onClose, onSave }: ArtistEdi
         <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-md border-b border-[#F3E5E8] px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#E11D48] to-[#9333EA] flex items-center justify-center text-white text-sm">
-              🎤
+              🎭
             </div>
             <div>
               <h2 className="font-display font-bold text-lg text-[#1A1A1A]">

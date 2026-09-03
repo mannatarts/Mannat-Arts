@@ -550,7 +550,7 @@ export function AdminPortal({
                     : "text-[#5B5B5B] hover:bg-gray-50 hover:text-[#1A1A1A]"
                 }`}
               >
-                <span>🎤</span>
+                <span>🎭</span>
                 <span>Artists Directory</span>
                 <span className="ml-auto text-[10px] bg-gray-100 px-2 py-0.5 rounded-full font-bold">
                   {artists.length}

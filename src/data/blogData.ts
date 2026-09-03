@@ -42,7 +42,7 @@ export const BLOG_CATEGORIES: Array<{ id: string; label: string; icon: string }>
   { id: "all", label: "All Stories", icon: "✨" },
   { id: "Wedding Music", label: "Wedding Music", icon: "💍" },
   { id: "Event Planning", label: "Event Planning", icon: "📋" },
-  { id: "Artist Spotlights", label: "Artist Spotlights", icon: "🎤" },
+  { id: "Artist Spotlights", label: "Artist Spotlights", icon: "🌟" },
   { id: "Sound & Acoustics", label: "Sound & Acoustics", icon: "🎛️" },
   { id: "Heritage Traditions", label: "Heritage Traditions", icon: "📜" },
 ];

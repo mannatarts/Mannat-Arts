@@ -312,7 +312,7 @@ export const GENRE_METADATA: Record<string, GenreInfo> = {
     },
     elements: {
       instruments: [
-        { name: "Playback Vocals", icon: "🎤", role: "Male & Female Duets" },
+        { name: "Playback Vocals", icon: "🎶", role: "Male & Female Duets" },
         { name: "Live Brass Section", icon: "🎺", role: "Chartbuster Horns" },
         { name: "Octapad & Percussion", icon: "🥁", role: "Dancefloor Beats" },
         { name: "Keyboards & Synth", icon: "🎹", role: "Orchestra Medleys" },
