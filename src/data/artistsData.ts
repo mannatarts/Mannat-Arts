@@ -14,6 +14,7 @@ export interface Artist {
   city: string;
   state: string;
   travelsPanIndia: boolean;
+  travelsInternational?: boolean;
   performanceDuration: string;
   bandType: "Solo" | "Duo" | "Trio" | "4-6 Piece Band" | "Full Troupe (8+ Members)";
   experienceYears: number;
@@ -104,19 +105,19 @@ export const GENRE_METADATA: Record<string, GenreInfo> = {
     description: "Mystic poetry, qawwalis & soulful spiritual trance",
     longDescription: "Immerse your guests in centuries of divine ecstasy, mystic poetry, and high-energy acoustic qawwalis. Our Sufi artists blend traditional harmonium and tabla with modern acoustic and progressive arrangements.",
     heroImg: "/genres/sufi.jpg",
-    accent: "#10B981",
+    accent: "#C4952A",
     popularOccasions: ["Sufi Nights", "Wedding Sangeet", "Cultural Festivals", "Intimate Baithaks", "Corporate Galas"],
     avgPriceRange: "₹35,000 – ₹2,50,000",
     vibe: {
-      bgGradient: "linear-gradient(135deg, #071512 0%, #0F040A 50%, #150209 100%)",
-      radialGlow1: "rgba(16, 185, 129, 0.35)",
-      radialGlow2: "rgba(225, 29, 72, 0.28)",
-      badgeBorder: "border-[#10B981]/40",
-      badgeBg: "bg-[#10B981]/20",
-      badgeText: "text-[#34D399]",
-      highlightColor: "#34D399",
-      cardAccent: "#10B981",
-      btnGradient: "from-[#10B981] via-[#059669] to-[#047857]",
+      bgGradient: "linear-gradient(135deg, #1A1400 0%, #2A1E00 25%, #3A2800 50%, #6B4A00 80%, #0D0C00 100%)",
+      radialGlow1: "rgba(196, 149, 42, 0.40)",
+      radialGlow2: "rgba(221, 185, 106, 0.32)",
+      badgeBorder: "border-[#C4952A]/50",
+      badgeBg: "bg-[#C4952A]/25",
+      badgeText: "text-[#DDB96A]",
+      highlightColor: "#DDB96A",
+      cardAccent: "#C4952A",
+      btnGradient: "from-[#C4952A] via-[#DDB96A] to-[#9A7219]",
     },
     elements: {
       instruments: [
@@ -168,19 +169,19 @@ export const GENRE_METADATA: Record<string, GenreInfo> = {
     description: "Electrifying riffs, vocals & high-octane indie live sets",
     longDescription: "From heart-pounding classic Hindi rock anthems to soulful indie ballads and hard-rock mashups, our rock bands bring stadium-grade energy, blistering guitar solos, and infectious stage presence to every stage.",
     heroImg: "/genres/rock.jpg",
-    accent: "#A855F7",
+    accent: "#C4952A",
     popularOccasions: ["College Fests", "Cocktail Parties", "Music Festivals", "Corporate Annual Meets", "Destination Weddings"],
     avgPriceRange: "₹45,000 – ₹3,50,000",
     vibe: {
-      bgGradient: "linear-gradient(135deg, #0F021F 0%, #160214 50%, #1F030E 100%)",
-      radialGlow1: "rgba(168, 85, 247, 0.40)",
-      radialGlow2: "rgba(244, 63, 94, 0.30)",
-      badgeBorder: "border-[#A855F7]/40",
-      badgeBg: "bg-[#A855F7]/20",
-      badgeText: "text-[#C084FC]",
-      highlightColor: "#C084FC",
-      cardAccent: "#A855F7",
-      btnGradient: "from-[#9333EA] via-[#A855F7] to-[#7E22CE]",
+      bgGradient: "linear-gradient(135deg, #1A1400 0%, #2A1E00 25%, #3A2800 50%, #6B4A00 80%, #0D0C00 100%)",
+      radialGlow1: "rgba(196, 149, 42, 0.40)",
+      radialGlow2: "rgba(221, 185, 106, 0.32)",
+      badgeBorder: "border-[#C4952A]/50",
+      badgeBg: "bg-[#C4952A]/25",
+      badgeText: "text-[#DDB96A]",
+      highlightColor: "#DDB96A",
+      cardAccent: "#C4952A",
+      btnGradient: "from-[#C4952A] via-[#DDB96A] to-[#9A7219]",
     },
     elements: {
       instruments: [
@@ -232,19 +233,19 @@ export const GENRE_METADATA: Record<string, GenreInfo> = {
     description: "Soulful shayaris, harmonium & acoustic nostalgia",
     longDescription: "Rediscover the timeless elegance of classic poetry, exquisite shayaris, and delicate harmonium-sarangi melodies. Perfect for connoisseurs of authentic Urdu literature and vintage acoustic harmony.",
     heroImg: "/genres/gazal.jpg",
-    accent: "#F59E0B",
+    accent: "#C4952A",
     popularOccasions: ["Ghazal Mehfils", "Private Anniversaries", "VIP Corporate Lounges", "Literary Gatherings", "Pre-Wedding Dinners"],
     avgPriceRange: "₹30,000 – ₹1,80,000",
     vibe: {
-      bgGradient: "linear-gradient(135deg, #1C0F04 0%, #180608 50%, #120306 100%)",
-      radialGlow1: "rgba(245, 158, 11, 0.38)",
-      radialGlow2: "rgba(225, 29, 72, 0.22)",
-      badgeBorder: "border-[#F59E0B]/40",
-      badgeBg: "bg-[#F59E0B]/20",
-      badgeText: "text-[#FBBF24]",
-      highlightColor: "#FBBF24",
-      cardAccent: "#F59E0B",
-      btnGradient: "from-[#D97706] via-[#F59E0B] to-[#B45309]",
+      bgGradient: "linear-gradient(135deg, #1A1400 0%, #2A1E00 25%, #3A2800 50%, #6B4A00 80%, #0D0C00 100%)",
+      radialGlow1: "rgba(196, 149, 42, 0.40)",
+      radialGlow2: "rgba(221, 185, 106, 0.32)",
+      badgeBorder: "border-[#C4952A]/50",
+      badgeBg: "bg-[#C4952A]/25",
+      badgeText: "text-[#DDB96A]",
+      highlightColor: "#DDB96A",
+      cardAccent: "#C4952A",
+      btnGradient: "from-[#C4952A] via-[#DDB96A] to-[#9A7219]",
     },
     elements: {
       instruments: [
@@ -296,19 +297,19 @@ export const GENRE_METADATA: Record<string, GenreInfo> = {
     description: "High-energy playback, chartbusters & dance anthems",
     longDescription: "Bring the magic of the silver screen to life! Our Bollywood performers and live soundstages deliver non-stop chartbusters, dance mashups, retro classics, and electrifying crowd-pleasers that keep guests dancing all night.",
     heroImg: "/genres/bollywood.jpg",
-    accent: "#E11D48",
+    accent: "#C4952A",
     popularOccasions: ["Wedding Sangeet", "Award Nights", "Product Launches", "Grand Anniversaries", "Festival Mega Stages"],
     avgPriceRange: "₹50,000 – ₹5,00,000",
     vibe: {
-      bgGradient: "linear-gradient(135deg, #1A0108 0%, #2A0314 50%, #140106 100%)",
-      radialGlow1: "rgba(225, 29, 72, 0.40)",
-      radialGlow2: "rgba(251, 113, 133, 0.32)",
-      badgeBorder: "border-[#E11D48]/50",
-      badgeBg: "bg-[#E11D48]/25",
-      badgeText: "text-[#FB7185]",
-      highlightColor: "#FB7185",
-      cardAccent: "#E11D48",
-      btnGradient: "from-[#E11D48] via-[#F43F5E] to-[#BE123C]",
+      bgGradient: "linear-gradient(135deg, #1A1400 0%, #2A1E00 25%, #3A2800 50%, #6B4A00 80%, #0D0C00 100%)",
+      radialGlow1: "rgba(196, 149, 42, 0.40)",
+      radialGlow2: "rgba(221, 185, 106, 0.32)",
+      badgeBorder: "border-[#C4952A]/50",
+      badgeBg: "bg-[#C4952A]/25",
+      badgeText: "text-[#DDB96A]",
+      highlightColor: "#DDB96A",
+      cardAccent: "#C4952A",
+      btnGradient: "from-[#C4952A] via-[#DDB96A] to-[#9A7219]",
     },
     elements: {
       instruments: [
@@ -360,19 +361,19 @@ export const GENRE_METADATA: Record<string, GenreInfo> = {
     description: "Acrobats, fire performers, circus & festive beats",
     longDescription: "Turn your event into a world of wonder! Spectacular fire breathers, aerial acrobats, stilt walkers, interactive mimes, and roaming percussion troupes that dazzle guests of all ages.",
     heroImg: "/genres/carnival.jpg",
-    accent: "#F97316",
+    accent: "#C4952A",
     popularOccasions: ["Carnival Melas", "Theme Park Fairs", "Community Celebrations", "Grand Entrances", "Resort Festivals"],
     avgPriceRange: "₹40,000 – ₹2,80,000",
     vibe: {
-      bgGradient: "linear-gradient(135deg, #0C031A 0%, #1A031A 40%, #1F070A 100%)",
-      radialGlow1: "rgba(249, 115, 22, 0.40)",
-      radialGlow2: "rgba(236, 72, 153, 0.35)",
-      badgeBorder: "border-[#F97316]/40",
-      badgeBg: "bg-[#F97316]/20",
-      badgeText: "text-[#FB923C]",
-      highlightColor: "#FB923C",
-      cardAccent: "#F97316",
-      btnGradient: "from-[#EA580C] via-[#F97316] to-[#DB2777]",
+      bgGradient: "linear-gradient(135deg, #1A1400 0%, #2A1E00 25%, #3A2800 50%, #6B4A00 80%, #0D0C00 100%)",
+      radialGlow1: "rgba(196, 149, 42, 0.40)",
+      radialGlow2: "rgba(221, 185, 106, 0.32)",
+      badgeBorder: "border-[#C4952A]/50",
+      badgeBg: "bg-[#C4952A]/25",
+      badgeText: "text-[#DDB96A]",
+      highlightColor: "#DDB96A",
+      cardAccent: "#C4952A",
+      btnGradient: "from-[#C4952A] via-[#DDB96A] to-[#9A7219]",
     },
     elements: {
       instruments: [
@@ -424,19 +425,19 @@ export const GENRE_METADATA: Record<string, GenreInfo> = {
     description: "Sacred bhajans, kirtans & temple symphonies",
     longDescription: "Elevate your spiritual gatherings with blissful bhajans, Vedic mantra chanting, ecstatic kirtans, and soul-stirring devotional music led by authentic, dedicated vocalists and master instrumentalists.",
     heroImg: "/genres/devotional.jpg",
-    accent: "#EA580C",
+    accent: "#C4952A",
     popularOccasions: ["Mata Ki Chowki", "Sundarkand Recitals", "Temple Festivals", "Housewarming & Griha Pravesh", "Bhakti Sandhyas"],
     avgPriceRange: "₹20,000 – ₹1,50,000",
     vibe: {
-      bgGradient: "linear-gradient(135deg, #1A0701 0%, #1F0407 50%, #140205 100%)",
-      radialGlow1: "rgba(234, 88, 12, 0.42)",
-      radialGlow2: "rgba(245, 158, 11, 0.35)",
-      badgeBorder: "border-[#EA580C]/40",
-      badgeBg: "bg-[#EA580C]/20",
-      badgeText: "text-[#FB923C]",
-      highlightColor: "#FBBF24",
-      cardAccent: "#EA580C",
-      btnGradient: "from-[#C2410C] via-[#EA580C] to-[#D97706]",
+      bgGradient: "linear-gradient(135deg, #1A1400 0%, #2A1E00 25%, #3A2800 50%, #6B4A00 80%, #0D0C00 100%)",
+      radialGlow1: "rgba(196, 149, 42, 0.40)",
+      radialGlow2: "rgba(221, 185, 106, 0.32)",
+      badgeBorder: "border-[#C4952A]/50",
+      badgeBg: "bg-[#C4952A]/25",
+      badgeText: "text-[#DDB96A]",
+      highlightColor: "#DDB96A",
+      cardAccent: "#C4952A",
+      btnGradient: "from-[#C4952A] via-[#DDB96A] to-[#9A7219]",
     },
     elements: {
       instruments: [
@@ -506,7 +507,7 @@ export const ALL_ARTISTS: Artist[] = [
     experienceYears: 14,
     eventsCompleted: 420,
     primaryInstruments: ["Harmonium", "Tabla", "Dholak", "Bulbul Tarang"],
-    themeColor: "#881337",
+    themeColor: "#6B4A00",
     whatElseTheyDo: [
       {
         category: "🎸 Sufi-Rock Fusion",
@@ -569,7 +570,7 @@ export const ALL_ARTISTS: Artist[] = [
     experienceYears: 9,
     eventsCompleted: 290,
     primaryInstruments: ["Rabab", "Daf", "Acoustic Guitar", "Tabla"],
-    themeColor: "#BE123C",
+    themeColor: "#9A7219",
     whatElseTheyDo: [
       {
         category: "💃 Sufi Whirling Dance Spectacle",
@@ -619,7 +620,7 @@ export const ALL_ARTISTS: Artist[] = [
     experienceYears: 8,
     eventsCompleted: 210,
     primaryInstruments: ["Sarangi", "Synthesizers", "Percussions", "Vocals"],
-    themeColor: "#9F1239",
+    themeColor: "#9A7219",
     whatElseTheyDo: [
       {
         category: "🎧 Sufi Electronic DJ Sets",
@@ -671,7 +672,7 @@ export const ALL_ARTISTS: Artist[] = [
     experienceYears: 11,
     eventsCompleted: 380,
     primaryInstruments: ["Electric Guitars", "Bass Guitar", "Drum Kit", "Keyboards", "Vocals"],
-    themeColor: "#E11D48",
+    themeColor: "#C4952A",
     whatElseTheyDo: [
       {
         category: "🎬 Bollywood Rock Mashups",
@@ -733,7 +734,7 @@ export const ALL_ARTISTS: Artist[] = [
     experienceYears: 7,
     eventsCompleted: 230,
     primaryInstruments: ["Synthesizers", "Lead Guitar", "Bass", "Electronic Drums"],
-    themeColor: "#F43F5E",
+    themeColor: "#DDB96A",
     whatElseTheyDo: [
       {
         category: "💍 Sangeet After-Party Dance Sets",
@@ -782,7 +783,7 @@ export const ALL_ARTISTS: Artist[] = [
     experienceYears: 8,
     eventsCompleted: 195,
     primaryInstruments: ["Acoustic Guitars", "Bansuri", "Cajon", "Ektara"],
-    themeColor: "#9F1239",
+    themeColor: "#9A7219",
     whatElseTheyDo: [
       {
         category: "👘 Regional Folk Fusion",
@@ -826,7 +827,7 @@ export const ALL_ARTISTS: Artist[] = [
     experienceYears: 18,
     eventsCompleted: 490,
     primaryInstruments: ["Harmonium", "Tabla", "Sarangi", "Santoor", "Swarmandal"],
-    themeColor: "#BE123C",
+    themeColor: "#9A7219",
     whatElseTheyDo: [
       {
         category: "📜 Poetry & Shayari Narration",
@@ -888,7 +889,7 @@ export const ALL_ARTISTS: Artist[] = [
     experienceYears: 10,
     eventsCompleted: 260,
     primaryInstruments: ["Vocals", "Acoustic Violin", "Keyboards/Piano", "Tabla"],
-    themeColor: "#881337",
+    themeColor: "#6B4A00",
     whatElseTheyDo: [
       {
         category: "🎻 Violin & Raga Melodic Interludes",
@@ -937,7 +938,7 @@ export const ALL_ARTISTS: Artist[] = [
     experienceYears: 13,
     eventsCompleted: 520,
     primaryInstruments: ["Dual Vocals", "Keyboards", "Electric Guitar", "Brass/Sax", "Dhol", "Drums"],
-    themeColor: "#E11D48",
+    themeColor: "#C4952A",
     whatElseTheyDo: [
       {
         category: "💃 Choreographed Dancers Integration",
@@ -999,7 +1000,7 @@ export const ALL_ARTISTS: Artist[] = [
     experienceYears: 9,
     eventsCompleted: 310,
     primaryInstruments: ["Vocals", "Guitars", "Keyboards", "Dholak/Octapad"],
-    themeColor: "#FB7185",
+    themeColor: "#DDB96A",
     whatElseTheyDo: [
       {
         category: "🎙️ Interactive Antakshari & Crowd Battles",
@@ -1101,7 +1102,7 @@ export const ALL_ARTISTS: Artist[] = [
     experienceYears: 15,
     eventsCompleted: 410,
     primaryInstruments: ["Dhol", "Nagada", "Algoza", "Shehnai"],
-    themeColor: "#BE123C",
+    themeColor: "#9A7219",
     whatElseTheyDo: [
       {
         category: "🎭 Kathputli & Shadow Puppet Shows",
@@ -1150,7 +1151,7 @@ export const ALL_ARTISTS: Artist[] = [
     experienceYears: 22,
     eventsCompleted: 600,
     primaryInstruments: ["Harmonium", "Tabla", "Mridanga", "Manjira", "Bansuri"],
-    themeColor: "#881337",
+    themeColor: "#6B4A00",
     whatElseTheyDo: [
       {
         category: "🪔 Maha Aarti & Ganga Aarti Orchestrations",
@@ -1212,7 +1213,7 @@ export const ALL_ARTISTS: Artist[] = [
     experienceYears: 9,
     eventsCompleted: 275,
     primaryInstruments: ["Mridanga", "Kartal", "Harmonium", "Acoustic Guitar", "Flute"],
-    themeColor: "#BE123C",
+    themeColor: "#9A7219",
     whatElseTheyDo: [
       {
         category: "🥁 Ecstatic Mridanga Dance Jams",

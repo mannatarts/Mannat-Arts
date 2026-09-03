@@ -8,6 +8,7 @@ interface GenreViewProps {
   onSelectArtist: (artist: Artist) => void;
   onBookArtist: (artist: Artist) => void;
   allArtists?: Artist[];
+  genresMap?: Record<string, GenreInfo>;
 }
 
 export function GenreView({
@@ -17,8 +18,9 @@ export function GenreView({
   onSelectArtist,
   onBookArtist,
   allArtists,
+  genresMap,
 }: GenreViewProps) {
-  const genreInfo: GenreInfo = GENRE_METADATA[genreId];
+  const genreInfo: GenreInfo = (genresMap && genresMap[genreId]) || GENRE_METADATA[genreId];
   const sourceArtists = allArtists || ALL_ARTISTS;
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -50,66 +52,51 @@ export function GenreView({
     return ["All", ...Array.from(cities)];
   }, [sourceArtists, genreId]);
 
-  // Featured Spotlight artist for this genre
-  const spotlightArtist = useMemo(() => {
-    return sourceArtists.find(a => a.genre === genreId) || sourceArtists[0];
-  }, [sourceArtists, genreId]);
-
   return (
-    <div className="min-h-screen bg-[#FAF7F6] text-[#1A1A1A] pb-28">
-      {/* ── EXACT FULL-VIEWPORT BANNER PAGE (100VH FIT: NO SCROLL NEEDED) ─── */}
+    <div className="min-h-screen text-white pb-28" style={{ background: "#1A1916", fontFamily: "'Manrope', system-ui, sans-serif" }}>
+      {/* ── FULL-VIEWPORT BANNER ─── */}
       <section
-        className="relative h-screen max-h-screen flex flex-col justify-between text-white overflow-hidden border-b border-white/10 shadow-2xl transition-all duration-700"
+        className="relative min-h-[90vh] flex flex-col justify-between text-white overflow-hidden border-b border-white/10 shadow-2xl"
         style={{ background: genreInfo.vibe.bgGradient }}
       >
-        {/* Background Image: Positioned on the Right with Feather Fade on the Left Edge */}
+        {/* Background Image on Right with Feather Fade */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          {/* Base Solid Dark Canvas on the Left for text content */}
-          <div className="absolute inset-0 bg-[#0a0510]" />
+          <div className="absolute inset-0 bg-[#1A1916]" />
 
-          {/* Right-Side High-Res Genre Image - Stretched wider to the left */}
-          <div className="absolute top-0 right-0 bottom-0 w-full lg:w-[70%] h-full overflow-hidden">
+          <div className="absolute top-0 right-0 bottom-0 w-full lg:w-[68%] h-full overflow-hidden">
             <img
               key={genreInfo.heroImg}
               src={genreInfo.heroImg}
               alt={`${genreInfo.title} Live Background`}
-              className="w-full h-full object-cover object-center sm:object-right opacity-90 sm:opacity-95 transition-all duration-700 brightness-100 contrast-105"
+              className="w-full h-full object-cover opacity-85 transition-all duration-700 brightness-95"
             />
-            {/* Seamless Feather Fade on Left Edge where content meets the photo */}
-            <div className="absolute inset-y-0 left-0 w-48 sm:w-80 bg-gradient-to-r from-[#0a0510] via-[#0a0510]/85 via-45% via-[#0a0510]/20 via-75% to-transparent" />
-            
-            {/* Mobile/Tablet vertical fade so text stays readable on stacked layouts */}
-            <div className="lg:hidden absolute inset-0 bg-gradient-to-t from-[#0a0510] via-[#0a0510]/80 via-60% to-transparent" />
-            
-            {/* Subtle top/bottom edge vignettes */}
-            <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-[#0a0510]/70 to-transparent" />
-            <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[#0a0510]/80 to-transparent" />
+            {/* Seamless Feather Fade */}
+            <div className="absolute inset-y-0 left-0 w-48 sm:w-80 bg-gradient-to-r from-[#1A1916] via-[#1A1916]/80 via-45% via-[#1A1916]/20 via-75% to-transparent" />
+            <div className="lg:hidden absolute inset-0 bg-gradient-to-t from-[#1A1916] via-[#1A1916]/80 via-60% to-transparent" />
           </div>
         </div>
 
         {/* Top Bar inside Banner: Logo + Genre Switcher */}
-        <div className="w-full max-w-[1550px] mx-auto px-4 sm:px-6 lg:px-8 pt-5 pb-2 relative z-10">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-white/10">
-            {/* Clickable Brand Logo to return home */}
-            <div
+        <div className="w-full max-w-7xl mx-auto px-6 lg:px-8 pt-6 pb-2 relative z-10">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/10">
+            <button
               onClick={onBack}
-              className="flex items-center gap-2 cursor-pointer group select-none"
-              title="Return to Home"
+              className="flex flex-col leading-none cursor-pointer group select-none text-left"
             >
-              <div
-                className="w-8 h-8 rounded-xl flex items-center justify-center shadow-md group-hover:scale-105 transition-transform"
-                style={{ background: `linear-gradient(135deg, ${genreInfo.accent}, #9333EA)` }}
+              <span
+                className="font-serif text-[22px] font-light tracking-[0.06em] text-white group-hover:text-[#DDB96A] transition-colors"
+                style={{ fontFamily: "'Cormorant Garamond', serif", letterSpacing: "0.08em" }}
               >
-                <span className="text-white text-xs">♪</span>
-              </div>
-              <span className="font-display font-bold text-lg tracking-tight group-hover:opacity-90 transition-opacity text-white">
-                StageBridge <span className="font-sans text-xs font-semibold px-2 py-0.5 rounded-full bg-white/10" style={{ color: genreInfo.vibe.highlightColor }}>{genreInfo.title}</span>
+                MANNAT ARTS
               </span>
-            </div>
+              <span className="label-editorial text-[#DDB96A] tracking-[0.22em]" style={{ fontSize: "7px" }}>
+                {genreInfo.title.toUpperCase()} EXPERIENCE
+              </span>
+            </button>
 
-            {/* Quick Switcher Carousel */}
+            {/* Quick Switcher */}
             <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
-              <span className="text-xs text-white/60 font-medium mr-1 whitespace-nowrap">Switch Genre:</span>
+              <span className="label-editorial text-white/50 text-[9px] mr-1 whitespace-nowrap">SWITCH TRADITION:</span>
               {(Object.keys(GENRE_METADATA) as Array<"sufi" | "rock" | "gazal" | "bollywood" | "carnival" | "devotional">).map(gId => {
                 const meta = GENRE_METADATA[gId];
                 const isActive = gId === genreId;
@@ -117,14 +104,12 @@ export function GenreView({
                   <button
                     key={gId}
                     onClick={() => onSelectGenre(gId)}
-                    className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
+                    className={`font-ui px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
                       isActive
-                        ? "text-white shadow-xl scale-105 font-bold border border-white/40"
+                        ? "text-[#1A1916] shadow-lg scale-105 bg-[#C4952A]"
                         : "bg-white/10 hover:bg-white/20 text-white/80 border border-white/15"
                     }`}
-                    style={isActive ? { background: meta.vibe.bgGradient, boxShadow: `0 0 20px ${meta.vibe.radialGlow1}` } : {}}
                   >
-                    <span>{meta.icon}</span>
                     <span>{meta.title}</span>
                   </button>
                 );
@@ -133,122 +118,101 @@ export function GenreView({
           </div>
         </div>
 
-        {/* Center Main Stage & Headline Content (Clean Left Half: Zero Clashing) */}
-        <div className="flex-1 flex items-center w-full max-w-[1550px] mx-auto px-4 sm:px-6 lg:px-8 py-4 relative z-10">
-          <div className="w-full lg:w-[48%] max-w-2xl space-y-5">
-            {/* Genre-Specific Vibe Badge & Live Indicator */}
+        {/* Center Main Stage Content */}
+        <div className="flex-1 flex items-center w-full max-w-7xl mx-auto px-6 lg:px-8 py-10 relative z-10">
+          <div className="w-full lg:w-[50%] max-w-2xl space-y-6">
             <div className="flex flex-wrap items-center gap-2">
-              <div
-                className={`inline-flex items-center gap-2 ${genreInfo.vibe.badgeBg} border ${genreInfo.vibe.badgeBorder} px-4 py-1.5 rounded-full text-xs font-bold ${genreInfo.vibe.badgeText} tracking-wide uppercase shadow-sm`}
-              >
-                <span className="text-sm">{genreInfo.icon}</span>
-                <span>Exclusive {genreInfo.tag} Platform</span>
-              </div>
+              <span className="label-editorial text-[#DDB96A] tracking-[0.25em]" style={{ fontSize: "10px" }}>
+                · CULTURAL TRADITION ·
+              </span>
               <div className="inline-flex items-center gap-1.5 bg-white/10 backdrop-blur-md border border-white/15 px-3 py-1 rounded-full text-xs font-semibold text-white/90">
                 <span className="text-green-400 font-bold">●</span>
-                <span>Verified Top Acts Ready</span>
+                <span>Verified Artists Available</span>
               </div>
             </div>
 
-            {/* Title with Genre Highlight */}
-            <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold leading-[1.1] text-white tracking-tight">
-              Experience Soulful{" "}
-              <span
-                style={{ color: genreInfo.vibe.highlightColor, textShadow: `0 0 40px ${genreInfo.vibe.radialGlow1}` }}
-                className="italic font-serif"
-              >
+            <h1
+              className="font-serif font-light text-white leading-[1.08] tracking-[-0.01em]"
+              style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(42px, 5.5vw, 80px)" }}
+            >
+              Experience Soulful<br />
+              <em style={{ fontStyle: "italic", color: "#DDB96A" }}>
                 {genreInfo.title}
-              </span>
-              <br />
-              Live Stage Performances
+              </em><br />
+              Performances
             </h1>
 
-            {/* Description */}
-            <p className="font-body text-white/85 text-sm sm:text-base leading-relaxed max-w-xl">
+            <p className="font-ui text-[#A8A49A] text-[15px] font-light leading-relaxed max-w-xl">
               {genreInfo.longDescription}
             </p>
           </div>
         </div>
 
-        {/* Bottom Bar: Clean Scroll Indicator */}
-        <div className="w-full max-w-[1550px] mx-auto px-4 sm:px-6 lg:px-8 pb-5 pt-1 flex items-center justify-center relative z-10">
+        {/* Bottom Bar: Scroll link */}
+        <div className="w-full max-w-7xl mx-auto px-6 lg:px-8 pb-6 flex items-center justify-center relative z-10">
           <a
             href="#artists-grid"
-            className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-xs font-semibold text-white/90 hover:text-white transition-all shadow-lg hover:scale-105 group cursor-pointer"
+            className="font-ui inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-xs font-semibold text-white transition-all shadow-md cursor-pointer"
           >
-            <span>Explore {genreInfo.title} Artists & Live Acts</span>
-            <span className="text-sm">↓</span>
+            <span>Explore {genreInfo.title} Performers</span>
+            <span>↓</span>
           </a>
         </div>
       </section>
 
-      {/* ── ARTIST SEARCH & FILTER CONTROLS ───────────────────────────── */}
-      <div id="artists-grid" className="w-full max-w-[1550px] mx-auto px-4 sm:px-6 lg:px-8 pt-10 mb-8">
-        <div className="bg-white rounded-2xl p-5 shadow-sm border border-[#F3E5E8] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-center">
-          {/* Search Input */}
+      {/* ── FILTER BAR ── */}
+      <div id="artists-grid" className="w-full max-w-7xl mx-auto px-6 lg:px-8 pt-12 pb-8">
+        <div className="bg-[#242320] rounded-2xl p-6 shadow-xl border border-white/10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 items-center">
           <div>
-            <label className="block text-xs font-bold text-[#5B5B5B] mb-1 uppercase tracking-wider">
-              Search Artist or Skill
+            <label className="label-editorial text-white/60 block mb-2" style={{ fontSize: "9px" }}>
+              SEARCH PERFORMER
             </label>
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="e.g. Qawwali, Sarangi, Rock Band..."
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-                className="w-full bg-[#FFF8F8] border border-[#F3E5E8] rounded-xl px-3.5 py-2 text-xs sm:text-sm font-body text-[#1A1A1A] focus:outline-none focus:border-[#E11D48]"
-              />
-              {searchTerm && (
-                <button
-                  onClick={() => setSearchTerm("")}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-xs"
-                >
-                  ✕
-                </button>
-              )}
-            </div>
+            <input
+              type="text"
+              placeholder="e.g. Artist name, skill..."
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              className="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-ui text-white placeholder-white/40 focus:outline-none focus:border-[#C4952A]"
+            />
           </div>
 
-          {/* City Filter */}
           <div>
-            <label className="block text-xs font-bold text-[#5B5B5B] mb-1 uppercase tracking-wider">
-              Location / City
+            <label className="label-editorial text-white/60 block mb-2" style={{ fontSize: "9px" }}>
+              LOCATION / CITY
             </label>
             <select
               value={selectedCity}
               onChange={e => setSelectedCity(e.target.value)}
-              className="w-full bg-[#FFF8F8] border border-[#F3E5E8] rounded-xl px-3.5 py-2 text-xs sm:text-sm font-body text-[#1A1A1A] focus:outline-none focus:border-[#E11D48] cursor-pointer"
+              className="w-full bg-[#1A1916] border border-white/15 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-ui text-white focus:outline-none focus:border-[#C4952A] cursor-pointer"
             >
               {allCities.map(c => (
-                <option key={c} value={c}>{c === "All" ? "All Locations" : c}</option>
+                <option key={c} value={c} className="bg-[#1A1916] text-white">{c === "All" ? "All Locations" : c}</option>
               ))}
             </select>
           </div>
 
-          {/* Band Type Filter */}
           <div>
-            <label className="block text-xs font-bold text-[#5B5B5B] mb-1 uppercase tracking-wider">
-              Format / Setup
+            <label className="label-editorial text-white/60 block mb-2" style={{ fontSize: "9px" }}>
+              FORMAT / SETUP
             </label>
             <select
               value={selectedBandType}
               onChange={e => setSelectedBandType(e.target.value)}
-              className="w-full bg-[#FFF8F8] border border-[#F3E5E8] rounded-xl px-3.5 py-2 text-xs sm:text-sm font-body text-[#1A1A1A] focus:outline-none focus:border-[#E11D48] cursor-pointer"
+              className="w-full bg-[#1A1916] border border-white/15 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-ui text-white focus:outline-none focus:border-[#C4952A] cursor-pointer"
             >
-              <option value="All">All Formats</option>
-              <option value="Solo">Solo Artist</option>
-              <option value="Duo">Duo</option>
-              <option value="Trio">Trio</option>
-              <option value="4-6 Piece Band">4-6 Piece Live Band</option>
-              <option value="Full Troupe (8+ Members)">Full Troupe (8+ Members)</option>
+              <option value="All" className="bg-[#1A1916] text-white">All Formats</option>
+              <option value="Solo" className="bg-[#1A1916] text-white">Solo Artist</option>
+              <option value="Duo" className="bg-[#1A1916] text-white">Duo</option>
+              <option value="Trio" className="bg-[#1A1916] text-white">Trio</option>
+              <option value="4-6 Piece Band" className="bg-[#1A1916] text-white">4-6 Piece Live Band</option>
+              <option value="Full Troupe (8+ Members)" className="bg-[#1A1916] text-white">Full Troupe (8+ Members)</option>
             </select>
           </div>
 
-          {/* Budget Filter */}
           <div>
-            <div className="flex justify-between items-center text-xs font-bold text-[#5B5B5B] mb-1 uppercase tracking-wider">
-              <span>Max Budget</span>
-              <span className="text-[#E11D48] font-bold">₹{maxBudget.toLocaleString()}</span>
+            <div className="flex justify-between items-center mb-2">
+              <label className="label-editorial text-white/60" style={{ fontSize: "9px" }}>MAX BUDGET</label>
+              <span className="font-ui text-xs font-bold text-[#DDB96A]">₹{maxBudget.toLocaleString()}</span>
             </div>
             <input
               type="range"
@@ -257,34 +221,32 @@ export function GenreView({
               step={10000}
               value={maxBudget}
               onChange={e => setMaxBudget(Number(e.target.value))}
-              className="w-full accent-[#E11D48] cursor-pointer"
+              className="w-full accent-[#C4952A] cursor-pointer"
             />
-            <div className="flex justify-between text-[10px] text-[#5B5B5B]">
-              <span>₹15k</span>
-              <span>₹5L+</span>
-            </div>
           </div>
         </div>
       </div>
 
-      {/* ── ARTISTS LISTING GRID ──────────────────────────────────────── */}
-      <div className="w-full max-w-[1550px] mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="font-display text-2xl font-bold text-[#1A1A1A]">
+      {/* ── ARTISTS LISTING GRID ── */}
+      <div className="w-full max-w-7xl mx-auto px-6 lg:px-8">
+        <div className="flex items-center justify-between mb-8 pb-4 border-b border-white/10">
+          <h2
+            className="font-serif font-light text-2xl sm:text-3xl text-white"
+            style={{ fontFamily: "'Cormorant Garamond', serif" }}
+          >
             Verified {genreInfo.title} Performers ({artists.length})
           </h2>
-          <span className="text-xs text-[#5B5B5B]">
-            Showing talent for <strong>{genreInfo.title}</strong>
+          <span className="font-ui text-xs text-white/60">
+            Showing talent for <strong className="text-[#DDB96A]">{genreInfo.title}</strong>
           </span>
         </div>
 
         {artists.length === 0 ? (
-          <div className="bg-white rounded-3xl p-12 text-center border border-[#F3E5E8]">
-            <div className="text-4xl mb-3">🔍</div>
-            <h3 className="font-display font-bold text-lg text-[#1A1A1A] mb-1">
+          <div className="bg-[#242320] rounded-3xl p-16 text-center border border-white/10">
+            <h3 className="font-serif font-light text-xl text-white mb-2" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
               No artists found matching your criteria
             </h3>
-            <p className="font-body text-xs text-[#5B5B5B] mb-4">
+            <p className="font-ui text-xs text-white/60 mb-6">
               Try adjusting your city filter or increasing your maximum budget.
             </p>
             <button
@@ -294,67 +256,68 @@ export function GenreView({
                 setSelectedBandType("All");
                 setMaxBudget(100000);
               }}
-              className="px-4 py-2 rounded-full bg-[#E11D48] text-white text-xs font-bold hover:bg-[#BE123C] cursor-pointer"
+              className="font-ui px-6 py-2.5 rounded-full bg-[#C4952A] text-[#1A1916] text-xs font-semibold hover:bg-[#DDB96A] cursor-pointer transition-all"
             >
               Reset Filters
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {artists.map(artist => (
               <div
                 key={artist.id}
-                className="bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-[#F3E5E8] flex flex-col group"
+                className="bg-[#242320] rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-400 border border-white/10 hover:border-[#C4952A]/40 flex flex-col group lift-card"
               >
                 {/* Photo Banner */}
                 <div
-                  className="relative h-60 overflow-hidden bg-gray-900 cursor-pointer"
+                  className="relative h-64 overflow-hidden bg-black/50 cursor-pointer img-zoom"
                   onClick={() => onSelectArtist(artist)}
                 >
                   <img
                     src={artist.img}
                     alt={artist.name}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 brightness-95 group-hover:brightness-105"
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#242320] via-black/40 to-transparent" />
 
                   {/* Top Badges */}
-                  <span className="absolute top-3.5 left-3.5 bg-[#E11D48] text-white font-body text-xs font-bold px-3 py-1 rounded-full shadow-md">
+                  <span className="absolute top-3.5 left-3.5 bg-black/60 backdrop-blur-md text-white font-ui text-[10px] font-bold px-3 py-1 rounded-full border border-white/10">
                     {artist.bandType}
                   </span>
-                  <span className="absolute top-3.5 right-3.5 bg-white/90 backdrop-blur-sm text-green-700 font-body text-xs font-semibold px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm">
+                  <span className="absolute top-3.5 right-3.5 bg-black/60 backdrop-blur-md text-[#DDB96A] border border-[#DDB96A]/30 font-ui text-[10px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm">
                     ✓ Verified
                   </span>
 
                   {/* Bottom Image Overlay */}
-                  <div className="absolute bottom-3.5 left-4 right-4 text-white">
-                    <div className="font-display font-bold text-xl text-white drop-shadow-md">
-                      {artist.name}
-                    </div>
-                    <div className="flex items-center justify-between text-xs text-white/85 mt-0.5">
-                      <span>📍 {artist.city}, {artist.state}</span>
-                      <span className="text-yellow-300 font-bold">★ {artist.rating} ({artist.reviewsCount})</span>
+                  <div className="absolute bottom-4 left-4 right-4 text-white">
+                    <h3
+                      className="font-serif font-light text-2xl text-white drop-shadow-md group-hover:text-[#DDB96A] transition-colors leading-tight"
+                      style={{ fontFamily: "'Cormorant Garamond', serif" }}
+                    >
+                      {artist.stageName || artist.name}
+                    </h3>
+                    <div className="flex items-center justify-between text-xs text-white/80 mt-1">
+                      <span>{artist.city}, {artist.state}</span>
+                      <span className="text-[#DDB96A] font-bold">★ {artist.rating} ({artist.reviewsCount})</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Card Body */}
-                <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
-                  {/* Tagline */}
-                  <p className="font-body text-xs text-[#5B5B5B] leading-relaxed line-clamp-2">
+                <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
+                  <p className="font-ui text-xs text-white/70 leading-relaxed line-clamp-2">
                     {artist.tagline}
                   </p>
 
-                  {/* Highlight: "What this artist also does" */}
-                  <div className="bg-[#FFF8F8] p-3.5 rounded-2xl border border-[#F3E5E8] space-y-2">
-                    <div className="text-[11px] font-bold text-[#BE123C] uppercase tracking-wider flex items-center gap-1">
-                      <span>✨ What This Artist Also Does:</span>
+                  <div className="bg-white/5 p-3.5 rounded-xl border border-white/10 space-y-2">
+                    <div className="label-editorial text-[#DDB96A]" style={{ fontSize: "8px" }}>
+                      ACTS &amp; STYLES:
                     </div>
                     <div className="flex flex-wrap gap-1.5">
                       {artist.whatElseTheyDo.slice(0, 3).map((item, i) => (
                         <span
                           key={i}
-                          className="text-[11px] font-medium bg-white text-[#4A4A4A] px-2.5 py-1 rounded-lg border border-[#F3E5E8] shadow-2xs"
+                          className="font-ui text-[11px] font-medium bg-white/10 text-white/90 px-2.5 py-0.5 rounded-md border border-white/10"
                         >
                           {item.category}
                         </span>
@@ -362,37 +325,35 @@ export function GenreView({
                     </div>
                   </div>
 
-                  {/* Instruments */}
-                  <div className="flex items-center gap-1.5 text-xs text-[#5B5B5B] flex-wrap">
-                    <span className="font-semibold text-[#1A1A1A]">Gear:</span>
+                  {/* Instrumentation */}
+                  <div className="flex items-center gap-1.5 text-xs text-white/70 flex-wrap">
+                    <span className="label-editorial text-white/50" style={{ fontSize: "8px" }}>INSTRUMENTS:</span>
                     {artist.primaryInstruments.slice(0, 3).map(inst => (
-                      <span key={inst} className="bg-gray-100 text-gray-700 px-2 py-0.5 rounded-full text-[10px]">
+                      <span key={inst} className="bg-white/10 text-white/80 px-2 py-0.5 rounded-md text-[10px] border border-white/10">
                         {inst}
                       </span>
                     ))}
                   </div>
 
                   {/* Price & Action Buttons */}
-                  <div className="pt-2 border-t border-[#F3E5E8] flex items-center justify-between gap-2">
+                  <div className="pt-3 border-t border-white/10 flex items-center justify-between gap-2">
                     <div>
-                      <div className="text-[10px] text-[#5B5B5B]">Starting From</div>
-                      <div className="font-display font-bold text-lg text-[#E11D48]">
-                        {artist.price}
-                      </div>
+                      <span className="label-editorial text-white/50 block" style={{ fontSize: "8px" }}>STARTING RATE</span>
+                      <span className="font-ui font-bold text-sm text-white mt-0.5 block">{artist.price}</span>
                     </div>
 
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => onSelectArtist(artist)}
-                        className="px-3.5 py-2 rounded-full border border-[#E11D48] text-[#E11D48] hover:bg-[#FFF0F3] text-xs font-semibold transition-colors cursor-pointer"
+                        className="font-ui text-xs font-semibold px-4 py-2 rounded-full border border-white/30 text-white hover:bg-white/10 transition-all cursor-pointer"
                       >
                         Details
                       </button>
                       <button
                         onClick={() => onBookArtist(artist)}
-                        className="px-4 py-2 rounded-full bg-[#E11D48] hover:bg-[#BE123C] text-white text-xs font-bold shadow-md transition-all hover:scale-105 cursor-pointer"
+                        className="font-ui text-xs font-semibold px-4 py-2 rounded-full bg-[#C4952A] hover:bg-[#DDB96A] text-[#1A1916] transition-all cursor-pointer shadow-md"
                       >
-                        ⚡ Book
+                        Book Now
                       </button>
                     </div>
                   </div>

@@ -22,32 +22,30 @@ export function ArtistsPage({
   const [selectedCity, setSelectedCity] = useState("All");
   const [selectedBandType, setSelectedBandType] = useState("All");
   const [maxBudget, setMaxBudget] = useState<number>(120000);
-  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
 
   // Artist Type options for dynamic banner and filtering
   const artistTypes = [
-    { id: "all", label: "All Artists", icon: "⭐", count: sourceArtists.length },
-    { id: "sufi", label: "Sufi Performers", icon: "🕊️", count: sourceArtists.filter(a => a.genre === "sufi").length },
-    { id: "rock", label: "Rock Bands", icon: "🎸", count: sourceArtists.filter(a => a.genre === "rock").length },
-    { id: "gazal", label: "Ghazal Maestros", icon: "📜", count: sourceArtists.filter(a => a.genre === "gazal").length },
-    { id: "bollywood", label: "Bollywood Singers", icon: "🎬", count: sourceArtists.filter(a => a.genre === "bollywood").length },
-    { id: "carnival", label: "Carnival Acts", icon: "🎡", count: sourceArtists.filter(a => a.genre === "carnival").length },
-    { id: "devotional", label: "Devotional Vocalists", icon: "🪔", count: sourceArtists.filter(a => a.genre === "devotional").length },
+    { id: "all", label: "All Artists", count: sourceArtists.length },
+    { id: "sufi", label: "Sufi Performers", count: sourceArtists.filter(a => a.genre === "sufi").length },
+    { id: "rock", label: "Rock Bands", count: sourceArtists.filter(a => a.genre === "rock").length },
+    { id: "gazal", label: "Ghazal Maestros", count: sourceArtists.filter(a => a.genre === "gazal").length },
+    { id: "bollywood", label: "Bollywood Singers", count: sourceArtists.filter(a => a.genre === "bollywood").length },
+    { id: "carnival", label: "Carnival Acts", count: sourceArtists.filter(a => a.genre === "carnival").length },
+    { id: "devotional", label: "Devotional Artists", count: sourceArtists.filter(a => a.genre === "devotional").length },
   ];
 
   // Dynamic banner data based on selected artist type
   const bannerData = useMemo(() => {
     if (selectedType === "all") {
       return {
-        title: "India's Premier Verified Artists & Performers",
-        subtitle: "Discover over 2,800+ verified vocalists, live bands, sufi ensembles, ghazal maestros, carnival troupes, and devotional artists for your memorable events.",
-        badge: "✨ Verified Master Talent Roster",
+        title: "Verified Performing Artists & Master Ensembles",
+        subtitle: "Direct curation with verified vocalists, live bands, sufi ensembles, ghazal maestros, and theatrical acts for weddings, galas, and festivals.",
+        badge: "VERIFIED MASTER ROSTER",
         bgImg: "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=1400&h=700&fit=crop&auto=format",
-        accent: "#E11D48",
         stat1: `${sourceArtists.length}+ Artists`,
         stat2: "4.9/5 Avg. Rating",
         stat3: "42+ Cities Covered",
-        stat4: "100% Escrow Safe",
+        stat4: "Verified Artists",
         tags: ["Live Concerts", "Weddings & Sangeet", "Corporate Summits", "Cultural Festivals", "Private VIP Baithaks"],
       };
     }
@@ -57,13 +55,12 @@ export function ArtistsPage({
       return {
         title: `Elite ${genre.title} Artists & Live Troupes`,
         subtitle: genre.longDescription,
-        badge: `✨ Verified ${genre.title} Performers`,
+        badge: `VERIFIED ${genre.title.toUpperCase()} PERFORMERS`,
         bgImg: genre.heroImg,
-        accent: genre.accent,
         stat1: genre.avgPriceRange,
-        stat2: "★ 4.9/5 Rating",
+        stat2: "4.9/5 Rating",
         stat3: "Pan-India & Global",
-        stat4: "Direct Contract",
+        stat4: "Direct Booking",
         tags: genre.popularOccasions,
       };
     }
@@ -71,13 +68,12 @@ export function ArtistsPage({
     return {
       title: "Discover Exceptional Live Artists",
       subtitle: "Hand-picked performers for every occasion.",
-      badge: "✨ Verified Performers",
+      badge: "VERIFIED PERFORMERS",
       bgImg: "https://images.unsplash.com/photo-1464375117522-1311d6a5b81f?w=1400&h=700&fit=crop&auto=format",
-      accent: "#E11D48",
       stat1: "Verified",
       stat2: "Top Rated",
       stat3: "All Formats",
-      stat4: "Escrow Safe",
+      stat4: "Curated",
       tags: ["Weddings", "Concerts", "Festivals"],
     };
   }, [selectedType, sourceArtists]);
@@ -114,50 +110,53 @@ export function ArtistsPage({
   }, [sourceArtists]);
 
   return (
-    <div className="min-h-screen bg-[#FAF7F6] text-[#1A1A1A] pb-28">
-      {/* ── DYNAMIC ARTIST TYPE BANNER PAGE ──────────────────────────────── */}
-      <section className="relative bg-[#100104] text-white overflow-hidden border-b border-[#E11D48]/20 shadow-2xl transition-all duration-700">
-        {/* Background Image that morphs according to the artist type */}
+    <div className="min-h-screen pb-28 text-[#1A1916]" style={{ background: "#FAF7F2", fontFamily: "'Manrope', system-ui, sans-serif" }}>
+      {/* ── TOP EDITORIAL HEADER ─────────────────────────────────────────── */}
+      <header className="sticky top-0 z-40 bg-[#FAF7F2]/95 backdrop-blur-md border-b border-[#EDE8DF] shadow-xs">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8 h-[68px] flex items-center justify-between">
+          <button
+            onClick={onBackHome}
+            className="flex flex-col leading-none cursor-pointer group select-none text-left"
+          >
+            <span
+              className="font-serif text-[22px] font-light tracking-[0.06em] text-[#1A1916] group-hover:text-[#C4952A] transition-colors"
+              style={{ fontFamily: "'Cormorant Garamond', serif", letterSpacing: "0.08em" }}
+            >
+              MANNAT ARTS
+            </span>
+            <span className="label-editorial text-[#C4952A] tracking-[0.22em]" style={{ fontSize: "7px" }}>
+              ARTIST DIRECTORY
+            </span>
+          </button>
+
+          <button
+            onClick={onBackHome}
+            className="font-ui text-[13px] font-medium text-[#4A4845] hover:text-[#1A1916] transition-colors cursor-pointer"
+          >
+            ← Back to Home
+          </button>
+        </div>
+      </header>
+
+      {/* ── CINEMATIC DYNAMIC BANNER ──────────────────────────────────────── */}
+      <section className="relative bg-[#1A1916] text-white overflow-hidden border-b border-white/10 shadow-2xl transition-all duration-700">
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <img
             key={bannerData.bgImg}
             src={bannerData.bgImg}
             alt={bannerData.title}
-            className="w-full h-full object-cover opacity-35 scale-105 transition-all duration-1000 animate-pulse-subtle"
-            style={{ animationDuration: "14s" }}
+            className="w-full h-full object-cover opacity-30 scale-105 transition-all duration-1000"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#100104] via-[#100104]/90 to-[#100104]/60" />
-          <div className="absolute top-0 right-1/4 w-96 h-96 rounded-full" style={{ background: `radial-gradient(circle, ${bannerData.accent}40 0%, transparent 70%)` }} />
-          <div className="absolute bottom-0 left-1/4 w-80 h-80 rounded-full" style={{ background: "radial-gradient(circle, rgba(225,29,72,0.2) 0%, transparent 70%)" }} />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#1A1916] via-[#1A1916]/90 to-[#1A1916]/60" />
+          <div className="absolute top-0 right-1/4 w-96 h-96 rounded-full opacity-20" style={{ background: "radial-gradient(circle, #C4952A 0%, transparent 70%)" }} />
         </div>
 
-        <div className="max-w-7xl mx-auto px-6 pt-8 pb-12 relative z-10">
-          {/* Top Bar inside Banner: Clickable Brand Logo + Status */}
-          <div className="flex items-center justify-between gap-4 mb-8 pb-4 border-b border-white/10">
-            <div
-              onClick={onBackHome}
-              className="flex items-center gap-2 cursor-pointer group select-none"
-              title="Return to Home"
-            >
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#E11D48] to-[#9333EA] flex items-center justify-center shadow-md group-hover:scale-105 transition-transform">
-                <span className="text-white text-xs">♪</span>
-              </div>
-              <span className="font-display font-bold text-lg tracking-tight group-hover:text-[#FB7185] transition-colors">
-                StageBridge <span className="text-[#FB7185] font-sans text-xs font-semibold">Artist Directory</span>
-              </span>
-            </div>
-
-            <div className="hidden sm:flex items-center gap-2 text-xs text-white/80 bg-white/05 px-3 py-1.5 rounded-full border border-white/10">
-              <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-              <span>2,800+ Verified Artists Ready</span>
-            </div>
-          </div>
-
-          {/* Artist Type Selector Tabs directly in the Banner */}
+        <div className="max-w-7xl mx-auto px-6 lg:px-8 pt-10 pb-14 relative z-10">
+          {/* Artist Type Selector Tabs */}
           <div className="mb-8">
-            <div className="text-xs text-white/60 font-semibold mb-2 uppercase tracking-wider">
-              Select Artist Type / Genre:
-            </div>
+            <span className="label-editorial text-[#DDB96A] tracking-[0.2em] block mb-3" style={{ fontSize: "9px" }}>
+              BROWSE BY GENRE
+            </span>
             <div className="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar">
               {artistTypes.map(type => {
                 const isSelected = selectedType === type.id;
@@ -165,15 +164,14 @@ export function ArtistsPage({
                   <button
                     key={type.id}
                     onClick={() => setSelectedType(type.id)}
-                    className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-2 ${
+                    className={`font-ui px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer flex items-center gap-2 ${
                       isSelected
-                        ? "bg-gradient-to-r from-[#E11D48] to-[#FB7185] text-white shadow-xl scale-105 border border-white/30"
-                        : "bg-white/10 hover:bg-white/20 text-white/80 border border-white/15 hover:border-white/30"
+                        ? "bg-[#C4952A] text-[#1A1916] shadow-lg scale-105"
+                        : "bg-white/10 hover:bg-white/20 text-white/80 border border-white/15"
                     }`}
                   >
-                    <span>{type.icon}</span>
                     <span>{type.label}</span>
-                    <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${isSelected ? "bg-black/30 text-white" : "bg-white/10 text-white/60"}`}>
+                    <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${isSelected ? "bg-[#1A1916]/20 text-[#1A1916]" : "bg-white/10 text-white/60"}`}>
                       {type.count}
                     </span>
                   </button>
@@ -183,157 +181,110 @@ export function ArtistsPage({
           </div>
 
           {/* Dynamic Hero Content Grid */}
-          <div className="grid lg:grid-cols-12 gap-8 items-center">
+          <div className="grid lg:grid-cols-12 gap-10 items-center">
             {/* Left Content Column */}
             <div className="lg:col-span-7 space-y-5">
-              {/* Badge */}
-              <div className="inline-flex items-center gap-2 bg-[#E11D48]/25 border border-[#E11D48]/50 px-3.5 py-1.5 rounded-full text-xs font-bold text-[#FB7185] tracking-wide uppercase shadow-sm">
-                <span>{bannerData.badge}</span>
-                <span className="w-1.5 h-1.5 rounded-full bg-[#FB7185] animate-pulse" />
-              </div>
+              <span className="label-editorial text-[#DDB96A] tracking-[0.25em] inline-block" style={{ fontSize: "10px" }}>
+                · {bannerData.badge} ·
+              </span>
 
-              {/* Title */}
-              <h1 className="font-display text-3xl sm:text-5xl lg:text-5xl font-bold leading-[1.15] text-white tracking-tight">
+              <h1
+                className="font-serif font-light text-white leading-[1.1] tracking-[-0.01em]"
+                style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(36px, 4.5vw, 60px)" }}
+              >
                 {bannerData.title}
               </h1>
 
-              {/* Subtitle */}
-              <p className="font-body text-white/85 text-xs sm:text-sm leading-relaxed max-w-2xl">
+              <p className="font-ui text-[#A8A49A] text-[14px] leading-relaxed max-w-2xl">
                 {bannerData.subtitle}
               </p>
 
               {/* Key Highlights Metrics */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
-                <div className="bg-white/05 backdrop-blur-md p-3 rounded-2xl border border-white/10">
-                  <div className="text-[10px] text-white/60">Rating</div>
-                  <div className="font-display font-bold text-base text-yellow-300">{bannerData.stat2}</div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
+                <div className="bg-white/05 backdrop-blur-md p-3.5 rounded-xl border border-white/10">
+                  <div className="label-editorial text-white/60" style={{ fontSize: "8px" }}>RATING</div>
+                  <div className="font-serif font-light text-xl text-[#DDB96A] mt-0.5" style={{ fontFamily: "'Cormorant Garamond', serif" }}>{bannerData.stat2}</div>
                 </div>
-                <div className="bg-white/05 backdrop-blur-md p-3 rounded-2xl border border-white/10">
-                  <div className="text-[10px] text-white/60">Typical Range</div>
-                  <div className="font-display font-bold text-sm text-[#FB7185]">{bannerData.stat1}</div>
+                <div className="bg-white/05 backdrop-blur-md p-3.5 rounded-xl border border-white/10">
+                  <div className="label-editorial text-white/60" style={{ fontSize: "8px" }}>TYPICAL RANGE</div>
+                  <div className="font-serif font-light text-xl text-white mt-0.5" style={{ fontFamily: "'Cormorant Garamond', serif" }}>{bannerData.stat1}</div>
                 </div>
-                <div className="bg-white/05 backdrop-blur-md p-3 rounded-2xl border border-white/10">
-                  <div className="text-[10px] text-white/60">Availability</div>
-                  <div className="font-display font-bold text-sm text-white">{bannerData.stat3}</div>
+                <div className="bg-white/05 backdrop-blur-md p-3.5 rounded-xl border border-white/10">
+                  <div className="label-editorial text-white/60" style={{ fontSize: "8px" }}>AVAILABILITY</div>
+                  <div className="font-ui font-semibold text-xs text-white mt-1">{bannerData.stat3}</div>
                 </div>
-                <div className="bg-white/05 backdrop-blur-md p-3 rounded-2xl border border-white/10">
-                  <div className="text-[10px] text-white/60">Contract &amp; Escrow</div>
-                  <div className="font-display font-bold text-sm text-green-400">{bannerData.stat4}</div>
+                <div className="bg-white/05 backdrop-blur-md p-3.5 rounded-xl border border-white/10">
+                  <div className="label-editorial text-white/60" style={{ fontSize: "8px" }}>CURATION</div>
+                  <div className="font-ui font-semibold text-xs text-[#DDB96A] mt-1">{bannerData.stat4}</div>
                 </div>
               </div>
 
-              {/* Occasions / Capabilities Tags */}
-              <div className="flex flex-wrap items-center gap-1.5 text-xs">
-                <span className="text-white/60 font-semibold mr-1 text-[11px]">Recommended For:</span>
-                {bannerData.tags.map(t => (
+              {/* Suitable Occasions Pills */}
+              <div className="flex items-center gap-2 flex-wrap pt-2">
+                <span className="label-editorial text-white/50" style={{ fontSize: "9px" }}>POPULAR FOR:</span>
+                {bannerData.tags.map((tag, idx) => (
                   <span
-                    key={t}
-                    className="bg-white/10 backdrop-blur-sm border border-white/15 px-2.5 py-0.5 rounded-full text-white/90 text-[11px]"
+                    key={idx}
+                    className="font-ui text-xs bg-white/10 text-white/85 px-3 py-1 rounded-full border border-white/15"
                   >
-                    ✓ {t}
+                    {tag}
                   </span>
                 ))}
               </div>
-
-              {/* Action Buttons */}
-              <div className="flex flex-wrap items-center gap-3 pt-2">
-                <a
-                  href="#artists-catalogue"
-                  className="px-5 py-2.5 rounded-full bg-gradient-to-r from-[#E11D48] via-[#F43F5E] to-[#BE123C] text-white font-bold text-xs sm:text-sm shadow-xl hover:shadow-2xl hover:scale-105 transition-all flex items-center gap-2 cursor-pointer"
-                >
-                  <span>Browse {filteredArtists.length} Verified Artists ↓</span>
-                </a>
-                <button
-                  onClick={() => onBookArtist(activeSpotlightArtist)}
-                  className="px-5 py-2.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/30 text-white font-semibold text-xs sm:text-sm transition-all hover:scale-105 cursor-pointer"
-                >
-                  <span>⚡ Instant Booking Inquiry</span>
-                </button>
-              </div>
             </div>
 
-            {/* Right Spotlight Card for the Selected Artist Type */}
+            {/* Right Column: Spotlight Feature Card */}
             <div className="lg:col-span-5">
-              <div className="relative rounded-3xl overflow-hidden glass-card bg-white/10 border border-white/20 shadow-2xl p-5 text-white backdrop-blur-xl group">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-[10px] font-bold uppercase tracking-wider bg-[#E11D48] text-white px-3 py-0.5 rounded-full shadow-sm flex items-center gap-1">
-                    <span>🌟 Featured {activeSpotlightArtist.genreTitle} Act</span>
+              <div className="bg-[#FAF7F2] text-[#1A1916] rounded-2xl p-6 border border-[#EDE8DF] shadow-2xl lift-card">
+                <div className="flex items-center justify-between mb-4 pb-3 border-b border-[#EDE8DF]">
+                  <span className="label-editorial text-[#C4952A]" style={{ fontSize: "9px" }}>
+                    FEATURED SPOTLIGHT
                   </span>
-                  <span className="text-xs text-yellow-300 font-bold">
-                    ★ {activeSpotlightArtist.rating} ({activeSpotlightArtist.reviewsCount} reviews)
+                  <span className="label-editorial text-[#7A776F] uppercase" style={{ fontSize: "9px" }}>
+                    {activeSpotlightArtist.city}
                   </span>
                 </div>
 
-                <div className="relative h-44 rounded-2xl overflow-hidden mb-3 bg-black/40">
+                <div className="flex items-center gap-4 mb-4">
                   <img
                     src={activeSpotlightArtist.img}
                     alt={activeSpotlightArtist.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    className="w-16 h-16 rounded-xl object-cover border border-[#EDE8DF]"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-transparent" />
-                  
-                  {/* Listen Preview audio toggle */}
-                  <button
-                    onClick={() => setIsPlayingAudio(!isPlayingAudio)}
-                    className="absolute bottom-2.5 right-2.5 px-3 py-1 rounded-full bg-black/70 hover:bg-[#E11D48] backdrop-blur-md border border-white/20 text-[11px] font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
-                  >
-                    <span>{isPlayingAudio ? "❚❚ Pause" : "▶ Audio Demo"}</span>
-                    {isPlayingAudio && (
-                      <div className="flex items-end gap-0.5 h-2.5">
-                        <div className="w-0.5 h-full bg-white animate-wave-bar" />
-                        <div className="w-0.5 h-3/4 bg-white animate-wave-bar" style={{ animationDelay: "0.2s" }} />
-                        <div className="w-0.5 h-full bg-white animate-wave-bar" style={{ animationDelay: "0.4s" }} />
-                      </div>
-                    )}
-                  </button>
-
-                  <div className="absolute bottom-2.5 left-3">
-                    <div className="font-display font-bold text-base text-white drop-shadow">
-                      {activeSpotlightArtist.name}
-                    </div>
-                    <div className="text-[10px] text-white/80">
-                      📍 {activeSpotlightArtist.city} • {activeSpotlightArtist.bandType}
-                    </div>
-                  </div>
-                </div>
-
-                {/* "What this artist also does" */}
-                <div className="bg-black/30 rounded-2xl p-3 border border-white/10 mb-3 space-y-1">
-                  <div className="text-[10px] font-bold text-[#FB7185] uppercase tracking-wider">
-                    ✨ Also Performs:
-                  </div>
-                  <div className="flex flex-wrap gap-1">
-                    {activeSpotlightArtist.whatElseTheyDo.slice(0, 3).map((item, i) => (
-                      <span
-                        key={i}
-                        className="text-[10px] bg-white/15 backdrop-blur-sm text-white px-2 py-0.5 rounded-lg border border-white/15"
-                      >
-                        {item.category}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Card CTA */}
-                <div className="flex items-center justify-between pt-1">
                   <div>
-                    <div className="text-[10px] text-white/60">Starting Fee</div>
-                    <div className="font-display font-bold text-lg text-[#FB7185]">
-                      {activeSpotlightArtist.price}
-                    </div>
+                    <h3
+                      className="font-serif font-light text-2xl text-[#1A1916] leading-tight"
+                      style={{ fontFamily: "'Cormorant Garamond', serif" }}
+                    >
+                      {activeSpotlightArtist.stageName || activeSpotlightArtist.name}
+                    </h3>
+                    <p className="font-ui text-xs text-[#7A776F] capitalize">
+                      {activeSpotlightArtist.genreTitle} · {activeSpotlightArtist.bandType}
+                    </p>
+                  </div>
+                </div>
+
+                <p className="font-ui text-xs text-[#4A4845] leading-relaxed line-clamp-2 mb-4">
+                  {activeSpotlightArtist.tagline}
+                </p>
+
+                <div className="flex items-center justify-between pt-3 border-t border-[#EDE8DF]">
+                  <div>
+                    <span className="label-editorial text-[#7A776F] block" style={{ fontSize: "8px" }}>STARTING FEE</span>
+                    <span className="font-ui font-bold text-sm text-[#1A1916]">{activeSpotlightArtist.price}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => onSelectArtist(activeSpotlightArtist)}
-                      className="px-3 py-1.5 rounded-full bg-white/15 hover:bg-white/25 text-xs font-semibold text-white transition-all cursor-pointer"
+                      className="font-ui text-xs font-semibold px-4 py-2 rounded-full border border-[#1A1916] text-[#1A1916] hover:bg-[#1A1916] hover:text-white transition-all cursor-pointer"
                     >
                       View Details
                     </button>
                     <button
                       onClick={() => onBookArtist(activeSpotlightArtist)}
-                      className="px-4 py-1.5 rounded-full bg-[#E11D48] hover:bg-[#BE123C] text-xs font-bold text-white shadow-md transition-all hover:scale-105 cursor-pointer"
+                      className="font-ui text-xs font-semibold px-4 py-2 rounded-full bg-[#C4952A] hover:bg-[#DDB96A] text-[#1A1916] transition-all cursor-pointer shadow-md"
                     >
-                      ⚡ Book
+                      Plan Event
                     </button>
                   </div>
                 </div>
@@ -344,25 +295,25 @@ export function ArtistsPage({
       </section>
 
       {/* ── SEARCH & FILTER CONTROLS ────────────────────────────────────── */}
-      <div id="artists-catalogue" className="max-w-7xl mx-auto px-6 pt-10 mb-8">
-        <div className="bg-white rounded-2xl p-5 shadow-sm border border-[#F3E5E8] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-center">
+      <div id="artists-catalogue" className="max-w-7xl mx-auto px-6 lg:px-8 pt-12 mb-10">
+        <div className="bg-[#FAF7F2] rounded-2xl p-6 shadow-sm border border-[#EDE8DF] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 items-center">
           {/* Keyword Search */}
           <div>
-            <label className="block text-xs font-bold text-[#5B5B5B] mb-1 uppercase tracking-wider">
-              Search Performer / Skill
+            <label className="label-editorial text-[#7A776F] block mb-2" style={{ fontSize: "9px" }}>
+              SEARCH PERFORMER / SKILL
             </label>
             <div className="relative">
               <input
                 type="text"
-                placeholder="e.g. Qawwali, Guitar, Singer..."
+                placeholder="e.g. Qawwali, Strings, Sufi..."
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
-                className="w-full bg-[#FFF8F8] border border-[#F3E5E8] rounded-xl px-3.5 py-2 text-xs sm:text-sm font-body text-[#1A1A1A] focus:outline-none focus:border-[#E11D48]"
+                className="w-full bg-[#F5F0E8] border border-[#EDE8DF] rounded-xl px-4 py-2.5 text-xs sm:text-sm font-ui text-[#1A1916] placeholder-[#A8A49A] focus:outline-none focus:border-[#C4952A] transition-colors"
               />
               {searchTerm && (
                 <button
                   onClick={() => setSearchTerm("")}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-xs"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#7A776F] hover:text-[#1A1916] text-xs cursor-pointer"
                 >
                   ✕
                 </button>
@@ -372,44 +323,50 @@ export function ArtistsPage({
 
           {/* City Filter */}
           <div>
-            <label className="block text-xs font-bold text-[#5B5B5B] mb-1 uppercase tracking-wider">
-              Location / City
+            <label className="label-editorial text-[#7A776F] block mb-2" style={{ fontSize: "9px" }}>
+              LOCATION / CITY
             </label>
             <select
               value={selectedCity}
               onChange={e => setSelectedCity(e.target.value)}
-              className="w-full bg-[#FFF8F8] border border-[#F3E5E8] rounded-xl px-3.5 py-2 text-xs sm:text-sm font-body text-[#1A1A1A] focus:outline-none focus:border-[#E11D48] cursor-pointer"
+              className="w-full bg-[#F5F0E8] border border-[#EDE8DF] rounded-xl px-4 py-2.5 text-xs sm:text-sm font-ui text-[#1A1916] focus:outline-none focus:border-[#C4952A] cursor-pointer transition-colors"
             >
-              {allCities.map(c => (
-                <option key={c} value={c}>{c === "All" ? "All Locations" : c}</option>
+              {allCities.map(city => (
+                <option key={city} value={city}>
+                  {city}
+                </option>
               ))}
             </select>
           </div>
 
-          {/* Band Type Filter */}
+          {/* Band Type */}
           <div>
-            <label className="block text-xs font-bold text-[#5B5B5B] mb-1 uppercase tracking-wider">
-              Band Format
+            <label className="label-editorial text-[#7A776F] block mb-2" style={{ fontSize: "9px" }}>
+              BAND / TROUPE FORMAT
             </label>
             <select
               value={selectedBandType}
               onChange={e => setSelectedBandType(e.target.value)}
-              className="w-full bg-[#FFF8F8] border border-[#F3E5E8] rounded-xl px-3.5 py-2 text-xs sm:text-sm font-body text-[#1A1A1A] focus:outline-none focus:border-[#E11D48] cursor-pointer"
+              className="w-full bg-[#F5F0E8] border border-[#EDE8DF] rounded-xl px-4 py-2.5 text-xs sm:text-sm font-ui text-[#1A1916] focus:outline-none focus:border-[#C4952A] cursor-pointer transition-colors"
             >
               <option value="All">All Formats</option>
-              <option value="Solo">Solo Artist</option>
+              <option value="Solo">Solo</option>
               <option value="Duo">Duo</option>
               <option value="Trio">Trio</option>
-              <option value="4-6 Piece Band">4-6 Piece Live Band</option>
+              <option value="4-6 Piece Band">4-6 Piece Band</option>
               <option value="Full Troupe (8+ Members)">Full Troupe (8+ Members)</option>
             </select>
           </div>
 
-          {/* Budget Filter */}
+          {/* Budget Range */}
           <div>
-            <div className="flex justify-between items-center text-xs font-bold text-[#5B5B5B] mb-1 uppercase tracking-wider">
-              <span>Max Budget</span>
-              <span className="text-[#E11D48] font-bold">₹{maxBudget.toLocaleString()}</span>
+            <div className="flex justify-between items-center mb-2">
+              <label className="label-editorial text-[#7A776F]" style={{ fontSize: "9px" }}>
+                MAX BUDGET
+              </label>
+              <span className="font-ui text-xs font-bold text-[#C4952A]">
+                ₹{maxBudget.toLocaleString("en-IN")}
+              </span>
             </div>
             <input
               type="range"
@@ -418,30 +375,32 @@ export function ArtistsPage({
               step="5000"
               value={maxBudget}
               onChange={e => setMaxBudget(Number(e.target.value))}
-              className="w-full accent-[#E11D48] cursor-pointer"
+              className="w-full accent-[#C4952A] cursor-pointer"
             />
           </div>
         </div>
       </div>
 
-      {/* ── ARTISTS LISTINGS ────────────────────────────────────────────── */}
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="font-display text-2xl font-bold text-[#1A1A1A]">
+      {/* ── ARTISTS CATALOGUE CARDS GRID ─────────────────────────────────── */}
+      <main className="max-w-7xl mx-auto px-6 lg:px-8 space-y-8">
+        <div className="flex items-center justify-between pb-4 border-b border-[#EDE8DF]">
+          <h2
+            className="font-serif font-light text-2xl sm:text-3xl text-[#1A1916]"
+            style={{ fontFamily: "'Cormorant Garamond', serif" }}
+          >
             Available Performers ({filteredArtists.length})
           </h2>
-          <span className="text-xs text-[#5B5B5B]">
-            Showing results for <strong>{selectedType === "all" ? "All Genres" : selectedType.toUpperCase()}</strong>
+          <span className="font-ui text-xs text-[#7A776F]">
+            Showing results for <strong className="text-[#1A1916] capitalize">{selectedType === "all" ? "All Genres" : selectedType}</strong>
           </span>
         </div>
 
         {filteredArtists.length === 0 ? (
-          <div className="bg-white rounded-3xl p-12 text-center border border-[#F3E5E8]">
-            <div className="text-4xl mb-3">🔍</div>
-            <h3 className="font-display font-bold text-lg text-[#1A1A1A] mb-1">
+          <div className="bg-[#FAF7F2] rounded-3xl p-16 text-center border border-[#EDE8DF]">
+            <h3 className="font-serif text-xl font-light text-[#1A1916] mb-2" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
               No performers found for this criteria
             </h3>
-            <p className="font-body text-xs text-[#5B5B5B] mb-4">
+            <p className="font-ui text-xs text-[#7A776F] mb-6">
               Try switching artist types or expanding your budget range.
             </p>
             <button
@@ -452,67 +411,70 @@ export function ArtistsPage({
                 setSelectedBandType("All");
                 setMaxBudget(120000);
               }}
-              className="px-4 py-2 rounded-full bg-[#E11D48] text-white text-xs font-bold hover:bg-[#BE123C] cursor-pointer"
+              className="px-6 py-2.5 rounded-full bg-[#1A1916] text-[#FAF7F2] text-xs font-semibold hover:bg-[#2E2C28] cursor-pointer transition-all"
             >
               Reset All Filters
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredArtists.map(artist => (
               <div
                 key={artist.id}
-                className="bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-[#F3E5E8] flex flex-col group"
+                className="bg-[#FAF7F2] rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-400 border border-[#EDE8DF] hover:border-[#C4952A]/40 flex flex-col group lift-card"
               >
                 {/* Photo Banner */}
                 <div
-                  className="relative h-60 overflow-hidden bg-gray-900 cursor-pointer"
+                  className="relative h-64 overflow-hidden bg-gray-900 cursor-pointer img-zoom"
                   onClick={() => onSelectArtist(artist)}
                 >
                   <img
                     src={artist.img}
                     alt={artist.name}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 brightness-95 group-hover:brightness-105"
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
 
                   {/* Badges */}
-                  <span className="absolute top-3.5 left-3.5 bg-[#E11D48] text-white font-body text-xs font-bold px-3 py-1 rounded-full shadow-md">
-                    {artist.genreTitle}
+                  <span className="absolute top-3.5 left-3.5 bg-white/90 backdrop-blur-md text-[#1A1916] font-ui text-[10px] font-bold px-3 py-1 rounded-full shadow-sm capitalize">
+                    {artist.genre}
                   </span>
-                  <span className="absolute top-3.5 right-3.5 bg-white/90 backdrop-blur-sm text-green-700 font-body text-xs font-semibold px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm">
+                  <span className="absolute top-3.5 right-3.5 bg-black/60 backdrop-blur-md text-[#DDB96A] border border-[#DDB96A]/30 font-ui text-[10px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm">
                     ✓ Verified
                   </span>
 
                   {/* Bottom Image Overlay */}
-                  <div className="absolute bottom-3.5 left-4 right-4 text-white">
-                    <div className="font-display font-bold text-xl text-white drop-shadow-md">
-                      {artist.name}
-                    </div>
-                    <div className="flex items-center justify-between text-xs text-white/85 mt-0.5">
-                      <span>📍 {artist.city}, {artist.state}</span>
-                      <span className="text-yellow-300 font-bold">★ {artist.rating} ({artist.reviewsCount})</span>
+                  <div className="absolute bottom-4 left-4 right-4 text-white">
+                    <h3
+                      className="font-serif font-light text-2xl text-white drop-shadow-md group-hover:text-[#DDB96A] transition-colors leading-tight"
+                      style={{ fontFamily: "'Cormorant Garamond', serif" }}
+                    >
+                      {artist.stageName || artist.name}
+                    </h3>
+                    <div className="flex items-center justify-between text-xs text-white/80 mt-1">
+                      <span>{artist.city}, {artist.state}</span>
+                      <span className="text-[#DDB96A] font-bold">★ {artist.rating} ({artist.reviewsCount})</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Card Body */}
-                <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
+                <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
                   {/* Tagline */}
-                  <p className="font-body text-xs text-[#5B5B5B] leading-relaxed line-clamp-2">
+                  <p className="font-ui text-xs text-[#7A776F] leading-relaxed line-clamp-2">
                     {artist.tagline}
                   </p>
 
-                  {/* "What this artist also does" */}
-                  <div className="bg-[#FFF8F8] p-3.5 rounded-2xl border border-[#F3E5E8] space-y-2">
-                    <div className="text-[11px] font-bold text-[#BE123C] uppercase tracking-wider flex items-center gap-1">
-                      <span>✨ What This Artist Also Does:</span>
+                  {/* Acts and styles */}
+                  <div className="bg-[#F5F0E8] p-3.5 rounded-xl border border-[#EDE8DF] space-y-2">
+                    <div className="label-editorial text-[#4A4845]" style={{ fontSize: "8px" }}>
+                      SIGNATURE ACTS &amp; STYLES:
                     </div>
                     <div className="flex flex-wrap gap-1.5">
                       {artist.whatElseTheyDo.slice(0, 3).map((item, i) => (
                         <span
                           key={i}
-                          className="text-[11px] font-medium bg-white text-[#4A4A4A] px-2.5 py-1 rounded-lg border border-[#F3E5E8] shadow-2xs"
+                          className="font-ui text-[11px] font-medium bg-white text-[#1A1916] px-2.5 py-0.5 rounded-md border border-[#EDE8DF]"
                         >
                           {item.category}
                         </span>
@@ -520,37 +482,24 @@ export function ArtistsPage({
                     </div>
                   </div>
 
-                  {/* Core Instruments */}
-                  <div className="flex items-center gap-1.5 text-xs text-[#5B5B5B] flex-wrap">
-                    <span className="font-semibold text-[#1A1A1A]">Gear:</span>
-                    {artist.primaryInstruments.slice(0, 3).map(inst => (
-                      <span key={inst} className="bg-gray-100 text-gray-700 px-2 py-0.5 rounded-full text-[10px]">
-                        {inst}
-                      </span>
-                    ))}
-                  </div>
-
-                  {/* Price & Action Buttons */}
-                  <div className="pt-2 border-t border-[#F3E5E8] flex items-center justify-between gap-2">
+                  {/* Card Actions */}
+                  <div className="pt-3 border-t border-[#EDE8DF] flex items-center justify-between">
                     <div>
-                      <div className="text-[10px] text-[#5B5B5B]">Starting From</div>
-                      <div className="font-display font-bold text-lg text-[#E11D48]">
-                        {artist.price}
-                      </div>
+                      <span className="label-editorial text-[#7A776F] block" style={{ fontSize: "8px" }}>STARTING FEE</span>
+                      <span className="font-ui font-bold text-sm text-[#1A1916] mt-0.5 block">{artist.price}</span>
                     </div>
-
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => onSelectArtist(artist)}
-                        className="px-3.5 py-2 rounded-full border border-[#E11D48] text-[#E11D48] hover:bg-[#FFF0F3] text-xs font-semibold transition-colors cursor-pointer"
+                        className="font-ui text-xs font-semibold px-4 py-2 rounded-full border border-[#1A1916] text-[#1A1916] hover:bg-[#1A1916] hover:text-white transition-all cursor-pointer"
                       >
                         Details
                       </button>
                       <button
                         onClick={() => onBookArtist(artist)}
-                        className="px-4 py-2 rounded-full bg-[#E11D48] hover:bg-[#BE123C] text-white text-xs font-bold shadow-md transition-all hover:scale-105 cursor-pointer"
+                        className="font-ui text-xs font-semibold px-4 py-2 rounded-full bg-[#C4952A] hover:bg-[#DDB96A] text-[#1A1916] transition-all cursor-pointer shadow-sm"
                       >
-                        ⚡ Book
+                        Book
                       </button>
                     </div>
                   </div>
@@ -559,7 +508,7 @@ export function ArtistsPage({
             ))}
           </div>
         )}
-      </div>
+      </main>
     </div>
   );
 }

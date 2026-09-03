@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Artist, ALL_ARTISTS, GENRE_METADATA } from "./data/artistsData";
+import { useState, useEffect, useRef } from "react";
+import { Artist, GenreInfo, ALL_ARTISTS, GENRE_METADATA } from "./data/artistsData";
 import { BlogArticle, BLOG_ARTICLES } from "./data/blogData";
 import { GenreView } from "./components/GenreView";
 import { GenresCatalogPage } from "./components/GenresCatalogPage";
@@ -10,6 +10,7 @@ import { JournalPage } from "./components/JournalPage";
 import { BlogDetailPage } from "./components/BlogDetailPage";
 import { AdminPortal, BookingInquiry } from "./components/admin/AdminPortal";
 import { AdminLogin } from "./components/admin/AdminLogin";
+import { ClassicHomePage } from "./components/ClassicHomePage";
 
 export const INITIAL_BOOKING_INQUIRIES: BookingInquiry[] = [
   {
@@ -59,130 +60,11 @@ export const INITIAL_BOOKING_INQUIRIES: BookingInquiry[] = [
   },
 ];
 
-/* ── SVG Icon Components ────────────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════════
+   PREMIUM MANNAT ARTS — EDITORIAL CULTURAL DISCOVERY PLATFORM
+══════════════════════════════════════════════════════════════════ */
 
-type SvgProps = { className?: string; style?: React.CSSProperties };
-
-function IconNote({ className = "", style = {} }: SvgProps) {
-  return (
-    <svg className={className} style={style} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-      <path d="M9 3v10.55A4 4 0 1 0 11 17V7h4V3H9z" />
-    </svg>
-  );
-}
-function IconGuitar({ className = "", style = {} }: SvgProps) {
-  return (
-    <svg className={className} style={style} viewBox="0 0 100 100" fill="currentColor" aria-hidden>
-      <path d="M85 5 65 25c-3-2-7-3-11-2L20 8 8 20l15 34c-1 4 0 8 2 11L5 85l10 10 20-20c3 2 7 3 11 2l34 15 12-12L77 46c1-4 0-8-2-11L95 15ZM50 60c-6 0-11-5-11-11s5-11 11-11 11 5 11 11-5 11-11 11Z" />
-    </svg>
-  );
-}
-function IconSpark({ className = "", style = {} }: SvgProps) {
-  return (
-    <svg className={className} style={style} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-      <path d="M12 2L14.4 9.4L22 9.4L15.8 13.9L18.2 21.3L12 16.8L5.8 21.3L8.2 13.9L2 9.4L9.6 9.4L12 2Z" />
-    </svg>
-  );
-}
-function IconVinyl({ className = "", style = {} }: SvgProps) {
-  return (
-    <svg className={className} style={style} viewBox="0 0 100 100" fill="currentColor" aria-hidden>
-      <path d="M50 2C23.5 2 2 23.5 2 50s21.5 48 48 48 48-21.5 48-48S76.5 2 50 2zm0 68c-11 0-20-9-20-20s9-20 20-20 20 9 20 20-9 20-20 20z" />
-      <circle cx="50" cy="50" r="6" />
-      <circle cx="50" cy="50" r="2.5" fill="white" />
-    </svg>
-  );
-}
-function IconStar({ className = "", style = {} }: SvgProps) {
-  return (
-    <svg className={className} style={style} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-      <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" />
-    </svg>
-  );
-}
-function IconMandala({ className = "", style = {} }: SvgProps) {
-  const spokes = [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330];
-  const dots = [0, 45, 90, 135, 180, 225, 270, 315];
-  return (
-    <svg className={className} style={style} viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="0.6" aria-hidden>
-      <circle cx="50" cy="50" r="48" />
-      <circle cx="50" cy="50" r="36" />
-      <circle cx="50" cy="50" r="24" />
-      <circle cx="50" cy="50" r="12" />
-      <circle cx="50" cy="50" r="4" />
-      {spokes.map(a => {
-        const r = (a * Math.PI) / 180;
-        return (
-          <line
-            key={a}
-            x1={50 + 12 * Math.cos(r)} y1={50 + 12 * Math.sin(r)}
-            x2={50 + 48 * Math.cos(r)} y2={50 + 48 * Math.sin(r)}
-          />
-        );
-      })}
-      {dots.map(a => {
-        const r = (a * Math.PI) / 180;
-        return <circle key={a} cx={50 + 30 * Math.cos(r)} cy={50 + 30 * Math.sin(r)} r="4" />;
-      })}
-    </svg>
-  );
-}
-function IconHeadphones({ className = "", style = {} }: SvgProps) {
-  return (
-    <svg className={className} style={style} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-      <path d="M12 1C7.03 1 3 5.03 3 10v2H1v6h4v-8H3c0-4.97 4.03-9 9-9s9 4.03 9 9h-2v8h4v-6h-2v-2c0-4.97-4.03-9-9-9zm-4 9H6v6h2v-6zm8 0h2v6h-2v-6z" />
-    </svg>
-  );
-}
-
-/* ── Reusable Components ────────────────────────────────────────────────────── */
-
-function StarRating({ rating = 5, size = "sm" }: { rating?: number; size?: "sm" | "xs" }) {
-  const cls = size === "xs" ? "w-3 h-3" : "w-4 h-4";
-  return (
-    <div className="flex gap-0.5">
-      {[1, 2, 3, 4, 5].map(i => (
-        <svg key={i} className={`${cls} ${i <= rating ? "text-[#E11D48]" : "text-gray-200"}`} viewBox="0 0 24 24" fill="currentColor">
-          <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" />
-        </svg>
-      ))}
-    </div>
-  );
-}
-
-function AnimatedWaveform({ color = "currentColor", bars = 14 }: { color?: string; bars?: number }) {
-  const heights = [45, 75, 95, 60, 85, 50, 100, 65, 80, 55, 90, 70, 45, 80];
-  return (
-    <div className="flex items-end gap-[2px]" style={{ height: "28px" }}>
-      {Array.from({ length: bars }).map((_, i) => (
-        <div
-          key={i}
-          className="animate-wave-bar rounded-full flex-shrink-0"
-          style={{
-            width: "3px",
-            height: `${heights[i % heights.length]}%`,
-            backgroundColor: color,
-            animationDelay: `${i * 0.07}s`,
-            animationDuration: `${0.7 + (i % 5) * 0.15}s`,
-          }}
-        />
-      ))}
-    </div>
-  );
-}
-
-function SectionBadge({ children, color }: { children: React.ReactNode; color: string }) {
-  return (
-    <div
-      className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-body font-semibold tracking-widest uppercase mb-6 border"
-      style={{ background: `${color}14`, color, borderColor: `${color}28` }}
-    >
-      {children}
-    </div>
-  );
-}
-
-/* ── Navbar ─────────────────────────────────────────────────────────────────── */
+/* ── Navigation ─────────────────────────────────────────────────────────── */
 
 interface NavbarProps {
   onHome: () => void;
@@ -191,106 +73,123 @@ interface NavbarProps {
   onBrowseArtists: () => void;
   onScrollToBlog: () => void;
   onOpenAdmin: () => void;
+  onPlanEvent: () => void;
 }
 
-function Navbar({ onHome, onBrowseGenres, onScrollToFeatured, onBrowseArtists, onScrollToBlog, onOpenAdmin }: NavbarProps) {
+function Navbar({ onHome, onBrowseGenres, onScrollToFeatured, onBrowseArtists, onScrollToBlog, onOpenAdmin, onPlanEvent }: NavbarProps) {
   const [open, setOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handler = () => setScrolled(window.scrollY > 40);
+    window.addEventListener("scroll", handler, { passive: true });
+    return () => window.removeEventListener("scroll", handler);
+  }, []);
+
+  const navLinkClass = "font-ui text-[13px] font-medium text-[#4A4845] hover:text-[#1A1916] transition-colors duration-200 cursor-pointer tracking-wide";
+
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 glass-card border-b border-white/40 shadow-sm">
-      <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+    <nav
+      className="fixed top-0 left-0 right-0 z-50 transition-all duration-500"
+      style={{
+        background: scrolled ? "rgba(250, 247, 242, 0.95)" : "rgba(250, 247, 242, 0.82)",
+        backdropFilter: "blur(20px)",
+        WebkitBackdropFilter: "blur(20px)",
+        borderBottom: scrolled ? "1px solid rgba(196,149,42,0.15)" : "1px solid transparent",
+        boxShadow: scrolled ? "0 1px 30px rgba(26,25,22,0.05)" : "none",
+      }}
+    >
+      <div className="max-w-7xl mx-auto px-6 lg:px-8 h-[68px] flex items-center justify-between">
         {/* Logo */}
-        <div
-          className="flex items-center gap-2.5 cursor-pointer select-none"
-          onClick={onHome}
+        <button
+          onClick={() => { onHome(); setOpen(false); }}
+          className="flex flex-col leading-none cursor-pointer group select-none"
+          aria-label="Mannat Arts Home"
         >
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#E11D48] to-[#9333EA] flex items-center justify-center shadow-md">
-            <IconSpark className="w-4 h-4 text-white" />
-          </div>
-          <span className="font-display font-bold text-xl text-[#1A1A1A] tracking-tight">StageBridge</span>
-          <span className="text-[9px] font-body text-[#E11D48] font-bold tracking-[0.2em] uppercase bg-[#E11D48]/10 px-1.5 py-0.5 rounded-full">Pro</span>
-        </div>
+          <span
+            className="font-serif text-[22px] font-light tracking-[0.06em] text-[#1A1916] group-hover:text-[#C4952A] transition-colors duration-300"
+            style={{ fontFamily: "'Cormorant Garamond', serif", letterSpacing: "0.08em" }}
+          >
+            MANNAT ARTS
+          </span>
+          <span className="label-editorial text-[#C4952A] tracking-[0.22em]" style={{ fontSize: "7px" }}>
+            CULTURAL EXPERIENCES
+          </span>
+        </button>
 
         {/* Desktop Links */}
-        <div className="hidden md:flex items-center gap-2 lg:gap-3">
-          <button onClick={onHome} className="font-body text-sm font-medium text-[#5B5B5B] hover:text-[#E11D48] hover:bg-[#FFF0F3] px-3.5 py-1.5 rounded-full transition-colors cursor-pointer">
-            Home
-          </button>
-          
-          {/* Button 1: Browse Genres */}
+        <div className="hidden md:flex items-center gap-7">
+          <button onClick={onBrowseGenres} className={navLinkClass}>Experiences</button>
+          <button onClick={onBrowseGenres} className={navLinkClass}>Genres</button>
+          <button onClick={onBrowseArtists} className={navLinkClass}>Artists</button>
+          <button onClick={onScrollToFeatured} className={navLinkClass}>Occasions</button>
+          <button onClick={onScrollToBlog} className={navLinkClass}>Stories</button>
+          <button onClick={onHome} className={navLinkClass}>About</button>
+        </div>
+
+        {/* Right Actions */}
+        <div className="hidden md:flex items-center gap-3">
+          {/* Search icon */}
           <button
-            onClick={onBrowseGenres}
-            className="font-body text-sm font-medium text-[#5B5B5B] hover:text-[#E11D48] hover:bg-[#FFF0F3] px-3.5 py-1.5 rounded-full transition-colors cursor-pointer"
+            onClick={onBrowseArtists}
+            className="w-9 h-9 rounded-full flex items-center justify-center text-[#4A4845] hover:text-[#1A1916] hover:bg-[#EDE8DF] transition-all cursor-pointer"
+            aria-label="Search"
           >
-            Browse Genres
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
+            </svg>
           </button>
-
-          {/* Button 2: Top Performers */}
-          <button
-            onClick={onScrollToFeatured}
-            className="font-body text-sm font-medium text-[#5B5B5B] hover:text-[#E11D48] hover:bg-[#FFF0F3] px-3.5 py-1.5 rounded-full transition-colors cursor-pointer"
-          >
-            Top Performers
-          </button>
-
-          <a href="#how-it-works" className="font-body text-sm font-medium text-[#5B5B5B] hover:text-[#E11D48] hover:bg-[#FFF0F3] px-3.5 py-1.5 rounded-full transition-colors">
-            How It Works
-          </a>
-
-          {/* Button 3: Journal / Blog */}
-          <button
-            onClick={onScrollToBlog}
-            className="font-body text-sm font-medium text-[#5B5B5B] hover:text-[#E11D48] hover:bg-[#FFF0F3] px-3.5 py-1.5 rounded-full transition-colors cursor-pointer flex items-center gap-1"
-          >
-            <span>Journal</span>
-            <span className="text-[10px] bg-[#E11D48]/10 text-[#E11D48] font-bold px-1.5 py-0.2 rounded-full">New</span>
-          </button>
-
-          <a href="#join-artist" className="font-body text-sm font-medium text-[#5B5B5B] hover:text-[#E11D48] hover:bg-[#FFF0F3] px-3.5 py-1.5 rounded-full transition-colors">
-            For Artists
-          </a>
-
-          {/* Admin Portal Button */}
+          {/* Admin link — subtle */}
           <button
             onClick={onOpenAdmin}
-            className="font-body text-xs font-bold text-[#E11D48] bg-[#FFF0F3] hover:bg-[#E11D48] hover:text-white border border-[#F3E5E8] px-3.5 py-1.5 rounded-full transition-all cursor-pointer flex items-center gap-1.5 shadow-xs ml-1"
+            className="font-ui text-[11px] font-medium text-[#9A7219] hover:text-[#C4952A] transition-colors cursor-pointer tracking-wide"
           >
-            <span>⚡ Admin Portal</span>
+            Admin
+          </button>
+          {/* Primary CTA */}
+          <button
+            onClick={onPlanEvent}
+            className="font-ui text-[13px] font-semibold bg-[#1A1916] hover:bg-[#2E2C28] text-[#FAF7F2] px-5 py-2.5 rounded-full transition-all duration-300 cursor-pointer tracking-wide shadow-sm hover:shadow-md"
+          >
+            Plan an Event
           </button>
         </div>
 
-        {/* Mobile Hamburger */}
-        <button className="md:hidden text-[#1A1A1A] cursor-pointer" onClick={() => setOpen(o => !o)}>
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={open ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} />
-          </svg>
+        {/* Mobile hamburger */}
+        <button
+          className="md:hidden w-9 h-9 flex flex-col items-center justify-center gap-[5px] cursor-pointer"
+          onClick={() => setOpen(o => !o)}
+          aria-label="Menu"
+        >
+          <span className={`block h-px w-6 bg-[#1A1916] transition-all duration-300 ${open ? "rotate-45 translate-y-[8px]" : ""}`} />
+          <span className={`block h-px bg-[#1A1916] transition-all duration-300 ${open ? "w-0 opacity-0" : "w-5"}`} />
+          <span className={`block h-px w-6 bg-[#1A1916] transition-all duration-300 ${open ? "-rotate-45 -translate-y-[8px]" : ""}`} />
         </button>
       </div>
 
+      {/* Mobile menu */}
       {open && (
-        <div className="md:hidden bg-white/95 backdrop-blur-xl px-6 py-4 border-t border-[#F3E5E8] space-y-3">
-          <button onClick={() => { onHome(); setOpen(false); }} className="block w-full text-left font-body py-1 text-sm text-[#5B5B5B] hover:text-[#E11D48]">
-            Home
-          </button>
-          <button onClick={() => { onBrowseGenres(); setOpen(false); }} className="block w-full text-left font-body py-1.5 px-3 rounded-xl text-sm font-semibold text-[#BE123C] bg-[#FFF0F3]">
-            Browse Genres
-          </button>
-          <button onClick={() => { onScrollToFeatured(); setOpen(false); }} className="block w-full text-left font-body py-1.5 px-3 rounded-xl text-sm font-semibold text-[#BE123C] bg-[#FFF0F3]">
-            Top Performers
-          </button>
-          <button onClick={() => { onScrollToBlog(); setOpen(false); }} className="block w-full text-left font-body py-1.5 px-3 rounded-xl text-sm font-semibold text-[#BE123C] bg-[#FFF0F3]">
-            📖 Journal &amp; Event Guides
-          </button>
-          <a href="#how-it-works" onClick={() => setOpen(false)} className="block font-body py-1 text-sm text-[#5B5B5B]">
-            How It Works
-          </a>
-          <a href="#join-artist" onClick={() => setOpen(false)} className="block font-body py-1 text-sm text-[#5B5B5B]">
-            For Artists
-          </a>
+        <div className="md:hidden bg-[#FAF7F2] border-t border-[#EDE8DF] px-6 py-6 space-y-4">
+          {[
+            { label: "Experiences", action: onBrowseGenres },
+            { label: "Genres", action: onBrowseGenres },
+            { label: "Artists", action: onBrowseArtists },
+            { label: "Stories", action: onScrollToBlog },
+            { label: "About", action: onHome },
+          ].map(item => (
+            <button
+              key={item.label}
+              onClick={() => { item.action(); setOpen(false); }}
+              className="block w-full text-left font-ui text-[15px] font-medium text-[#2E2C28] py-1 border-b border-[#EDE8DF] pb-3"
+            >
+              {item.label}
+            </button>
+          ))}
           <button
-            onClick={() => { onOpenAdmin(); setOpen(false); }}
-            className="block w-full text-center font-body py-2 px-4 rounded-xl text-xs font-bold text-white bg-[#E11D48] shadow-sm"
+            onClick={() => { onPlanEvent(); setOpen(false); }}
+            className="w-full font-ui font-semibold text-sm bg-[#1A1916] text-[#FAF7F2] py-3 rounded-full mt-4"
           >
-            ⚡ Open Admin Control
+            Plan an Event
           </button>
         </div>
       )}
@@ -298,222 +197,130 @@ function Navbar({ onHome, onBrowseGenres, onScrollToFeatured, onBrowseArtists, o
   );
 }
 
-/* ── Hero Section (with Identical Matching Action Buttons) ───────────────────── */
+/* ── Hero Section ───────────────────────────────────────────────────────── */
 
-interface HeroSectionProps {
-  onBrowseGenres: () => void;
-  onScrollToFeatured: () => void;
-  onSearchGenre: (genreId: "sufi" | "rock" | "gazal" | "bollywood" | "carnival" | "devotional") => void;
-}
-
-function HeroSection({ onBrowseGenres, onScrollToFeatured, onSearchGenre }: HeroSectionProps) {
-  const [search, setSearch] = useState({ artist: "", event: "", city: "", budget: "" });
-
-  const handleSearchSubmit = () => {
-    if (search.artist.toLowerCase().includes("sufi") || search.event.toLowerCase().includes("sufi")) {
-      onSearchGenre("sufi");
-    } else if (search.artist.toLowerCase().includes("rock") || search.event.toLowerCase().includes("rock")) {
-      onSearchGenre("rock");
-    } else if (search.artist.toLowerCase().includes("gazal") || search.artist.toLowerCase().includes("ghazal") || search.event.toLowerCase().includes("ghazal") || search.event.toLowerCase().includes("gazal")) {
-      onSearchGenre("gazal");
-    } else if (search.artist.toLowerCase().includes("bollywood") || search.event.toLowerCase().includes("bollywood")) {
-      onSearchGenre("bollywood");
-    } else if (search.artist.toLowerCase().includes("carnival") || search.event.toLowerCase().includes("carnival")) {
-      onSearchGenre("carnival");
-    } else if (search.artist.toLowerCase().includes("devotional") || search.artist.toLowerCase().includes("bhajan") || search.event.toLowerCase().includes("devotional")) {
-      onSearchGenre("devotional");
-    } else {
-      onScrollToFeatured();
-    }
-  };
-
+function HeroSection({
+  onExplore,
+  onFindByMood,
+  onSelectGenre,
+}: {
+  onExplore: () => void;
+  onFindByMood: () => void;
+  onSelectGenre: (g: "sufi" | "rock" | "gazal" | "bollywood" | "carnival" | "devotional") => void;
+}) {
   return (
-    <section className="relative bg-[#FFF8F8] pt-24 sm:pt-28 pb-14 overflow-hidden border-b border-[#F3E5E8]">
-      {/* Background decorations */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-12 right-[8%] w-[480px] h-[480px] rounded-full border border-[#E11D48]/10 animate-pulse-subtle" />
-        <div className="absolute top-24 right-[12%] w-[340px] h-[340px] rounded-full border border-[#BE123C]/08 animate-pulse-subtle" style={{ animationDelay: "1.5s" }} />
-        <IconNote  className="absolute top-20 left-[5%]  w-12 h-12 text-[#E11D48] animate-float"      style={{ opacity: 0.08, animationDelay: "0s" }} />
-        <IconGuitar className="absolute top-36 left-[12%] w-20 h-20 text-[#BE123C] animate-float-alt" style={{ opacity: 0.06, animationDelay: "1s" }} />
-        <IconVinyl className="absolute top-1/2 left-[7%] w-14 h-14 text-[#E11D48] animate-spin-slow"  style={{ opacity: 0.06 }} />
-        <div className="absolute top-10 right-10 w-[500px] h-[500px] rounded-full" style={{ background: "radial-gradient(circle, rgba(225,29,72,0.06) 0%, transparent 70%)" }} />
+    <section className="relative min-h-screen flex flex-col justify-end overflow-hidden" style={{ paddingTop: "68px" }}>
+      {/* Full-bleed background image */}
+      <div className="absolute inset-0 z-0">
+        <img
+          src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=1920&h=1080&fit=crop&auto=format&q=85"
+          alt="Live performance"
+          className="w-full h-full object-cover"
+        />
+        {/* Cinematic overlay — dark from bottom, subtle at top */}
+        <div
+          className="absolute inset-0"
+          style={{
+            background: "linear-gradient(to top, rgba(26,25,22,0.95) 0%, rgba(26,25,22,0.72) 35%, rgba(26,25,22,0.32) 65%, rgba(26,25,22,0.12) 100%)"
+          }}
+        />
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 grid lg:grid-cols-12 gap-8 lg:gap-12 items-center relative z-10">
-        {/* Left Column (Content & Search) */}
-        <div className="lg:col-span-7 space-y-6">
-          <div className="space-y-3">
-            <SectionBadge color="#E11D48">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#E11D48] animate-pulse inline-block" />
-              {"India's Premier Artist Booking Platform"}
-            </SectionBadge>
-
-            <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold text-[#1A1A1A] leading-[1.1] tracking-tight">
-              Find The <span className="shimmer-crimson">Perfect Artist</span>
-              <br />
-              <em className="font-normal italic text-[#BE123C]">For Every Event</em>
-            </h1>
-
-            <p className="font-body text-[#5B5B5B] text-sm sm:text-base leading-relaxed max-w-xl">
-              Book verified master performers for Sufi nights, indie rock concerts, Ghazal mehfils, Bollywood sangeets, carnivals, and devotional gatherings across India.
-            </p>
-          </div>
-
-          {/* Quick Filter Search Box */}
-          <div className="bg-white rounded-2xl shadow-lg border border-[#F3E5E8] p-3 space-y-2.5 max-w-xl">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {([
-                { key: "artist", label: "Artist Type", opts: ["Sufi Singer", "Rock Band", "Gazal Singer", "Bollywood Performer", "Carnival Artist", "Devotional / Bhajan", "DJ"] },
-                { key: "event",  label: "Occasion",    opts: ["Sufi Night", "Rock Concert", "Gazal Mehfil", "Bollywood Night", "Carnival & Fair", "Devotional Gathering", "Wedding Sangeet"] },
-                { key: "city",   label: "City",        opts: ["Mumbai", "Delhi", "Bangalore", "Kolkata", "Chennai", "Hyderabad", "Pune", "Jaipur", "Lucknow", "Goa"] },
-                { key: "budget", label: "Budget",      opts: ["Under ₹35K", "₹35K–₹50K", "₹50K–₹75K", "₹75K–₹1L", "Above ₹1L"] },
-              ] as const).map(({ key, label, opts }) => (
-                <div key={key} className="relative">
-                  <select
-                    className="w-full font-body text-xs text-[#3A3A3A] bg-[#FFF5F6] rounded-xl px-2.5 py-2.5 appearance-none border border-transparent focus:border-[#E11D48]/30 focus:outline-none cursor-pointer font-medium"
-                    value={(search as Record<string, string>)[key]}
-                    onChange={e => setSearch(s => ({ ...s, [key]: e.target.value }))}
-                  >
-                    <option value="">{label}</option>
-                    {opts.map(o => <option key={o} value={o}>{o}</option>)}
-                  </select>
-                  <svg className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-[#5B5B5B] pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </div>
-              ))}
-            </div>
-
-            <button
-              onClick={handleSearchSubmit}
-              className="w-full font-body font-bold text-white bg-gradient-to-r from-[#E11D48] via-[#F43F5E] to-[#BE123C] py-2.5 rounded-xl text-xs tracking-wide shadow-md hover:shadow-lg transition-all duration-200 hover:scale-[1.005] cursor-pointer flex items-center justify-center gap-1.5"
-            >
-              <span>✦</span>
-              <span>Find Verified Artists Now</span>
-            </button>
-          </div>
-
-          {/* TWO MATCHING ACTION BUTTONS */}
-          <div className="flex items-center gap-3 pt-1 flex-wrap">
-            <button
-              onClick={onBrowseGenres}
-              className="font-body font-bold px-6 py-3 rounded-full bg-gradient-to-r from-[#E11D48] via-[#F43F5E] to-[#BE123C] text-white text-xs sm:text-sm shadow-md hover:shadow-lg hover:scale-105 transition-all duration-200 cursor-pointer flex items-center gap-2"
-            >
-              <span>🎭</span>
-              <span>Browse Genres</span>
-            </button>
-
-            <button
-              onClick={onScrollToFeatured}
-              className="font-body font-bold px-6 py-3 rounded-full bg-white hover:bg-[#FFF0F3] text-[#BE123C] border border-[#F3E5E8] text-xs sm:text-sm shadow-xs hover:shadow hover:scale-105 transition-all duration-200 cursor-pointer flex items-center gap-2"
-            >
-              <span>⭐</span>
-              <span>Top Performers</span>
-            </button>
-          </div>
+      {/* Content */}
+      <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-8 pb-20 lg:pb-28 w-full">
+        {/* Eyebrow */}
+        <div className="mb-6">
+          <span className="label-editorial text-[#DDB96A] tracking-[0.28em]" style={{ fontSize: "10px" }}>
+            · CULTURAL EXPERIENCE DISCOVERY ·
+          </span>
         </div>
 
-        {/* Right Column (Dynamic Artistic Montage) */}
-        <div className="lg:col-span-5 relative h-[420px] sm:h-[460px] hidden lg:block">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] rounded-full border-2 border-dashed border-[#E11D48]/15 animate-spin-slow" />
+        {/* Main headline */}
+        <h1
+          className="font-serif text-white font-light leading-[1.08] tracking-[-0.01em] mb-6"
+          style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(48px, 7vw, 96px)" }}
+        >
+          Find the art that<br />
+          <em style={{ fontStyle: "italic", color: "#DDB96A" }}>fits the moment.</em>
+        </h1>
 
-          {/* Card 1 – Bollywood */}
-          <div
-            onClick={() => onSearchGenre("bollywood")}
-            className="absolute top-0 right-2 w-52 h-64 rounded-3xl overflow-hidden shadow-xl rotate-2 hover:rotate-0 transition-transform duration-500 bg-gray-200 cursor-pointer group border-2 border-white"
+        {/* Supporting copy */}
+        <p
+          className="font-ui text-[#A8A49A] font-light leading-relaxed mb-10 max-w-xl"
+          style={{ fontSize: "clamp(15px, 1.6vw, 18px)" }}
+        >
+          Discover performances, artists and experiences curated<br className="hidden lg:block" />
+          around your mood, occasion and purpose.
+        </p>
+
+        {/* CTA Row */}
+        <div className="flex items-center gap-4 flex-wrap">
+          <button
+            onClick={onExplore}
+            className="font-ui font-semibold text-[14px] bg-[#C4952A] hover:bg-[#DDB96A] text-[#1A1916] px-7 py-3.5 rounded-full transition-all duration-300 cursor-pointer tracking-wide shadow-lg hover:shadow-xl hover:-translate-y-0.5"
           >
-            <img
-              src="https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=400&h=500&fit=crop&auto=format"
-              alt="Bollywood stage"
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-            <span className="absolute bottom-3 left-3 font-body text-[11px] font-bold text-white bg-[#E11D48] px-2.5 py-0.5 rounded-full shadow-md">
-              🎬 Bollywood Live
-            </span>
-          </div>
-
-          {/* Card 2 – Sufi */}
-          <div
-            onClick={() => onSearchGenre("sufi")}
-            className="absolute top-10 left-2 w-48 h-56 rounded-3xl overflow-hidden shadow-xl -rotate-3 hover:rotate-0 transition-transform duration-500 bg-gray-200 cursor-pointer group border-2 border-white"
+            Explore Experiences
+          </button>
+          <button
+            onClick={onFindByMood}
+            className="font-ui font-medium text-[14px] text-white border border-white/30 hover:border-[#DDB96A] hover:text-[#DDB96A] px-7 py-3.5 rounded-full transition-all duration-300 cursor-pointer tracking-wide"
           >
-            <img
-              src="https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=350&h=450&fit=crop&auto=format"
-              alt="Sufi Performance"
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-            <span className="absolute bottom-3 left-3 font-body text-[11px] font-bold text-white bg-[#BE123C] px-2.5 py-0.5 rounded-full shadow-md">
-              🕊️ Sufi &amp; Qawwali
-            </span>
-          </div>
-
-          {/* Card 3 – Ghazal */}
-          <div
-            onClick={() => onSearchGenre("gazal")}
-            className="absolute bottom-4 right-10 w-44 h-40 rounded-2xl overflow-hidden shadow-lg rotate-3 hover:rotate-0 transition-transform duration-500 bg-gray-200 cursor-pointer group border-2 border-white"
-          >
-            <img
-              src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=350&h=300&fit=crop&auto=format"
-              alt="Ghazal Mehfil"
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-            <span className="absolute bottom-2.5 left-2.5 font-body text-[10px] font-bold text-white bg-[#4C0519] px-2 py-0.5 rounded-full shadow-md">
-              📜 Ghazal Mehfil
-            </span>
-          </div>
-
-          {/* Card 4 – Rock */}
-          <div
-            onClick={() => onSearchGenre("rock")}
-            className="absolute bottom-2 left-6 w-36 h-36 rounded-2xl overflow-hidden shadow-lg -rotate-4 hover:rotate-0 transition-transform duration-500 bg-gray-200 cursor-pointer group border-2 border-white"
-          >
-            <img
-              src="https://images.unsplash.com/photo-1464375117522-1311d6a5b81f?w=300&h=300&fit=crop&auto=format"
-              alt="Rock Band"
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-            <span className="absolute bottom-2 left-2 font-body text-[10px] font-bold text-white bg-[#881337] px-2 py-0.5 rounded-full shadow-md">
-              🎸 Rock Live
-            </span>
-          </div>
-
-          {/* Floating Soundcheck Badge */}
-          <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-md rounded-2xl px-3.5 py-1.5 shadow-lg border border-[#F3E5E8] flex items-center gap-2">
-            <AnimatedWaveform color="#E11D48" bars={8} />
-            <span className="font-body text-[11px] font-bold text-[#1A1A1A]">Live Soundcheck Active</span>
-          </div>
+            Find by Mood ↓
+          </button>
         </div>
+
+        {/* Floating genre chips — bottom right */}
+        <div className="hidden lg:flex absolute bottom-28 right-8 flex-col items-end gap-2">
+          {(["sufi", "rock", "gazal", "bollywood"] as const).map(g => (
+            <button
+              key={g}
+              onClick={() => onSelectGenre(g)}
+              className="label-editorial text-white/70 hover:text-[#DDB96A] border border-white/20 hover:border-[#DDB96A]/50 px-4 py-1.5 rounded-full cursor-pointer transition-all duration-200 backdrop-blur-sm"
+              style={{ fontSize: "9px", background: "rgba(26,25,22,0.3)" }}
+            >
+              {g.toUpperCase()}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Scroll indicator */}
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2">
+        <div className="w-px h-10 bg-gradient-to-b from-transparent to-white/40" />
+        <span className="label-editorial text-white/40" style={{ fontSize: "8px" }}>SCROLL</span>
       </div>
     </section>
   );
 }
 
-/* ── Scrolling Ticker ───────────────────────────────────────────────────────── */
+/* ── Genre Ticker ───────────────────────────────────────────────────────── */
 
-function PerformerTicker({ onSelectGenre }: { onSelectGenre: (g: "sufi" | "rock" | "gazal" | "bollywood" | "carnival" | "devotional") => void }) {
-  const items: Array<{ label: string; genre: "sufi" | "rock" | "gazal" | "bollywood" | "carnival" | "devotional" }> = [
-    { label: "🕊️ Sufi Singers & Qawwals", genre: "sufi" },
-    { label: "🎸 Rock & Indie Bands", genre: "rock" },
-    { label: "📜 Gazal Virtuosos", genre: "gazal" },
-    { label: "🎬 Bollywood Playback", genre: "bollywood" },
-    { label: "🎡 Carnival & Circus Acts", genre: "carnival" },
-    { label: "🪔 Devotional Bhajans", genre: "devotional" },
+function GenreTicker({ onSelectGenre }: { onSelectGenre: (g: "sufi" | "rock" | "gazal" | "bollywood" | "carnival" | "devotional") => void }) {
+  const items = [
+    { label: "Sufi & Qawwali", genre: "sufi" as const },
+    { label: "Indie & Rock", genre: "rock" as const },
+    { label: "Ghazal & Classical", genre: "gazal" as const },
+    { label: "Bollywood & Dance", genre: "bollywood" as const },
+    { label: "Carnival & Theatre", genre: "carnival" as const },
+    { label: "Devotional & Folk", genre: "devotional" as const },
   ];
   const doubled = [...items, ...items, ...items];
   return (
-    <div className="bg-gradient-to-r from-[#1A050B] via-[#3B0716] to-[#1A050B] py-3.5 overflow-hidden border-y border-[#E11D48]/20">
-      <div className="flex gap-0 animate-ticker" style={{ width: "max-content" }}>
+    <div className="border-y border-[#EDE8DF] overflow-hidden py-4" style={{ background: "#F5F0E8" }}>
+      <div className="flex animate-ticker gap-0" style={{ width: "max-content" }}>
         {doubled.map((item, i) => (
           <button
             key={i}
             onClick={() => onSelectGenre(item.genre)}
-            className="font-body text-sm font-medium text-white/90 hover:text-[#FB7185] flex-shrink-0 px-4 cursor-pointer transition-colors"
+            className="flex items-center gap-5 flex-shrink-0 px-8 cursor-pointer group"
           >
-            {item.label} <span className="text-[#F43F5E] px-4">✦</span>
+            <span
+              className="font-serif font-light text-[#4A4845] group-hover:text-[#C4952A] transition-colors duration-300"
+              style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "16px", letterSpacing: "0.06em" }}
+            >
+              {item.label}
+            </span>
+            <span className="text-[#C4952A]/40 text-xs">·</span>
           </button>
         ))}
       </div>
@@ -521,113 +328,215 @@ function PerformerTicker({ onSelectGenre }: { onSelectGenre: (g: "sufi" | "rock"
   );
 }
 
-/* ── Stats Bar ──────────────────────────────────────────────────────────────── */
+/* ── Mood Discovery ─────────────────────────────────────────────────────── */
 
-function StatsBar() {
-  const stats = [
-    { n: "2,800+", l: "Verified Artists", e: "🎭" },
-    { n: "15,000+", l: "Events Booked", e: "🎪" },
-    { n: "98%", l: "Client Satisfaction", e: "⭐" },
-    { n: "42+", l: "Cities Covered", e: "📍" },
-    { n: "6", l: "Core Performance Genres", e: "🎵" },
-    { n: "4.9/5", l: "Average Rating", e: "🏆" },
-  ];
+const MOODS = [
+  {
+    id: "celebrate",
+    title: "Celebrate",
+    desc: "Joyful performances for unforgettable moments.",
+    img: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&h=1000&fit=crop&auto=format&q=80",
+    accent: "#C4952A",
+    genre: "bollywood" as const,
+  },
+  {
+    id: "reflect",
+    title: "Feel & Reflect",
+    desc: "Soulful, intimate art that moves you within.",
+    img: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=800&h=1000&fit=crop&auto=format&q=80",
+    accent: "#6B2737",
+    genre: "sufi" as const,
+  },
+  {
+    id: "energise",
+    title: "Energise",
+    desc: "High-energy shows that electrify every stage.",
+    img: "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&h=1000&fit=crop&auto=format&q=80",
+    accent: "#2E2C28",
+    genre: "rock" as const,
+  },
+  {
+    id: "immerse",
+    title: "Immerse",
+    desc: "Deeply cultural experiences that transport you.",
+    img: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800&h=1000&fit=crop&auto=format&q=80",
+    accent: "#6B7B4A",
+    genre: "gazal" as const,
+  },
+  {
+    id: "discover",
+    title: "Discover",
+    desc: "Unexpected art forms that surprise and delight.",
+    img: "https://images.unsplash.com/photo-1520523839897-bd0b52f945a0?w=800&h=1000&fit=crop&auto=format&q=80",
+    accent: "#B5593C",
+    genre: "carnival" as const,
+  },
+  {
+    id: "connect",
+    title: "Connect",
+    desc: "Communal, spiritual gatherings that bring people together.",
+    img: "https://images.unsplash.com/photo-1508700929628-666bc8bd84ea?w=800&h=1000&fit=crop&auto=format&q=80",
+    accent: "#4A1A24",
+    genre: "devotional" as const,
+  },
+];
+
+function MoodDiscovery({ id, onSelectGenre }: { id?: string; onSelectGenre: (g: "sufi" | "rock" | "gazal" | "bollywood" | "carnival" | "devotional") => void }) {
+  const [hovered, setHovered] = useState<string | null>(null);
+
   return (
-    <section className="bg-white py-14 border-b border-[#F3E5E8]">
-      <div className="max-w-7xl mx-auto px-6 grid grid-cols-3 md:grid-cols-6 gap-8">
-        {stats.map(s => (
-          <div key={s.l} className="text-center group cursor-default">
-            <div className="text-2xl mb-1.5 group-hover:scale-110 transition-transform duration-200 inline-block">{s.e}</div>
-            <div className="font-display font-bold text-2xl text-[#1A1A1A] group-hover:text-[#E11D48] transition-colors">{s.n}</div>
-            <div className="font-body text-xs text-[#5B5B5B] mt-0.5 leading-tight">{s.l}</div>
-          </div>
-        ))}
+    <section id={id} className="py-24 lg:py-36" style={{ background: "#FAF7F2" }}>
+      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+        {/* Header */}
+        <div className="mb-16 lg:mb-20 max-w-xl">
+          <span className="label-editorial text-[#C4952A] tracking-[0.22em] block mb-4" style={{ fontSize: "10px" }}>
+            MOOD DISCOVERY
+          </span>
+          <h2
+            className="font-serif font-light text-[#1A1916] leading-tight mb-4"
+            style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(36px, 4.5vw, 56px)" }}
+          >
+            What are you in the<br />
+            <em style={{ fontStyle: "italic" }}>mood for?</em>
+          </h2>
+          <p className="font-ui text-[#7A776F] text-[15px] leading-relaxed">
+            You may not know what genre you want. Start with how you want the experience to feel.
+          </p>
+        </div>
+
+        {/* Cards — editorial varied layout */}
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 lg:gap-5">
+          {MOODS.map((mood, idx) => {
+            const isLarge = idx === 0 || idx === 3;
+            return (
+              <button
+                key={mood.id}
+                onClick={() => onSelectGenre(mood.genre)}
+                onMouseEnter={() => setHovered(mood.id)}
+                onMouseLeave={() => setHovered(null)}
+                className={`relative overflow-hidden rounded-2xl cursor-pointer text-left group ${isLarge ? "row-span-2" : ""}`}
+                style={{ height: isLarge ? "440px" : "210px" }}
+                aria-label={mood.title}
+              >
+                {/* Image */}
+                <img
+                  src={mood.img}
+                  alt={mood.title}
+                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.06]"
+                />
+                {/* Overlay */}
+                <div
+                  className="absolute inset-0 transition-opacity duration-400"
+                  style={{
+                    background: `linear-gradient(to top, rgba(26,25,22,0.88) 0%, rgba(26,25,22,0.35) 55%, rgba(26,25,22,0.08) 100%)`,
+                    opacity: hovered === mood.id ? 1 : 0.85,
+                  }}
+                />
+                {/* Gold accent line — slides in on hover */}
+                <div
+                  className="absolute left-0 bottom-0 w-full h-[2px] transition-all duration-500"
+                  style={{
+                    background: mood.accent,
+                    transform: hovered === mood.id ? "scaleX(1)" : "scaleX(0)",
+                    transformOrigin: "left",
+                  }}
+                />
+                {/* Text */}
+                <div className="absolute inset-0 p-6 flex flex-col justify-end">
+                  <h3
+                    className="font-serif font-light text-white mb-1 transition-all duration-300"
+                    style={{
+                      fontFamily: "'Cormorant Garamond', serif",
+                      fontSize: isLarge ? "clamp(24px, 2.5vw, 32px)" : "22px",
+                      transform: hovered === mood.id ? "translateY(-4px)" : "translateY(0)",
+                    }}
+                  >
+                    {mood.title}
+                  </h3>
+                  <p
+                    className="font-ui text-white/75 text-[13px] leading-snug transition-all duration-300"
+                    style={{
+                      opacity: hovered === mood.id ? 1 : 0,
+                      transform: hovered === mood.id ? "translateY(0)" : "translateY(6px)",
+                    }}
+                  >
+                    {mood.desc}
+                  </p>
+                  {/* Arrow */}
+                  <div
+                    className="mt-3 flex items-center gap-2 transition-all duration-300"
+                    style={{ opacity: hovered === mood.id ? 1 : 0 }}
+                  >
+                    <span className="label-editorial text-[#DDB96A]" style={{ fontSize: "9px" }}>EXPLORE</span>
+                    <svg className="w-3 h-3 text-[#DDB96A] transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                    </svg>
+                  </div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
       </div>
     </section>
   );
 }
 
-/* ── 6 Category Showcase Tiles: Sufi, Rock, Gazal, Bollywood, Carnival, Devotional ─ */
+/* ── Occasion Discovery ─────────────────────────────────────────────────── */
 
-interface CategoryShowcaseProps {
-  onSelectGenre: (genreId: "sufi" | "rock" | "gazal" | "bollywood" | "carnival" | "devotional") => void;
-}
+const OCCASIONS = [
+  { label: "Wedding", icon: "◈", genre: "sufi" as const },
+  { label: "Corporate Event", icon: "◎", genre: "gazal" as const },
+  { label: "Festival", icon: "◉", genre: "bollywood" as const },
+  { label: "Private Celebration", icon: "◈", genre: "gazal" as const },
+  { label: "College / Campus", icon: "◇", genre: "rock" as const },
+  { label: "Cultural Event", icon: "◆", genre: "devotional" as const },
+  { label: "Brand Event", icon: "○", genre: "bollywood" as const },
+  { label: "Community Event", icon: "◎", genre: "carnival" as const },
+  { label: "Concert", icon: "◉", genre: "rock" as const },
+];
 
-function CategoryShowcase({ onSelectGenre }: CategoryShowcaseProps) {
-  const genreKeys: Array<"sufi" | "rock" | "gazal" | "bollywood" | "carnival" | "devotional"> = [
-    "sufi", "rock", "gazal", "bollywood", "carnival", "devotional"
-  ];
-  const cats = genreKeys.map(k => {
-    const meta = GENRE_METADATA[k];
-    return {
-      id: meta.id,
-      title: meta.title,
-      tag: meta.tag,
-      sub: meta.description,
-      img: meta.heroImg,
-      accent: meta.accent,
-      icon: meta.icon,
-    };
-  });
-
+function OccasionDiscovery({ onSelectGenre }: { onSelectGenre: (g: "sufi" | "rock" | "gazal" | "bollywood" | "carnival" | "devotional") => void }) {
   return (
-    <section id="categories" className="bg-[#FFF8F8] py-24 relative overflow-hidden">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="text-center mb-16">
-          <SectionBadge color="#E11D48">✦ Explore By Genre</SectionBadge>
-          <h2 className="font-display text-4xl lg:text-5xl font-bold text-[#1A1A1A] mb-4">
-            Discover Exceptional Talent Across{" "}
-            <span className="text-gradient-crimson italic">Every Genre</span>
+    <section className="py-24 lg:py-32" style={{ background: "#F5F0E8" }}>
+      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+        <div className="mb-14 max-w-xl">
+          <span className="label-editorial text-[#B5593C] tracking-[0.22em] block mb-4" style={{ fontSize: "10px" }}>
+            BY OCCASION
+          </span>
+          <h2
+            className="font-serif font-light text-[#1A1916] leading-tight"
+            style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(32px, 4vw, 52px)" }}
+          >
+            What are you<br /><em style={{ fontStyle: "italic" }}>planning?</em>
           </h2>
-          <p className="font-body text-[#5B5B5B] text-lg max-w-2xl mx-auto">
-            Click any genre tile to view verified artists, their complete profiles, performance setlists, and what else they do!
-          </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {cats.map(c => (
-            <div
-              key={c.title}
-              onClick={() => onSelectGenre(c.id)}
-              className="group relative h-80 rounded-3xl overflow-hidden cursor-pointer shadow-md hover:shadow-2xl transition-all duration-500 hover:-translate-y-1.5 border border-black/5 bg-gray-900"
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px" style={{ background: "#D6CFBF" }}>
+          {OCCASIONS.map(occ => (
+            <button
+              key={occ.label}
+              onClick={() => onSelectGenre(occ.genre)}
+              className="group bg-[#F5F0E8] hover:bg-[#1A1916] p-8 flex items-center justify-between transition-all duration-350 cursor-pointer text-left"
             >
-              <img
-                src={c.img}
-                alt={c.title}
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 brightness-[0.95] group-hover:brightness-105"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#0F0104]/90 via-[#0F0104]/40 via-45% to-transparent pointer-events-none" />
-              <div
-                className="absolute inset-0 opacity-0 group-hover:opacity-30 transition-opacity duration-500 pointer-events-none"
-                style={{ background: `linear-gradient(to top, ${c.accent}, transparent 50%)` }}
-              />
-
-              <div className="absolute inset-0 p-6 flex flex-col justify-between z-10">
-                <div className="flex items-center justify-between">
-                  <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-semibold text-white bg-black/45 backdrop-blur-md border border-white/20 shadow-md">
-                    <span className="text-base">{c.icon}</span>
-                    <span>{c.tag}</span>
-                  </span>
-                  <span className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-white text-xs opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:scale-110">
-                    ↗
-                  </span>
-                </div>
-
-                <div>
-                  <h3 className="font-display text-3xl font-bold text-white mb-1.5 drop-shadow-md tracking-tight">
-                    {c.title}
-                  </h3>
-                  <p className="font-body text-white/90 text-sm leading-snug drop-shadow line-clamp-2">
-                    {c.sub}
-                  </p>
-                  <div className="mt-4 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300">
-                    <span className="font-body text-xs font-bold text-white bg-[#E11D48] hover:bg-[#BE123C] px-4 py-2 rounded-full shadow-lg inline-flex items-center gap-1.5">
-                      Explore {c.title} Artists →
-                    </span>
-                  </div>
-                </div>
+              <div className="flex items-center gap-4">
+                <span className="font-serif text-2xl text-[#C4952A] group-hover:text-[#DDB96A] transition-colors" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
+                  {occ.icon}
+                </span>
+                <span
+                  className="font-serif font-light text-[#1A1916] group-hover:text-white transition-colors text-[18px]"
+                  style={{ fontFamily: "'Cormorant Garamond', serif" }}
+                >
+                  {occ.label}
+                </span>
               </div>
-            </div>
+              <svg
+                className="w-4 h-4 text-[#C4952A] group-hover:text-[#DDB96A] transition-all duration-300 group-hover:translate-x-1"
+                fill="none" stroke="currentColor" viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
+            </button>
           ))}
         </div>
       </div>
@@ -635,169 +544,368 @@ function CategoryShowcase({ onSelectGenre }: CategoryShowcaseProps) {
   );
 }
 
-/* ── Featured Artists ───────────────────────────────────────────────────────── */
+/* ── Smart Discovery Tool ───────────────────────────────────────────────── */
 
-interface FeaturedArtistsProps {
-  onSelectArtist: (artist: Artist) => void;
-  onBookArtist: (artist: Artist) => void;
-  onViewAll: () => void;
-  artists?: Artist[];
-  featuredArtistIds?: string[];
-}
+function SmartDiscovery({ onSelectGenre }: { onSelectGenre: (g: "sufi" | "rock" | "gazal" | "bollywood" | "carnival" | "devotional") => void }) {
+  const [selectedMood, setSelectedMood] = useState("");
+  const [selectedOccasion, setSelectedOccasion] = useState("");
+  const [selectedGenre, setSelectedGenre] = useState("");
+  const [selectedSize, setSelectedSize] = useState("");
+  const [showResults, setShowResults] = useState(false);
 
-function FeaturedArtists({ onSelectArtist, onBookArtist, onViewAll, artists, featuredArtistIds }: FeaturedArtistsProps) {
-  const sourceArtists = artists || ALL_ARTISTS;
-  const featured = featuredArtistIds && featuredArtistIds.length > 0
-    ? featuredArtistIds.map(id => sourceArtists.find(a => a.id === id)).filter((a): a is Artist => Boolean(a))
-    : sourceArtists.slice(0, 6);
+  const moods = ["Soulful", "Energetic", "Elegant", "Joyful", "Experimental", "Intimate"];
+  const occasions = ["Wedding", "Corporate", "Festival", "Celebration", "Cultural", "Private"];
+  const genres = ["Music", "Dance", "Theatre", "Folk", "Classical", "Storytelling", "Visual Arts"];
+  const sizes = ["Small (under 50)", "Medium (50–200)", "Large (200+)"];
+
+  const GENRE_MAP: Record<string, "sufi" | "rock" | "gazal" | "bollywood" | "carnival" | "devotional"> = {
+    "Soulful": "sufi", "Energetic": "rock", "Elegant": "gazal", "Joyful": "bollywood",
+    "Experimental": "carnival", "Intimate": "devotional",
+    "Music": "sufi", "Dance": "bollywood", "Theatre": "carnival",
+    "Folk": "devotional", "Classical": "gazal", "Storytelling": "sufi", "Visual Arts": "carnival",
+  };
+
+  const ChipBtn = ({ label, selected, onSelect }: { label: string; selected: boolean; onSelect: () => void }) => (
+    <button
+      onClick={onSelect}
+      className={`font-ui text-[13px] px-4 py-2 rounded-full border transition-all duration-250 cursor-pointer ${
+        selected
+          ? "bg-[#1A1916] text-[#FAF7F2] border-[#1A1916]"
+          : "bg-transparent text-[#4A4845] border-[#C4952A]/40 hover:border-[#C4952A] hover:text-[#1A1916]"
+      }`}
+    >
+      {label}
+    </button>
+  );
+
+  const handleDiscover = () => {
+    const key = selectedMood || selectedGenre;
+    const mappedGenre = GENRE_MAP[key] || "sufi";
+    setShowResults(true);
+    setTimeout(() => {
+      onSelectGenre(mappedGenre);
+      setShowResults(false);
+    }, 600);
+  };
+
+  const hasSelection = selectedMood || selectedOccasion || selectedGenre || selectedSize;
 
   return (
-    <section id="featured-performers" className="bg-[#FFF0F3] py-24 relative overflow-hidden">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="flex flex-col md:flex-row items-start md:items-end justify-between mb-16 gap-4">
+    <section className="py-24 lg:py-36" style={{ background: "#1A1916" }}>
+      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+        {/* Header */}
+        <div className="mb-14 lg:mb-16 text-center">
+          <span className="label-editorial text-[#C4952A] tracking-[0.22em] block mb-5" style={{ fontSize: "10px" }}>
+            SMART DISCOVERY
+          </span>
+          <h2
+            className="font-serif font-light text-white leading-tight"
+            style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(34px, 4.5vw, 58px)" }}
+          >
+            What kind of experience<br />
+            <em style={{ fontStyle: "italic", color: "#DDB96A" }}>are you looking for?</em>
+          </h2>
+        </div>
+
+        {/* Filters */}
+        <div className="space-y-10 max-w-3xl mx-auto">
+          {/* Mood */}
           <div>
-            <SectionBadge color="#E11D48">✦ Hand-picked Talent</SectionBadge>
-            <h2 className="font-display text-4xl lg:text-5xl font-bold text-[#1A1A1A]">
-              Featured <span className="text-gradient-crimson italic">Performers</span>
+            <p className="label-editorial text-[#7A776F] tracking-[0.2em] mb-4" style={{ fontSize: "9px" }}>
+              MOOD
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {moods.map(m => (
+                <ChipBtn key={m} label={m} selected={selectedMood === m} onSelect={() => setSelectedMood(prev => prev === m ? "" : m)} />
+              ))}
+            </div>
+          </div>
+
+          {/* Occasion */}
+          <div>
+            <p className="label-editorial text-[#7A776F] tracking-[0.2em] mb-4" style={{ fontSize: "9px" }}>
+              OCCASION
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {occasions.map(o => (
+                <ChipBtn key={o} label={o} selected={selectedOccasion === o} onSelect={() => setSelectedOccasion(prev => prev === o ? "" : o)} />
+              ))}
+            </div>
+          </div>
+
+          {/* Genre */}
+          <div>
+            <p className="label-editorial text-[#7A776F] tracking-[0.2em] mb-4" style={{ fontSize: "9px" }}>
+              GENRE / FORM
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {genres.map(g => (
+                <ChipBtn key={g} label={g} selected={selectedGenre === g} onSelect={() => setSelectedGenre(prev => prev === g ? "" : g)} />
+              ))}
+            </div>
+          </div>
+
+          {/* Audience */}
+          <div>
+            <p className="label-editorial text-[#7A776F] tracking-[0.2em] mb-4" style={{ fontSize: "9px" }}>
+              AUDIENCE SIZE
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {sizes.map(s => (
+                <ChipBtn key={s} label={s} selected={selectedSize === s} onSelect={() => setSelectedSize(prev => prev === s ? "" : s)} />
+              ))}
+            </div>
+          </div>
+
+          {/* Divider */}
+          <div className="divider-ornate" />
+
+          {/* CTA */}
+          <div className="flex items-center justify-between">
+            {hasSelection && (
+              <button
+                onClick={() => { setSelectedMood(""); setSelectedOccasion(""); setSelectedGenre(""); setSelectedSize(""); }}
+                className="font-ui text-[13px] text-[#7A776F] hover:text-[#A8A49A] transition-colors cursor-pointer"
+              >
+                Clear all
+              </button>
+            )}
+            <button
+              onClick={handleDiscover}
+              disabled={!hasSelection}
+              className={`ml-auto font-ui font-semibold text-[14px] px-8 py-3.5 rounded-full transition-all duration-300 cursor-pointer tracking-wide ${
+                hasSelection
+                  ? "bg-[#C4952A] hover:bg-[#DDB96A] text-[#1A1916] shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+                  : "bg-[#2E2C28] text-[#4A4845] cursor-not-allowed"
+              }`}
+            >
+              {showResults ? "Discovering..." : "Discover Experiences →"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ── Featured Experiences ───────────────────────────────────────────────── */
+
+function FeaturedExperiences({
+  artists,
+  featuredArtistIds,
+  onSelectArtist,
+  onBookArtist,
+  onViewAll,
+}: {
+  artists: Artist[];
+  featuredArtistIds: string[];
+  onSelectArtist: (a: Artist) => void;
+  onBookArtist: (a: Artist) => void;
+  onViewAll: () => void;
+}) {
+  const featured = artists.filter(a => featuredArtistIds.includes(a.id)).slice(0, 6);
+  const display = featured.length > 0 ? featured : artists.slice(0, 6);
+
+  const MOOD_LABELS: Record<string, string[]> = {
+    "sufi": ["Soulful", "Intimate"],
+    "rock": ["Energetic", "Bold"],
+    "gazal": ["Elegant", "Poetic"],
+    "bollywood": ["Joyful", "Celebratory"],
+    "carnival": ["Festive", "Playful"],
+    "devotional": ["Spiritual", "Serene"],
+  };
+
+  const OCCASION_LABELS: Record<string, string[]> = {
+    "sufi": ["Wedding", "Private Events"],
+    "rock": ["Corporate", "Concerts"],
+    "gazal": ["Cultural", "Private"],
+    "bollywood": ["Celebrations", "Festivals"],
+    "carnival": ["Festivals", "Brand Events"],
+    "devotional": ["Cultural", "Community"],
+  };
+
+  return (
+    <section id="featured-performers" className="py-24 lg:py-36" style={{ background: "#FAF7F2" }}>
+      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+        {/* Header */}
+        <div className="flex items-end justify-between mb-14 lg:mb-20">
+          <div className="max-w-xl">
+            <span className="label-editorial text-[#C4952A] tracking-[0.22em] block mb-4" style={{ fontSize: "10px" }}>
+              CURATED EXPERIENCES
+            </span>
+            <h2
+              className="font-serif font-light text-[#1A1916] leading-tight"
+              style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(32px, 4vw, 52px)" }}
+            >
+              Curated experiences for<br />
+              <em style={{ fontStyle: "italic" }}>your next moment</em>
             </h2>
           </div>
           <button
             onClick={onViewAll}
-            className="font-body text-sm font-semibold text-[#E11D48] border-2 border-[#E11D48] px-5 py-2.5 rounded-full hover:bg-[#E11D48] hover:text-white transition-all duration-200 flex-shrink-0 cursor-pointer"
+            className="hidden md:flex items-center gap-2 font-ui text-[13px] font-medium text-[#4A4845] hover:text-[#1A1916] transition-colors group cursor-pointer"
           >
-            View All Artists Directory →
+            View all artists
+            <svg className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+            </svg>
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {featured.map(a => (
-            <div
-              key={a.id}
-              className="bg-white rounded-3xl overflow-hidden shadow-sm card-hover card-hover-ruby group flex flex-col border border-[#F3E5E8]"
-            >
+        {/* Editorial masonry-style grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+          {display.map((artist, idx) => {
+            const isFeature = idx === 0;
+            const moods = MOOD_LABELS[artist.genre] || ["Artistic", "Live"];
+            const occasions = OCCASION_LABELS[artist.genre] || ["Events"];
+
+            return (
               <div
-                className="relative h-56 overflow-hidden bg-gray-100 cursor-pointer"
-                onClick={() => onSelectArtist(a)}
+                key={artist.id}
+                className={`group cursor-pointer ${isFeature ? "md:col-span-2 lg:col-span-1" : ""}`}
+                onClick={() => onSelectArtist(artist)}
               >
-                <img
-                  src={a.img}
-                  alt={a.name}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                <span className="absolute top-3 left-3 font-body text-xs font-bold text-white px-3 py-1 rounded-full shadow-sm bg-[#E11D48]">
-                  {a.genreTitle}
-                </span>
-                <span className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm text-green-600 text-xs font-body font-semibold px-2 py-1 rounded-full flex items-center gap-1">
-                  ✓ Verified
-                </span>
-              </div>
-
-              <div className="p-5 flex-1 flex flex-col justify-between space-y-3">
-                <div>
-                  <div className="flex items-start justify-between mb-1.5">
-                    <div>
-                      <h3
-                        onClick={() => onSelectArtist(a)}
-                        className="font-display font-bold text-lg text-[#1A1A1A] leading-tight hover:text-[#E11D48] cursor-pointer transition-colors"
-                      >
-                        {a.name}
-                      </h3>
-                      <p className="font-body text-xs text-[#5B5B5B]">{a.bandType} • {a.city}</p>
-                    </div>
-                    <div className="text-right flex-shrink-0 ml-2">
-                      <div className="font-body text-[10px] text-[#5B5B5B]">Starting</div>
-                      <div className="font-display font-bold text-base text-[#BE123C]">{a.price}</div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2 mb-2">
-                    <StarRating rating={a.rating} />
-                    <span className="font-body text-xs text-[#5B5B5B]">({a.reviewsCount} reviews)</span>
-                  </div>
-
-                  <div className="bg-[#FFF8F8] p-2.5 rounded-xl border border-[#F3E5E8] mb-2">
-                    <span className="text-[10px] font-bold text-[#BE123C] block mb-1">
-                      ✨ Also Performs:
-                    </span>
-                    <div className="flex flex-wrap gap-1">
-                      {a.whatElseTheyDo.slice(0, 2).map((item, i) => (
-                        <span key={i} className="text-[10px] bg-white text-[#4A4A4A] px-2 py-0.5 rounded border border-[#F3E5E8]">
-                          {item.category}
-                        </span>
-                      ))}
-                    </div>
+                {/* Image container */}
+                <div
+                  className="relative overflow-hidden rounded-xl mb-5 img-zoom"
+                  style={{ height: isFeature ? "440px" : "300px", background: "#EDE8DF" }}
+                >
+                  <img
+                    src={artist.img || "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=600&h=800&fit=crop&auto=format&q=75"}
+                    alt={artist.stageName || artist.name}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
+                  />
+                  {/* Subtle overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-400" />
+                  {/* Book button — appears on hover */}
+                  <button
+                    onClick={e => { e.stopPropagation(); onBookArtist(artist); }}
+                    className="absolute bottom-4 right-4 font-ui text-[11px] font-semibold bg-[#C4952A] text-[#1A1916] px-4 py-2 rounded-full opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 cursor-pointer shadow-lg"
+                  >
+                    Plan Event
+                  </button>
+                  {/* Top genre badge */}
+                  <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-white/90 backdrop-blur-sm px-2.5 py-1 rounded-full">
+                    <div className="w-1.5 h-1.5 rounded-full bg-[#C4952A]" />
+                    <span className="label-editorial text-[#1A1916] capitalize" style={{ fontSize: "8px" }}>{artist.genre}</span>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between pt-2 border-t border-[#F3E5E8]">
-                  <button
-                    onClick={() => onSelectArtist(a)}
-                    className="text-xs font-semibold text-[#E11D48] hover:underline cursor-pointer"
+                {/* Info */}
+                <div className="space-y-2.5">
+                  {/* Mood tags */}
+                  <div className="flex items-center gap-2">
+                    {moods.map(tag => (
+                      <span key={tag} className="label-editorial text-[#C4952A] border border-[#C4952A]/30 px-2.5 py-1 rounded-full" style={{ fontSize: "8px" }}>
+                        {tag}
+                      </span>
+                    ))}
+                    {occasions.slice(0, 1).map(tag => (
+                      <span key={tag} className="label-editorial text-[#7A776F] border border-[#C4952A]/20 px-2.5 py-1 rounded-full" style={{ fontSize: "8px" }}>
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+
+                  {/* Name */}
+                  <h3
+                    className="font-serif font-light text-[#1A1916] group-hover:text-[#C4952A] transition-colors leading-tight"
+                    style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(20px, 2vw, 26px)" }}
                   >
-                    View Full Profile →
-                  </button>
-                  <button
-                    onClick={() => onBookArtist(a)}
-                    className="font-body text-xs font-bold text-white px-4 py-2 rounded-full hover:scale-105 hover:shadow-md transition-all duration-200 cursor-pointer bg-[#E11D48] hover:bg-[#BE123C]"
-                  >
-                    ⚡ Book Now
-                  </button>
+                    {artist.stageName || artist.name}
+                  </h3>
+
+                  {/* Genre + location */}
+                  <p className="font-ui text-[#7A776F] text-[13px] flex items-center gap-2">
+                    <span className="capitalize">{artist.genre}</span>
+                    <span className="text-[#C4952A]/50">·</span>
+                    <span>{artist.city}</span>
+                  </p>
+
+                  {/* Price */}
+                  <p className="font-ui text-[12px] font-medium text-[#4A4845]">
+                    From {artist.price}
+                  </p>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
+        </div>
+
+        <div className="text-center mt-14">
+          <button
+            onClick={onViewAll}
+            className="font-ui font-medium text-[14px] text-[#1A1916] border border-[#1A1916] hover:bg-[#1A1916] hover:text-[#FAF7F2] px-8 py-3.5 rounded-full transition-all duration-300 cursor-pointer tracking-wide"
+          >
+            Explore All Artists & Experiences
+          </button>
         </div>
       </div>
     </section>
   );
 }
 
-/* ── How It Works ───────────────────────────────────────────────────────────── */
+/* ── Genre Exploration ──────────────────────────────────────────────────── */
 
-function HowItWorks() {
-  const steps = [
-    { num: "01", title: "Search & Discover",   desc: "Filter by genre (Sufi, Rock, Gazal, Bollywood, Carnival, Devotional), city, and budget. Browse verified profiles with performance clips.",  icon: "🔍", color: "#E11D48" },
-    { num: "02", title: "Connect & Preview",   desc: "Watch live gig videos, read verified client feedback, check calendar availability, and see everything the artist performs.",            icon: "🎵", color: "#BE123C" },
-    { num: "03", title: "Book & Celebrate",    desc: "Lock in your dates with secure digital contracts, transparent pricing calculators, and a dedicated artist relationship manager.",       icon: "🎉", color: "#10B981" },
+function GenreExploration({ onSelectGenre }: { onSelectGenre: (g: "sufi" | "rock" | "gazal" | "bollywood" | "carnival" | "devotional") => void }) {
+  const genres = [
+    { key: "sufi" as const, label: "Sufi & Qawwali", desc: "Soul-stirring mystical devotion", img: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=600&h=400&fit=crop&q=75" },
+    { key: "rock" as const, label: "Indie & Rock", desc: "Raw, electric and anthemic", img: "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=600&h=400&fit=crop&q=75" },
+    { key: "gazal" as const, label: "Ghazal & Classical", desc: "Poetic elegance in every note", img: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&h=400&fit=crop&q=75" },
+    { key: "bollywood" as const, label: "Bollywood & Dance", desc: "Vibrant, cinematic celebration", img: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=600&h=400&fit=crop&q=75" },
+    { key: "carnival" as const, label: "Theatre & Carnival", desc: "Spectacle, drama and wonder", img: "https://images.unsplash.com/photo-1520523839897-bd0b52f945a0?w=600&h=400&fit=crop&q=75" },
+    { key: "devotional" as const, label: "Devotional & Folk", desc: "Ancient roots, living traditions", img: "https://images.unsplash.com/photo-1508700929628-666bc8bd84ea?w=600&h=400&fit=crop&q=75" },
   ];
 
   return (
-    <section id="how-it-works" className="bg-white py-24 relative overflow-hidden">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="text-center mb-16">
-          <SectionBadge color="#E11D48">✦ Simple Process</SectionBadge>
-          <h2 className="font-display text-4xl lg:text-5xl font-bold text-[#1A1A1A] mb-4">
-            How <span className="text-gradient-crimson italic">StageBridge</span> Works
-          </h2>
-          <p className="font-body text-[#5B5B5B] text-lg max-w-xl mx-auto">
-            From first search to final encore — we make booking effortless.
-          </p>
+    <section className="py-24 lg:py-36" style={{ background: "#F5F0E8" }}>
+      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+        <div className="flex items-end justify-between mb-14 lg:mb-20">
+          <div>
+            <span className="label-editorial text-[#6B7B4A] tracking-[0.22em] block mb-4" style={{ fontSize: "10px" }}>
+              EXPLORE GENRES
+            </span>
+            <h2
+              className="font-serif font-light text-[#1A1916] leading-tight"
+              style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(32px, 4vw, 52px)" }}
+            >
+              Explore the world<br /><em style={{ fontStyle: "italic" }}>of performance</em>
+            </h2>
+          </div>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-12 relative">
-          <div
-            className="hidden md:block absolute top-11 h-px bg-gradient-to-r from-[#E11D48] via-[#BE123C] to-[#10B981]"
-            style={{ left: "18%", right: "18%" }}
-          />
-
-          {steps.map(s => (
-            <div key={s.num} className="relative text-center group">
-              <div
-                className="font-display font-black text-8xl absolute top-0 left-1/2 -translate-x-1/2 select-none leading-none"
-                style={{ color: `${s.color}10` }}
-              >
-                {s.num}
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          {genres.map(g => (
+            <button
+              key={g.key}
+              onClick={() => onSelectGenre(g.key)}
+              className="group relative overflow-hidden rounded-xl cursor-pointer text-left lift-card"
+              style={{ height: "240px" }}
+            >
+              <img
+                src={g.img}
+                alt={g.label}
+                className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.06]"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+              <div className="absolute inset-0 p-5 flex flex-col justify-end">
+                <h3
+                  className="font-serif font-light text-white text-[20px] mb-1 leading-tight transition-transform duration-300 group-hover:-translate-y-1"
+                  style={{ fontFamily: "'Cormorant Garamond', serif" }}
+                >
+                  {g.label}
+                </h3>
+                <p className="font-ui text-white/65 text-[12px] transition-all duration-300" style={{ opacity: 0 }}>
+                  {g.desc}
+                </p>
+                <div className="flex items-center gap-1.5 mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <span className="label-editorial text-[#DDB96A]" style={{ fontSize: "8px" }}>EXPLORE</span>
+                  <svg className="w-3 h-3 text-[#DDB96A] group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                  </svg>
+                </div>
               </div>
-              <div
-                className="relative w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 text-4xl shadow-md group-hover:scale-110 transition-transform duration-300 z-10"
-                style={{ background: `${s.color}12`, border: `2px solid ${s.color}28` }}
-              >
-                {s.icon}
-              </div>
-              <h3 className="font-display font-bold text-xl text-[#1A1A1A] mb-3 relative z-10">{s.title}</h3>
-              <p className="font-body text-[#5B5B5B] text-sm leading-relaxed relative z-10 max-w-xs mx-auto">{s.desc}</p>
-            </div>
+            </button>
           ))}
         </div>
       </div>
@@ -805,212 +913,367 @@ function HowItWorks() {
   );
 }
 
-/* ── Wedding & Celebrations Section ────────────────────────────────────────── */
+/* ── Surprise Me ────────────────────────────────────────────────────────── */
 
-function WeddingSection({ onExplore }: { onExplore: () => void }) {
+function SurpriseMe({ onSelectGenre }: { onSelectGenre: (g: "sufi" | "rock" | "gazal" | "bollywood" | "carnival" | "devotional") => void }) {
+  const [clicked, setClicked] = useState(false);
+  const genres: ("sufi" | "rock" | "gazal" | "bollywood" | "carnival" | "devotional")[] = ["sufi", "rock", "gazal", "bollywood", "carnival", "devotional"];
+
+  const handleSurprise = () => {
+    setClicked(true);
+    const random = genres[Math.floor(Math.random() * genres.length)];
+    setTimeout(() => {
+      onSelectGenre(random);
+      setClicked(false);
+    }, 800);
+  };
+
   return (
-    <section className="bg-[#FFF1F5] py-24 relative overflow-hidden">
-      <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-16 items-center">
-        <div>
-          <SectionBadge color="#E11D48">💍 Wedding &amp; Private Celebrations</SectionBadge>
-          <h2 className="font-display text-4xl lg:text-5xl font-bold text-[#1A1A1A] mb-6 leading-tight">
-            Make Your <span className="italic" style={{ color: "#E11D48" }}>Celebration Day</span>
-            <br />Unforgettable
-          </h2>
-          <p className="font-body text-[#5B5B5B] text-lg leading-relaxed mb-8">
-            From soulful Ghazal &amp; Sufi singers who serenade your evening to high-octane Bollywood &amp; Rock live bands that keep the dance floor packed all night.
-          </p>
-          <div className="grid grid-cols-2 gap-3 mb-8">
-            {["Ghazal Mehfils", "Sufi Ensembles", "Bollywood Live Bands", "Carnival Dancers", "Devotional Kirtans", "Rock Guitarists"].map(t => (
-              <div key={t} className="flex items-center gap-2 font-body text-sm text-[#5B5B5B]">
-                <svg className="w-4 h-4 text-[#E11D48] flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                {t}
-              </div>
-            ))}
-          </div>
-          <button
-            onClick={onExplore}
-            className="font-body font-bold px-8 py-4 rounded-full text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer"
-            style={{ background: "linear-gradient(135deg, #BE123C, #E11D48)" }}
-          >
-            Browse Wedding Artists →
-          </button>
-        </div>
-
-        <div className="relative h-[500px]">
-          <div className="absolute inset-0 rounded-3xl overflow-hidden shadow-2xl bg-gray-200">
-            <img src="https://images.unsplash.com/photo-1699521377681-b3aac449a4c6?w=700&h=600&fit=crop&auto=format" alt="Wedding singer" className="w-full h-full object-cover" />
-            <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(225,29,72,0.3) 0%, transparent 60%)" }} />
-          </div>
-          <div className="absolute -bottom-5 -left-5 bg-white rounded-2xl shadow-xl p-4 max-w-[200px] border border-[#F3E5E8]">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-9 h-9 rounded-full bg-[#E11D48]/10 flex items-center justify-center text-lg">💍</div>
-              <div>
-                <div className="font-display font-bold text-sm text-[#1A1A1A]">200+ Weddings</div>
-                <div className="font-body text-xs text-[#5B5B5B]">This year alone</div>
-              </div>
-            </div>
-            <StarRating rating={5} />
-          </div>
-        </div>
+    <section
+      className="relative py-28 lg:py-40 overflow-hidden"
+      style={{ background: "#2E2C28" }}
+    >
+      {/* Background art texture */}
+      <div className="absolute inset-0 opacity-10">
+        <img
+          src="https://images.unsplash.com/photo-1520523839897-bd0b52f945a0?w=1400&h=800&fit=crop&q=60"
+          alt=""
+          className="w-full h-full object-cover"
+          aria-hidden
+        />
       </div>
-    </section>
-  );
-}
 
-/* ── Join As Artist CTA ─────────────────────────────────────────────────────── */
-
-function JoinArtistCTA() {
-  return (
-    <section id="join-artist" className="relative py-32 overflow-hidden">
-      <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, #180206 0%, #2A050D 25%, #4C0519 50%, #881337 80%, #0F0104 100%)" }} />
-
-      <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
-        <div className="text-5xl mb-6 animate-float inline-block">✨</div>
-        <h2 className="font-display text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
-          Are You a Performer?
-          <br />
-          <span className="shimmer-crimson">Start Earning Today</span>
+      <div className="relative z-10 max-w-3xl mx-auto px-6 text-center">
+        <span className="label-editorial text-[#DDB96A]/70 tracking-[0.28em] block mb-6" style={{ fontSize: "10px" }}>
+          SURPRISE ME
+        </span>
+        <h2
+          className="font-serif font-light text-white leading-tight mb-4"
+          style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(36px, 5vw, 64px)" }}
+        >
+          Not sure what you're<br />
+          <em style={{ fontStyle: "italic", color: "#DDB96A" }}>looking for?</em>
         </h2>
-        <p className="font-body text-white/70 text-xl leading-relaxed mb-10 max-w-2xl mx-auto">
-          Join India's largest artist booking network. Showcase all the genres and styles you perform. Set your own rates. Own your calendar. Build your legacy.
+        <p className="font-ui text-[#A8A49A] text-[15px] leading-relaxed mb-10">
+          Let Mannat Arts surprise you with something unexpected.<br />
+          Art has a way of knowing what you need.
         </p>
+        <button
+          onClick={handleSurprise}
+          disabled={clicked}
+          className={`font-ui font-semibold text-[15px] bg-[#C4952A] hover:bg-[#DDB96A] text-[#1A1916] px-10 py-4 rounded-full transition-all duration-400 cursor-pointer tracking-wide shadow-xl hover:shadow-2xl hover:-translate-y-1 ${clicked ? "opacity-70 scale-95" : ""}`}
+        >
+          {clicked ? "Finding something special..." : "Discover something unexpected"}
+        </button>
+      </div>
+    </section>
+  );
+}
 
-        <div className="grid grid-cols-3 gap-8 mb-12 max-w-md mx-auto">
-          {[["₹50L+", "Paid to artists"], ["2,800+", "Active profiles"], ["4.9★", "Artist rating"]].map(([n, l]) => (
-            <div key={l}>
-              <div className="font-display font-bold text-3xl text-[#FB7185]">{n}</div>
-              <div className="font-body text-xs text-white/60 mt-1 leading-tight">{l}</div>
-            </div>
-          ))}
+/* ── How It Works ───────────────────────────────────────────────────────── */
+
+function HowItWorks() {
+  const steps = [
+    {
+      num: "01",
+      title: "Tell us what you need.",
+      desc: "Start with your mood, occasion or purpose. No categories to browse. Just how you want to feel.",
+    },
+    {
+      num: "02",
+      title: "Discover experiences curated for you.",
+      desc: "We surface artists, genres and performances that match your vision — from intimate baithaks to stadium concerts.",
+    },
+    {
+      num: "03",
+      title: "Connect and make it happen.",
+      desc: "Reach directly to the right artists and ensembles. Transparent pricing, flexible riders, and dedicated support.",
+    },
+  ];
+
+  return (
+    <section className="py-24 lg:py-36" style={{ background: "#FAF7F2" }}>
+      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+        <div className="mb-14 lg:mb-20 max-w-lg">
+          <span className="label-editorial text-[#C4952A] tracking-[0.22em] block mb-4" style={{ fontSize: "10px" }}>
+            HOW IT WORKS
+          </span>
+          <h2
+            className="font-serif font-light text-[#1A1916] leading-tight"
+            style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(32px, 4vw, 52px)" }}
+          >
+            Three steps to<br /><em style={{ fontStyle: "italic" }}>the perfect experience</em>
+          </h2>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <button
-            className="font-body font-bold px-10 py-4 rounded-full text-white text-lg transition-all duration-300 hover:scale-105 shadow-xl cursor-pointer"
-            style={{ background: "linear-gradient(135deg, #E11D48, #F43F5E)", boxShadow: "0 0 40px rgba(225,29,72,0.45)" }}
-          >
-            Create Artist Profile — Free
-          </button>
+        <div className="grid md:grid-cols-3 gap-12 lg:gap-16">
+          {steps.map(step => (
+            <div key={step.num} className="relative">
+              {/* Step number */}
+              <div className="mb-6">
+                <span
+                  className="font-serif text-[80px] leading-none text-[#EDE8DF] select-none"
+                  style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 300 }}
+                >
+                  {step.num}
+                </span>
+              </div>
+              <div className="divider-ornate mb-6" />
+              <h3
+                className="font-serif font-light text-[#1A1916] text-[22px] mb-3 leading-tight"
+                style={{ fontFamily: "'Cormorant Garamond', serif" }}
+              >
+                {step.title}
+              </h3>
+              <p className="font-ui text-[#7A776F] text-[14px] leading-relaxed">
+                {step.desc}
+              </p>
+            </div>
+          ))}
         </div>
       </div>
     </section>
   );
 }
 
-/* ── Footer ─────────────────────────────────────────────────────────────────── */
+/* ── Testimonials ───────────────────────────────────────────────────────── */
+
+const TESTIMONIALS = [
+  {
+    quote: "We didn't know we wanted a Sufi ensemble for our corporate gala until Mannat helped us discover one. It was the most memorable part of the evening.",
+    name: "Priya Mehta",
+    role: "Head of Events, TechSphere India",
+    type: "Corporate Gala",
+  },
+  {
+    quote: "Our wedding felt like a cultural poem. Every performance — the ghazal baithak at dusk, the Bollywood troupe at midnight — was perfectly curated.",
+    name: "Arjun & Nayantara Kapoor",
+    role: "Wedding, Udaipur Palace",
+    type: "Luxury Wedding",
+  },
+  {
+    quote: "As a festival director, I need artists who can move an audience. Mannat Arts connected me with folk performers who literally made the crowd weep with joy.",
+    name: "Devika Rao",
+    role: "Festival Director, Jaipur Folk Mela",
+    type: "Cultural Festival",
+  },
+];
+
+function Testimonials() {
+  return (
+    <section className="py-24 lg:py-36" style={{ background: "#F5F0E8" }}>
+      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+        <div className="mb-14 lg:mb-20 text-center">
+          <span className="label-editorial text-[#C4952A] tracking-[0.22em] block mb-4" style={{ fontSize: "10px" }}>
+            STORIES
+          </span>
+          <h2
+            className="font-serif font-light text-[#1A1916] leading-tight"
+            style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(32px, 4vw, 52px)" }}
+          >
+            Loved by people who create<br />
+            <em style={{ fontStyle: "italic" }}>unforgettable moments</em>
+          </h2>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-8">
+          {TESTIMONIALS.map((t, i) => (
+            <div key={i} className="bg-[#FAF7F2] rounded-xl p-8 space-y-5 lift-card border border-[#EDE8DF]">
+              {/* Opening quote mark */}
+              <div
+                className="font-serif text-[#DDB96A] text-[60px] leading-none -mb-3"
+                style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 300 }}
+              >
+                "
+              </div>
+              <p className="font-ui text-[#4A4845] text-[14px] leading-relaxed italic">
+                {t.quote}
+              </p>
+              <div className="pt-4 border-t border-[#EDE8DF]">
+                <div className="flex items-center gap-3">
+                  <div
+                    className="w-9 h-9 rounded-full flex items-center justify-center text-[#C4952A] text-[16px] font-serif border border-[#C4952A]/30"
+                    style={{ fontFamily: "'Cormorant Garamond', serif", background: "#FFF8F0" }}
+                  >
+                    {t.name.charAt(0)}
+                  </div>
+                  <div>
+                    <p className="font-ui font-semibold text-[13px] text-[#1A1916]">{t.name}</p>
+                    <p className="font-ui text-[11px] text-[#7A776F]">{t.role}</p>
+                  </div>
+                </div>
+                <span className="inline-block mt-3 label-editorial text-[#C4952A] border border-[#C4952A]/30 px-2.5 py-1 rounded-full" style={{ fontSize: "8px" }}>
+                  {t.type}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ── Final CTA ──────────────────────────────────────────────────────────── */
+
+function FinalCTA({ onPlanEvent, onExplore }: { onPlanEvent: () => void; onExplore: () => void }) {
+  return (
+    <section className="relative py-28 lg:py-44 overflow-hidden">
+      {/* Full-bleed art image */}
+      <div className="absolute inset-0 z-0">
+        <img
+          src="https://images.unsplash.com/photo-1508700929628-666bc8bd84ea?w=1920&h=900&fit=crop&auto=format&q=80"
+          alt="Cultural performance"
+          className="w-full h-full object-cover"
+        />
+        <div
+          className="absolute inset-0"
+          style={{ background: "linear-gradient(to right, rgba(26,25,22,0.96) 0%, rgba(26,25,22,0.82) 50%, rgba(26,25,22,0.6) 100%)" }}
+        />
+      </div>
+
+      <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-8">
+        <div className="max-w-2xl">
+          <span className="label-editorial text-[#DDB96A]/70 tracking-[0.22em] block mb-6" style={{ fontSize: "10px" }}>
+            YOUR NEXT MOMENT AWAITS
+          </span>
+          <h2
+            className="font-serif font-light text-white leading-tight mb-6"
+            style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(40px, 5.5vw, 72px)" }}
+          >
+            You bring the occasion.<br />
+            <em style={{ fontStyle: "italic", color: "#DDB96A" }}>We'll find the experience.</em>
+          </h2>
+          <p className="font-ui text-[#A8A49A] text-[15px] leading-relaxed mb-10">
+            Whether you know exactly what you want or you're starting with a feeling,<br />
+            Mannat Arts guides you to an experience that creates a memory.
+          </p>
+          <div className="flex items-center gap-4 flex-wrap">
+            <button
+              onClick={onPlanEvent}
+              className="font-ui font-semibold text-[14px] bg-[#C4952A] hover:bg-[#DDB96A] text-[#1A1916] px-8 py-4 rounded-full transition-all duration-300 cursor-pointer tracking-wide shadow-xl hover:shadow-2xl hover:-translate-y-1"
+            >
+              Plan Your Event
+            </button>
+            <button
+              onClick={onExplore}
+              className="font-ui font-medium text-[14px] text-white border border-white/30 hover:border-[#DDB96A] hover:text-[#DDB96A] px-8 py-4 rounded-full transition-all duration-300 cursor-pointer tracking-wide"
+            >
+              Explore Experiences
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ── Footer ─────────────────────────────────────────────────────────────── */
 
 interface FooterProps {
   onSelectGenre: (g: "sufi" | "rock" | "gazal" | "bollywood" | "carnival" | "devotional") => void;
   onBrowseArtists: () => void;
-  onScrollToBlog?: () => void;
-  onSelectArticle?: (article: BlogArticle) => void;
-  articles?: BlogArticle[];
+  onScrollToBlog: () => void;
+  onSelectArticle: (a: BlogArticle) => void;
+  articles: BlogArticle[];
 }
 
-function Footer({ onSelectGenre, onBrowseArtists, onScrollToBlog, onSelectArticle, articles }: FooterProps) {
-  const sourceArticles = articles || BLOG_ARTICLES;
-
+function Footer({ onSelectGenre, onBrowseArtists, onScrollToBlog }: FooterProps) {
   return (
-    <footer className="bg-[#0D0D0D] text-white py-16 relative overflow-hidden">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="grid md:grid-cols-5 gap-10 mb-16">
+    <footer style={{ background: "#1A1916", color: "#7A776F" }}>
+      {/* Main footer */}
+      <div className="max-w-7xl mx-auto px-6 lg:px-8 py-16 lg:py-20">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-12">
           {/* Brand */}
-          <div className="md:col-span-2">
-            <div className="flex items-center gap-2.5 mb-4">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#E11D48] to-[#9333EA] flex items-center justify-center shadow-md">
-                <IconSpark className="w-4 h-4 text-white" />
-              </div>
-              <span className="font-display font-bold text-xl">StageBridge</span>
-              <span className="text-[9px] font-body text-[#E11D48] font-bold tracking-[0.2em] uppercase bg-[#E11D48]/10 px-1.5 py-0.5 rounded-full">Pro</span>
+          <div className="lg:col-span-1">
+            <div className="mb-4">
+              <span
+                className="font-serif font-light text-white block tracking-[0.08em] text-xl"
+                style={{ fontFamily: "'Cormorant Garamond', serif" }}
+              >
+                MANNAT ARTS
+              </span>
+              <span className="label-editorial text-[#C4952A]" style={{ fontSize: "7px", letterSpacing: "0.2em" }}>
+                CULTURAL EXPERIENCES
+              </span>
             </div>
-            <p className="font-body text-sm text-white/45 leading-relaxed mb-6 max-w-sm">
-              {"India's premier platform connecting exceptional artists with unforgettable live events. Transparent pricing, verified riders, and escrow protection."}
+            <p className="font-ui text-[13px] text-[#4A4845] leading-relaxed">
+              Discover experiences that make moments memorable.
             </p>
-            <div className="flex gap-2.5">
-              {["IG", "FB", "YT", "TW"].map(s => (
-                <div key={s} className="w-9 h-9 rounded-full bg-white/08 hover:bg-[#E11D48] flex items-center justify-center cursor-pointer transition-colors duration-200 text-xs font-body font-bold text-white/60 hover:text-white" style={{ background: "rgba(255,255,255,0.08)" }}>
-                  {s}
-                </div>
-              ))}
-            </div>
           </div>
 
+          {/* Explore */}
           <div>
-            <h4 className="font-display font-bold text-xs tracking-widest uppercase text-white/35 mb-5">Explore Genres</h4>
-            <div className="space-y-2.5">
-              {[
-                { name: "🕊️ Sufi Performers", id: "sufi" as const },
-                { name: "🎸 Rock & Indie Bands", id: "rock" as const },
-                { name: "📜 Gazal Mehfils", id: "gazal" as const },
-                { name: "🎬 Bollywood Concerts", id: "bollywood" as const },
-                { name: "🎡 Carnival & Circus", id: "carnival" as const },
-                { name: "🪔 Devotional Bhajans", id: "devotional" as const },
-              ].map(g => (
+            <h6 className="label-editorial text-[#A8A49A] mb-5" style={{ fontSize: "10px", letterSpacing: "0.18em" }}>
+              EXPLORE
+            </h6>
+            <div className="space-y-3">
+              {["Experiences", "Genres", "Artists", "Occasions"].map(l => (
                 <button
-                  key={g.id}
-                  onClick={() => onSelectGenre(g.id)}
-                  className="block font-body text-sm text-white/55 hover:text-[#E11D48] transition-colors cursor-pointer text-left"
+                  key={l}
+                  onClick={l === "Artists" ? onBrowseArtists : onScrollToBlog}
+                  className="block font-ui text-[13px] text-[#4A4845] hover:text-[#C4952A] transition-colors cursor-pointer"
                 >
-                  {g.name}
+                  {l}
                 </button>
               ))}
             </div>
           </div>
 
+          {/* For Organisers */}
           <div>
-            <h4 className="font-display font-bold text-xs tracking-widest uppercase text-white/35 mb-5">Journal &amp; Guides</h4>
-            <div className="space-y-2.5">
-              {onScrollToBlog && (
+            <h6 className="label-editorial text-[#A8A49A] mb-5" style={{ fontSize: "10px", letterSpacing: "0.18em" }}>
+              FOR ORGANISERS
+            </h6>
+            <div className="space-y-3">
+              {["Plan an Event", "Find Artists", "Request a Performance", "Browse by Occasion"].map(l => (
                 <button
+                  key={l}
+                  onClick={onBrowseArtists}
+                  className="block font-ui text-[13px] text-[#4A4845] hover:text-[#C4952A] transition-colors cursor-pointer"
+                >
+                  {l}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Company */}
+          <div>
+            <h6 className="label-editorial text-[#A8A49A] mb-5" style={{ fontSize: "10px", letterSpacing: "0.18em" }}>
+              COMPANY
+            </h6>
+            <div className="space-y-3">
+              {["About Mannat Arts", "Stories & Editorial", "Contact", "For Artists"].map(l => (
+                <button
+                  key={l}
                   onClick={onScrollToBlog}
-                  className="block font-body text-sm font-semibold text-[#FB7185] hover:underline transition-colors text-left cursor-pointer"
+                  className="block font-ui text-[13px] text-[#4A4845] hover:text-[#C4952A] transition-colors cursor-pointer"
                 >
-                  ✦ View All Journal Articles →
+                  {l}
                 </button>
-              )}
-              {sourceArticles.slice(0, 3).map(art => (
-                <button
-                  key={art.id}
-                  onClick={() => onSelectArticle ? onSelectArticle(art) : onScrollToBlog?.()}
-                  className="block font-body text-xs text-white/55 hover:text-[#E11D48] transition-colors text-left cursor-pointer line-clamp-2 leading-relaxed"
-                >
-                  • {art.title}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <h4 className="font-display font-bold text-xs tracking-widest uppercase text-white/35 mb-5">Directory &amp; Support</h4>
-            <div className="space-y-2.5">
-              <button onClick={onBrowseArtists} className="block font-body text-sm text-white/55 hover:text-[#E11D48] transition-colors text-left cursor-pointer">
-                All Verified Performers →
-              </button>
-              {["Weddings & Sangeet", "College Festivals", "Corporate Summits", "About Us", "Contact & Support"].map(l => (
-                <a key={l} href="#" className="block font-body text-sm text-white/55 hover:text-[#E11D48] transition-colors">{l}</a>
               ))}
             </div>
           </div>
         </div>
+      </div>
 
-        <div className="border-t border-white/08 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="font-body text-xs text-white/35">
-            © 2026 StageBridge. All rights reserved. Made with ♪ for artists everywhere.
-          </div>
-          <div className="flex items-center gap-6">
-            {["Privacy Policy", "Terms of Service", "Cookie Policy"].map(l => (
-              <a key={l} href="#" className="font-body text-xs text-white/35 hover:text-white/65 transition-colors">{l}</a>
+      {/* Bottom bar */}
+      <div className="border-t border-white/5">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8 py-5 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <p className="font-ui text-[12px] text-[#4A4845]">
+            © 2026 Mannat Arts. All rights reserved.
+          </p>
+          <div className="flex items-center gap-5">
+            {["Genres", "Sufi", "Rock", "Ghazal", "Bollywood"].map((g, i) => (
+              <button
+                key={g}
+                onClick={() => i > 0 && onSelectGenre(["sufi", "rock", "gazal", "bollywood", "carnival"][i - 1] as any)}
+                className="font-ui text-[11px] text-[#4A4845] hover:text-[#C4952A] transition-colors cursor-pointer"
+              >
+                {g}
+              </button>
             ))}
-            <a
-              href="#admin"
-              className="font-body text-xs text-white/20 hover:text-white/60 transition-colors"
-              title="Restricted Admin Login Gateway"
-            >
-              Admin Gateway 🔒
-            </a>
           </div>
         </div>
       </div>
@@ -1018,217 +1281,147 @@ function Footer({ onSelectGenre, onBrowseArtists, onScrollToBlog, onSelectArticl
   );
 }
 
-/* ── Root App ───────────────────────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════════
+   ROOT APP COMPONENT
+══════════════════════════════════════════════════════════════════ */
 
 export default function App() {
-  const [currentPage, setCurrentPage] = useState<"home" | "genres" | "genre" | "artists" | "journal" | "blog-detail" | "admin" | "admin-login">("home");
+  type Page = "home" | "genres" | "genre" | "artists" | "journal" | "blog-detail" | "admin" | "admin-login";
+  const [currentPage, setCurrentPage] = useState<Page>("home");
   const [activeGenre, setActiveGenre] = useState<"sufi" | "rock" | "gazal" | "bollywood" | "carnival" | "devotional">("sufi");
   const [selectedArtist, setSelectedArtist] = useState<Artist | null>(null);
   const [bookingArtist, setBookingArtist] = useState<Artist | null>(null);
+  const [selectedBlogArticle, setSelectedBlogArticle] = useState<BlogArticle | null>(null);
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
+  const [articleLikes, setArticleLikes] = useState<Record<string, number>>({});
+  const moodRef = useRef<HTMLElement | null>(null);
 
-  // Admin authentication state
-  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean>(() => {
-    try {
-      return sessionStorage.getItem("stagebridge_admin_auth") === "true";
-    } catch {
-      return false;
-    }
-  });
-
-  // Stateful, Persistent Top 6 Featured Artist IDs for Home Page
-  const [featuredArtistIds, setFeaturedArtistIds] = useState<string[]>(() => {
-    try {
-      const saved = localStorage.getItem("stagebridge_featured_ids");
-      return saved ? JSON.parse(saved) : ["artist-1", "artist-2", "artist-3", "artist-4", "artist-5", "artist-6"];
-    } catch {
-      return ["artist-1", "artist-2", "artist-3", "artist-4", "artist-5", "artist-6"];
-    }
-  });
-
-  const handleSetFeaturedArtistIds = (ids: string[]) => {
-    setFeaturedArtistIds(ids);
-    try {
-      localStorage.setItem("stagebridge_featured_ids", JSON.stringify(ids));
-    } catch (err) {
-      console.error(err);
-    }
-  };
+  // View mode: "discovery" = new editorial homepage, "classic" = original homepage
+  const [viewMode, setViewMode] = useState<"discovery" | "classic">("discovery");
 
   // Stateful, Persistent Artist Directory (with LocalStorage fallback)
   const [artistsList, setArtistsList] = useState<Artist[]>(() => {
     try {
       const saved = localStorage.getItem("stagebridge_artists");
       return saved ? JSON.parse(saved) : ALL_ARTISTS;
-    } catch {
-      return ALL_ARTISTS;
-    }
+    } catch { return ALL_ARTISTS; }
   });
 
-  // Stateful, Persistent Blog Articles (with LocalStorage fallback)
+  // Stateful, Persistent Blog Articles
   const [articlesList, setArticlesList] = useState<BlogArticle[]>(() => {
     try {
       const saved = localStorage.getItem("stagebridge_blogs");
       return saved ? JSON.parse(saved) : BLOG_ARTICLES;
-    } catch {
-      return BLOG_ARTICLES;
-    }
+    } catch { return BLOG_ARTICLES; }
   });
 
-  // Stateful Booking Inquiries (with LocalStorage fallback)
+  // Stateful Booking Inquiries
   const [inquiriesList, setInquiriesList] = useState<BookingInquiry[]>(() => {
     try {
       const saved = localStorage.getItem("stagebridge_inquiries");
       return saved ? JSON.parse(saved) : INITIAL_BOOKING_INQUIRIES;
-    } catch {
-      return INITIAL_BOOKING_INQUIRIES;
-    }
+    } catch { return INITIAL_BOOKING_INQUIRIES; }
   });
 
-  // Listen to URL hash routing (#admin / #admin-login)
+  // Stateful Featured Artist IDs
+  const [featuredArtistIds, setFeaturedArtistIds] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem("stagebridge_featured_ids");
+      return saved ? JSON.parse(saved) : artistsList.slice(0, 6).map(a => a.id);
+    } catch { return artistsList.slice(0, 6).map(a => a.id); }
+  });
+
+  // Stateful Genres Map
+  const [genresMap, setGenresMap] = useState<Record<string, GenreInfo>>(() => {
+    try {
+      const saved = localStorage.getItem("stagebridge_genres");
+      return saved ? { ...GENRE_METADATA, ...JSON.parse(saved) } : GENRE_METADATA;
+    } catch { return GENRE_METADATA; }
+  });
+
+  const handleUpdateGenre = (genreId: string, updated: Partial<GenreInfo>) => {
+    setGenresMap(prev => {
+      const current = prev[genreId] || GENRE_METADATA[genreId];
+      const updatedGenre = { ...current, ...updated };
+      const nextMap = { ...prev, [genreId]: updatedGenre };
+      try { localStorage.setItem("stagebridge_genres", JSON.stringify(nextMap)); } catch {}
+      return nextMap;
+    });
+  };
+
+  // Hash routing
   useEffect(() => {
     const handleHashRouting = () => {
       const hash = window.location.hash.toLowerCase();
       if (hash === "#admin" || hash === "#admin-login" || hash === "#login") {
-        if (isAdminAuthenticated) {
-          setCurrentPage("admin");
-        } else {
-          setCurrentPage("admin-login");
-        }
+        setCurrentPage(isAdminAuthenticated ? "admin" : "admin-login");
       } else if (hash === "" && (currentPage === "admin" || currentPage === "admin-login")) {
         setCurrentPage("home");
       }
     };
-
-    handleHashRouting();
     window.addEventListener("hashchange", handleHashRouting);
+    handleHashRouting();
     return () => window.removeEventListener("hashchange", handleHashRouting);
   }, [isAdminAuthenticated, currentPage]);
 
-  // Blog interactive state
-  const [selectedBlogArticle, setSelectedBlogArticle] = useState<BlogArticle | null>(null);
-  const [articleLikes, setArticleLikes] = useState<Record<string, number>>(() => {
-    const init: Record<string, number> = {};
-    BLOG_ARTICLES.forEach(a => {
-      init[a.id] = a.initialLikes;
-    });
-    return init;
-  });
-
-  /* ── Admin Login & Session Handlers ── */
-  const handleLoginSuccess = () => {
-    setIsAdminAuthenticated(true);
-    try {
-      sessionStorage.setItem("stagebridge_admin_auth", "true");
-    } catch (err) {
-      console.error(err);
-    }
-    setCurrentPage("admin");
-    window.location.hash = "#admin";
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  const handleLogout = () => {
-    setIsAdminAuthenticated(false);
-    try {
-      sessionStorage.removeItem("stagebridge_admin_auth");
-    } catch (err) {
-      console.error(err);
-    }
-    window.location.hash = "";
-    setCurrentPage("home");
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  /* ── Artist CRUD Handlers ── */
-  const handleAddArtist = (newArtist: Artist) => {
-    const updated = [newArtist, ...artistsList];
+  // Artists CRUD
+  const handleAddArtist = (a: Artist) => {
+    const updated = [...artistsList, a];
     setArtistsList(updated);
-    try {
-      localStorage.setItem("stagebridge_artists", JSON.stringify(updated));
-    } catch (err) {
-      console.error(err);
-    }
+    try { localStorage.setItem("stagebridge_artists", JSON.stringify(updated)); } catch {}
   };
-
-  const handleUpdateArtist = (updatedArtist: Artist) => {
-    const updated = artistsList.map(a => (a.id === updatedArtist.id ? updatedArtist : a));
+  const handleUpdateArtist = (a: Artist) => {
+    const updated = artistsList.map(x => x.id === a.id ? a : x);
     setArtistsList(updated);
-    try {
-      localStorage.setItem("stagebridge_artists", JSON.stringify(updated));
-    } catch (err) {
-      console.error(err);
-    }
+    try { localStorage.setItem("stagebridge_artists", JSON.stringify(updated)); } catch {}
   };
-
-  const handleDeleteArtist = (artistId: string) => {
-    const updated = artistsList.filter(a => a.id !== artistId);
+  const handleDeleteArtist = (id: string) => {
+    const updated = artistsList.filter(x => x.id !== id);
     setArtistsList(updated);
-    // Also remove from featured if present
-    if (featuredArtistIds.includes(artistId)) {
-      handleSetFeaturedArtistIds(featuredArtistIds.filter(id => id !== artistId));
-    }
-    try {
-      localStorage.setItem("stagebridge_artists", JSON.stringify(updated));
-    } catch (err) {
-      console.error(err);
-    }
+    try { localStorage.setItem("stagebridge_artists", JSON.stringify(updated)); } catch {}
   };
 
-  /* ── Blog CRUD Handlers ── */
-  const handleAddArticle = (newArticle: BlogArticle) => {
-    const updated = [newArticle, ...articlesList];
+  // Articles CRUD
+  const handleAddArticle = (a: BlogArticle) => {
+    const updated = [...articlesList, a];
     setArticlesList(updated);
-    try {
-      localStorage.setItem("stagebridge_blogs", JSON.stringify(updated));
-    } catch (err) {
-      console.error(err);
-    }
+    try { localStorage.setItem("stagebridge_blogs", JSON.stringify(updated)); } catch {}
   };
-
-  const handleUpdateArticle = (updatedArticle: BlogArticle) => {
-    const updated = articlesList.map(a => (a.id === updatedArticle.id ? updatedArticle : a));
+  const handleUpdateArticle = (a: BlogArticle) => {
+    const updated = articlesList.map(x => x.id === a.id ? a : x);
     setArticlesList(updated);
-    try {
-      localStorage.setItem("stagebridge_blogs", JSON.stringify(updated));
-    } catch (err) {
-      console.error(err);
-    }
+    try { localStorage.setItem("stagebridge_blogs", JSON.stringify(updated)); } catch {}
   };
-
-  const handleDeleteArticle = (articleId: string) => {
-    const updated = articlesList.filter(a => a.id !== articleId);
+  const handleDeleteArticle = (id: string) => {
+    const updated = articlesList.filter(x => x.id !== id);
     setArticlesList(updated);
-    try {
-      localStorage.setItem("stagebridge_blogs", JSON.stringify(updated));
-    } catch (err) {
-      console.error(err);
-    }
+    try { localStorage.setItem("stagebridge_blogs", JSON.stringify(updated)); } catch {}
   };
 
-  /* ── Inquiries & Reset Handlers ── */
-  const handleUpdateInquiryStatus = (inquiryId: string, status: BookingInquiry["status"]) => {
-    const updated = inquiriesList.map(inq => (inq.id === inquiryId ? { ...inq, status } : inq));
+  const handleSetFeaturedArtistIds = (ids: string[]) => {
+    setFeaturedArtistIds(ids);
+    try { localStorage.setItem("stagebridge_featured_ids", JSON.stringify(ids)); } catch {}
+  };
+
+  const handleUpdateInquiryStatus = (id: string, status: BookingInquiry["status"]) => {
+    const updated = inquiriesList.map(x => x.id === id ? { ...x, status } : x);
     setInquiriesList(updated);
-    try {
-      localStorage.setItem("stagebridge_inquiries", JSON.stringify(updated));
-    } catch (err) {
-      console.error(err);
-    }
+    try { localStorage.setItem("stagebridge_inquiries", JSON.stringify(updated)); } catch {}
   };
 
   const handleResetToDefaults = () => {
     setArtistsList(ALL_ARTISTS);
     setArticlesList(BLOG_ARTICLES);
     setInquiriesList(INITIAL_BOOKING_INQUIRIES);
-    setFeaturedArtistIds(["artist-1", "artist-2", "artist-3", "artist-4", "artist-5", "artist-6"]);
+    setFeaturedArtistIds(ALL_ARTISTS.slice(0, 6).map(a => a.id));
+    setGenresMap(GENRE_METADATA);
     try {
       localStorage.removeItem("stagebridge_artists");
       localStorage.removeItem("stagebridge_blogs");
       localStorage.removeItem("stagebridge_inquiries");
       localStorage.removeItem("stagebridge_featured_ids");
-    } catch (err) {
-      console.error(err);
-    }
+      localStorage.removeItem("stagebridge_genres");
+    } catch {}
   };
 
   const handleToggleArticleLike = (articleId: string) => {
@@ -1236,21 +1429,24 @@ export default function App() {
       const base = prev[articleId] ?? 0;
       const initial = articlesList.find(a => a.id === articleId)?.initialLikes ?? 0;
       const isLiked = base > initial;
-      return {
-        ...prev,
-        [articleId]: isLiked ? base - 1 : base + 1,
-      };
+      return { ...prev, [articleId]: isLiked ? base - 1 : base + 1 };
     });
+  };
+
+  const handleLoginSuccess = () => {
+    setIsAdminAuthenticated(true);
+    setCurrentPage("admin");
+  };
+
+  const handleLogout = () => {
+    setIsAdminAuthenticated(false);
+    setCurrentPage("home");
+    window.location.hash = "";
   };
 
   const handleSelectBlogArticle = (article: BlogArticle) => {
     setSelectedBlogArticle(article);
     setCurrentPage("blog-detail");
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  const handleOpenGenresPage = () => {
-    setCurrentPage("genres");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -1274,12 +1470,21 @@ export default function App() {
     if (currentPage !== "home") {
       setCurrentPage("home");
       setTimeout(() => {
-        const el = document.getElementById("featured-performers");
-        el?.scrollIntoView({ behavior: "smooth" });
+        document.getElementById("featured-performers")?.scrollIntoView({ behavior: "smooth" });
       }, 100);
     } else {
-      const el = document.getElementById("featured-performers");
-      el?.scrollIntoView({ behavior: "smooth" });
+      document.getElementById("featured-performers")?.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
+  const handleScrollToMood = () => {
+    if (currentPage !== "home") {
+      setCurrentPage("home");
+      setTimeout(() => {
+        document.getElementById("mood-discovery")?.scrollIntoView({ behavior: "smooth" });
+      }, 100);
+    } else {
+      document.getElementById("mood-discovery")?.scrollIntoView({ behavior: "smooth" });
     }
   };
 
@@ -1289,13 +1494,26 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const handleScrollToGenres = () => {
-    handleOpenGenresPage();
+  const handleOpenGenresPage = () => {
+    setCurrentPage("genres");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handlePlanEvent = () => {
+    handleOpenArtists();
+  };
+
+  const footerProps: FooterProps = {
+    onSelectGenre: handleOpenGenre,
+    onBrowseArtists: handleOpenArtists,
+    onScrollToBlog: handleOpenJournal,
+    onSelectArticle: handleSelectBlogArticle,
+    articles: articlesList,
   };
 
   return (
-    <div className="font-body">
-      {/* ONLY show Navbar on homepage! */}
+    <div style={{ fontFamily: "'Manrope', system-ui, sans-serif" }}>
+      {/* Navbar on homepage only */}
       {currentPage === "home" && (
         <Navbar
           onHome={handleBackHome}
@@ -1303,6 +1521,7 @@ export default function App() {
           onScrollToFeatured={handleScrollToFeatured}
           onBrowseArtists={handleOpenArtists}
           onScrollToBlog={handleOpenJournal}
+          onPlanEvent={handlePlanEvent}
           onOpenAdmin={() => {
             setCurrentPage(isAdminAuthenticated ? "admin" : "admin-login");
             window.location.hash = "#admin";
@@ -1312,13 +1531,8 @@ export default function App() {
       )}
 
       {currentPage === "admin-login" ? (
-        /* DEDICATED ADMIN AUTHENTICATION PAGE */
-        <AdminLogin
-          onLoginSuccess={handleLoginSuccess}
-          onBackToSite={handleBackHome}
-        />
+        <AdminLogin onLoginSuccess={handleLoginSuccess} onBackToSite={handleBackHome} />
       ) : currentPage === "admin" ? (
-        /* STAGEBRIDGE LIGHT THEMED ADMIN MANAGEMENT PORTAL */
         <AdminPortal
           artists={artistsList}
           featuredArtistIds={featuredArtistIds}
@@ -1337,9 +1551,10 @@ export default function App() {
           onLogout={handleLogout}
           onPreviewArtist={artist => setSelectedArtist(artist)}
           onPreviewArticle={handleSelectBlogArticle}
+          genres={genresMap}
+          onUpdateGenre={handleUpdateGenre}
         />
       ) : currentPage === "genres" ? (
-        /* DEDICATED GENRES CATALOG PAGE WITH RICH BANNER & VIDEOS */
         <>
           <GenresCatalogPage
             onSelectGenre={handleOpenGenre}
@@ -1347,16 +1562,9 @@ export default function App() {
             onBrowseArtists={handleOpenArtists}
             artists={artistsList}
           />
-          <Footer
-            onSelectGenre={handleOpenGenre}
-            onBrowseArtists={handleOpenArtists}
-            onScrollToBlog={handleOpenJournal}
-            onSelectArticle={handleSelectBlogArticle}
-            articles={articlesList}
-          />
+          <Footer {...footerProps} />
         </>
       ) : currentPage === "journal" ? (
-        /* DEDICATED JOURNAL / MAGAZINE PAGE */
         <>
           <JournalPage
             onSelectArticle={handleSelectBlogArticle}
@@ -1366,16 +1574,9 @@ export default function App() {
             onSelectGenre={handleOpenGenre}
             articles={articlesList}
           />
-          <Footer
-            onSelectGenre={handleOpenGenre}
-            onBrowseArtists={handleOpenArtists}
-            onScrollToBlog={handleOpenJournal}
-            onSelectArticle={handleSelectBlogArticle}
-            articles={articlesList}
-          />
+          <Footer {...footerProps} />
         </>
       ) : currentPage === "artists" ? (
-        /* DEDICATED ARTISTS PAGE: Dynamic banner that morphs by artist type */
         <ArtistsPage
           onBackHome={handleBackHome}
           onSelectArtist={setSelectedArtist}
@@ -1383,7 +1584,6 @@ export default function App() {
           allArtists={artistsList}
         />
       ) : currentPage === "genre" ? (
-        /* DEDICATED SPECIFIC GENRE BANNER PAGE */
         <>
           <GenreView
             genreId={activeGenre}
@@ -1392,17 +1592,11 @@ export default function App() {
             onSelectArtist={setSelectedArtist}
             onBookArtist={setBookingArtist}
             allArtists={artistsList}
+            genresMap={genresMap}
           />
-          <Footer
-            onSelectGenre={handleOpenGenre}
-            onBrowseArtists={handleOpenArtists}
-            onScrollToBlog={handleOpenJournal}
-            onSelectArticle={handleSelectBlogArticle}
-            articles={articlesList}
-          />
+          <Footer {...footerProps} />
         </>
       ) : currentPage === "blog-detail" && selectedBlogArticle ? (
-        /* DEDICATED FULL-PAGE BLOG ARTICLE VIEW */
         <>
           <BlogDetailPage
             article={selectedBlogArticle}
@@ -1414,54 +1608,97 @@ export default function App() {
             onBrowseArtists={handleOpenArtists}
             allArticles={articlesList}
           />
-          <Footer
-            onSelectGenre={handleOpenGenre}
-            onBrowseArtists={handleOpenArtists}
-            onScrollToBlog={handleOpenJournal}
-            onSelectArticle={handleSelectBlogArticle}
-            articles={articlesList}
-          />
+          <Footer {...footerProps} />
         </>
       ) : (
-        /* HOMEPAGE VIEW (CLEAN WITHOUT CLUTTERED BLOG EMBED) */
+        /* ── HOMEPAGE — dual-view toggle ── */
         <>
-          <HeroSection
-            onBrowseGenres={handleOpenGenresPage}
-            onScrollToFeatured={handleScrollToFeatured}
-            onSearchGenre={handleOpenGenre}
-          />
-          <PerformerTicker onSelectGenre={handleOpenGenre} />
-          <StatsBar />
-          <CategoryShowcase onSelectGenre={handleOpenGenre} />
-          <FeaturedArtists
-            onSelectArtist={setSelectedArtist}
-            onBookArtist={setBookingArtist}
-            onViewAll={handleOpenArtists}
-            artists={artistsList}
-            featuredArtistIds={featuredArtistIds}
-          />
-          <HowItWorks />
-          <WeddingSection onExplore={() => handleOpenGenre("gazal")} />
+          {viewMode === "discovery" ? (
+            /* ── NEW: Editorial Discovery Homepage ── */
+            <>
+              <HeroSection
+                onExplore={handleOpenGenresPage}
+                onFindByMood={handleScrollToMood}
+                onSelectGenre={handleOpenGenre}
+              />
+              <GenreTicker onSelectGenre={handleOpenGenre} />
+              <MoodDiscovery id="mood-discovery" onSelectGenre={handleOpenGenre} />
+              <OccasionDiscovery onSelectGenre={handleOpenGenre} />
+              <SmartDiscovery onSelectGenre={handleOpenGenre} />
+              <FeaturedExperiences
+                artists={artistsList}
+                featuredArtistIds={featuredArtistIds}
+                onSelectArtist={setSelectedArtist}
+                onBookArtist={setBookingArtist}
+                onViewAll={handleOpenArtists}
+              />
+              <GenreExploration onSelectGenre={handleOpenGenre} />
+              <SurpriseMe onSelectGenre={handleOpenGenre} />
+              <HowItWorks />
+              <Testimonials />
+              <FinalCTA onPlanEvent={handlePlanEvent} onExplore={handleOpenGenresPage} />
+              <Footer {...footerProps} />
+            </>
+          ) : (
+            /* ── CLASSIC: Original Homepage ── */
+            <>
+              <ClassicHomePage
+                artists={artistsList}
+                featuredArtistIds={featuredArtistIds}
+                onSelectArtist={setSelectedArtist}
+                onBookArtist={setBookingArtist}
+                onViewAllArtists={handleOpenArtists}
+                onBrowseGenres={handleOpenGenresPage}
+                onScrollToFeatured={handleScrollToFeatured}
+                onSelectGenre={handleOpenGenre}
+              />
+              <Footer {...footerProps} />
+            </>
+          )}
 
-          <JoinArtistCTA />
-          <Footer
-            onSelectGenre={handleOpenGenre}
-            onBrowseArtists={handleOpenArtists}
-            onScrollToBlog={handleOpenJournal}
-            onSelectArticle={handleSelectBlogArticle}
-            articles={articlesList}
-          />
+          {/* ── View Toggle Pill (floating, bottom-center) ── */}
+          <div
+            className="fixed bottom-6 left-1/2 z-50 flex items-center rounded-full shadow-2xl border border-white/20 overflow-hidden"
+            style={{
+              transform: "translateX(-50%)",
+              background: "rgba(26, 25, 22, 0.92)",
+              backdropFilter: "blur(20px)",
+              WebkitBackdropFilter: "blur(20px)",
+            }}
+          >
+            <button
+              onClick={() => { setViewMode("discovery"); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+              className="font-ui font-semibold text-[12px] px-5 py-2.5 tracking-wide transition-all duration-300 cursor-pointer"
+              style={{
+                background: viewMode === "discovery" ? "#C4952A" : "transparent",
+                color: viewMode === "discovery" ? "#1A1916" : "rgba(255,255,255,0.5)",
+              }}
+            >
+              Discovery
+            </button>
+            <div className="w-px h-5 bg-white/10" />
+            <button
+              onClick={() => { setViewMode("classic"); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+              className="font-ui font-semibold text-[12px] px-5 py-2.5 tracking-wide transition-all duration-300 cursor-pointer"
+              style={{
+                background: viewMode === "classic" ? "#E11D48" : "transparent",
+                color: viewMode === "classic" ? "white" : "rgba(255,255,255,0.5)",
+              }}
+            >
+              Classic
+            </button>
+          </div>
         </>
       )}
 
-      {/* Artist In-Depth Detail Modal */}
+      {/* Artist Detail Modal */}
       <ArtistDetailModal
         artist={selectedArtist}
         onClose={() => setSelectedArtist(null)}
         onBook={artist => setBookingArtist(artist)}
       />
 
-      {/* Interactive Booking & Rate Calculator Modal */}
+      {/* Booking Modal */}
       <BookingModal
         artist={bookingArtist}
         onClose={() => setBookingArtist(null)}

@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
+    "dev:classic": "vite --host 0.0.0.0 --config vite.classic.config.ts",
     "build": "vite build",
     "preview": "vite preview",
     "format": "oxfmt"

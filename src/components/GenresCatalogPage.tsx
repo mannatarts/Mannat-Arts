@@ -11,18 +11,18 @@ interface GenresCatalogPageProps {
 export function GenresCatalogPage({
   onSelectGenre,
   onBackHome,
+  onBrowseArtists,
   artists,
 }: GenresCatalogPageProps) {
   const sourceArtists = artists || ALL_ARTISTS;
 
-  // Auto-typing genres list with distinct vivid colors
   const AUTO_TYPED_GENRES = [
-    { name: "Sufi", color: "#34D399" },        // Emerald Trance
-    { name: "Rock", color: "#F43F5E" },        // Electric Rose Red
-    { name: "Ghazal", color: "#FDE047" },      // Luminous Mehfil Gold
-    { name: "Bollywood", color: "#FB7185" },   // Bollywood Coral Pink
-    { name: "Carnival", color: "#C084FC" },    // Carnival Purple
-    { name: "Devotional", color: "#FBBF24" },  // Sacred Saffron Amber
+    { name: "Sufi & Qawwali", color: "#DDB96A" },
+    { name: "Indie & Rock", color: "#60A5FA" },
+    { name: "Ghazal & Classical", color: "#34D399" },
+    { name: "Bollywood & Dance", color: "#FBBF24" },
+    { name: "Carnival & Theatre", color: "#C084FC" },
+    { name: "Devotional & Folk", color: "#FB923C" },
   ];
 
   const [genreIndex, setGenreIndex] = useState(0);
@@ -32,15 +32,14 @@ export function GenresCatalogPage({
   useEffect(() => {
     const currentItem = AUTO_TYPED_GENRES[genreIndex];
     const fullText = currentItem.name;
-    const speed = isDeleting ? 45 : 90;
+    const speed = isDeleting ? 40 : 80;
 
     const timeout = setTimeout(() => {
       if (!isDeleting) {
         if (typedText.length < fullText.length) {
           setTypedText(fullText.slice(0, typedText.length + 1));
         } else {
-          // Pause when word is completely typed
-          setTimeout(() => setIsDeleting(true), 1500);
+          setTimeout(() => setIsDeleting(true), 1600);
         }
       } else {
         if (typedText.length > 0) {
@@ -65,183 +64,175 @@ export function GenresCatalogPage({
   ];
 
   return (
-    <div className="min-h-screen bg-[#FFFDFD] text-[#1A1A1A] font-body pb-28">
+    <div className="min-h-screen text-[#1A1916] pb-28" style={{ background: "#FAF7F2", fontFamily: "'Manrope', system-ui, sans-serif" }}>
       {/* ── Top Navigation Bar ─────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#F3E5E8] shadow-xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <div
+      <header className="sticky top-0 z-40 bg-[#FAF7F2]/95 backdrop-blur-md border-b border-[#EDE8DF] shadow-xs">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8 h-[68px] flex items-center justify-between">
+          <button
             onClick={onBackHome}
-            className="flex items-center gap-2.5 cursor-pointer select-none"
+            className="flex flex-col leading-none cursor-pointer group select-none text-left"
           >
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#E11D48] to-[#9333EA] flex items-center justify-center text-white font-bold text-sm shadow-md">
-              ✦
-            </div>
-            <span className="font-display font-bold text-xl text-[#1A1A1A] tracking-tight">StageBridge</span>
-            <span className="text-[9px] font-body text-[#E11D48] font-bold tracking-[0.2em] uppercase bg-[#E11D48]/10 px-1.5 py-0.5 rounded-full">
-              Genres Hub
+            <span
+              className="font-serif text-[22px] font-light tracking-[0.06em] text-[#1A1916] group-hover:text-[#C4952A] transition-colors"
+              style={{ fontFamily: "'Cormorant Garamond', serif", letterSpacing: "0.08em" }}
+            >
+              MANNAT ARTS
             </span>
-          </div>
+            <span className="label-editorial text-[#C4952A] tracking-[0.22em]" style={{ fontSize: "7px" }}>
+              GENRES CATALOG
+            </span>
+          </button>
 
-          <div className="flex items-center gap-3">
-            <span className="text-xs text-[#5B5B5B] font-semibold hidden sm:inline">
-              6 Curated Performance Traditions
-            </span>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={onBackHome}
+              className="font-ui text-[13px] font-medium text-[#4A4845] hover:text-[#1A1916] transition-colors cursor-pointer"
+            >
+              ← Back to Home
+            </button>
+            {onBrowseArtists && (
+              <button
+                onClick={onBrowseArtists}
+                className="font-ui text-[13px] font-semibold bg-[#1A1916] hover:bg-[#2E2C28] text-[#FAF7F2] px-5 py-2.5 rounded-full transition-all cursor-pointer"
+              >
+                All Artists Roster
+              </button>
+            )}
           </div>
         </div>
       </header>
 
-      {/* ── ARTISTIC ASYMMETRICAL BANNER (Red Concert Gradient Background & Text-Only Auto-Typing) ── */}
-      <section className="relative bg-gradient-to-b from-[#180208] via-[#2D0410] to-[#100106] text-white py-8 sm:py-12 px-4 sm:px-6 overflow-hidden border-b border-[#E11D48]/20 shadow-2xl">
+      {/* ── EDITORIAL ASYMMETRICAL BANNER ─────────────────────────────────── */}
+      <section className="relative bg-[#1A1916] text-white py-16 sm:py-20 px-6 overflow-hidden border-b border-white/10 shadow-2xl">
         {/* Soft Ambient Glow Orbs */}
-        <div className="absolute top-0 right-1/4 w-[500px] h-[500px] rounded-full bg-[#E11D48]/20 blur-[130px] pointer-events-none" />
-        <div className="absolute bottom-0 left-1/4 w-[500px] h-[500px] rounded-full bg-[#9333EA]/20 blur-[130px] pointer-events-none" />
+        <div className="absolute top-0 right-1/4 w-[500px] h-[500px] rounded-full bg-[#C4952A]/15 blur-[120px] pointer-events-none" />
+        <div className="absolute bottom-0 left-1/4 w-[500px] h-[500px] rounded-full bg-[#B5593C]/15 blur-[120px] pointer-events-none" />
 
         <div className="max-w-7xl mx-auto relative z-10">
-          {/* ═══════════════════════════════════════════════════════════════════ */}
-          {/* UNORGANIZED ASYMMETRICAL COLLAGE: Varied Sizes, Dynamic Angles */}
-          {/* ═══════════════════════════════════════════════════════════════════ */}
-          <div className="relative min-h-[500px] sm:min-h-[560px] lg:min-h-[620px] flex items-center justify-center">
-            {/* Concentric Subtle Orbit Rings */}
+          <div className="relative min-h-[460px] sm:min-h-[520px] flex items-center justify-center">
+            {/* Concentric Subtle Rings */}
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="w-[520px] h-[520px] rounded-full border border-dashed border-[#E11D48]/25 animate-spin-slow" />
-              <div className="w-[380px] h-[380px] rounded-full border border-[#BE123C]/15 animate-pulse-subtle" />
+              <div className="w-[500px] h-[500px] rounded-full border border-dashed border-white/10 animate-spin-slow" />
+              <div className="w-[360px] h-[360px] rounded-full border border-white/10" />
             </div>
 
-            {/* Floating 3D Musical Symbols */}
-            <div className="absolute top-1/4 right-[12%] text-3xl text-[#FB7185] animate-float opacity-70 pointer-events-none z-20 font-bold">♪</div>
-            <div className="absolute bottom-1/4 left-[12%] text-4xl text-amber-300 animate-float-alt opacity-70 pointer-events-none z-20 font-bold">♫</div>
+            {/* ── CENTER HERO CORE ── */}
+            <div className="relative z-30 max-w-xl text-center space-y-4 py-4 px-4 my-auto">
+              <span className="label-editorial text-[#DDB96A] tracking-[0.28em] inline-block" style={{ fontSize: "10px" }}>
+                · 6 CURATED PERFORMANCE TRADITIONS ·
+              </span>
 
-            {/* ── 1. CENTER HERO CORE (Auto-Typing Headline Only) ── */}
-            <div className="relative z-30 max-w-xl text-center space-y-3.5 py-4 px-4 my-auto">
-              <div className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-white/10 border border-white/20 text-xs font-bold uppercase tracking-wider text-[#FB7185] shadow-sm backdrop-blur-md">
-                <span>✦ 6 Master Performance Traditions</span>
-              </div>
-
-              <h1 className="font-display font-bold text-4xl sm:text-5xl lg:text-6xl xl:text-7xl text-white tracking-tight leading-[1.1] flex flex-col items-center justify-center">
-                <span>Explore Live</span>
+              <h1
+                className="font-serif font-light text-white tracking-[-0.01em] leading-[1.08] flex flex-col items-center justify-center"
+                style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(42px, 6vw, 76px)" }}
+              >
+                <span>Discover the World of</span>
                 <span
                   className="italic transition-colors duration-300 min-h-[1.2em] flex items-center justify-center pt-1"
                   style={{
                     color: AUTO_TYPED_GENRES[genreIndex].color,
-                    textShadow: `0 0 25px ${AUTO_TYPED_GENRES[genreIndex].color}80`,
+                    textShadow: `0 0 25px ${AUTO_TYPED_GENRES[genreIndex].color}70`,
                   }}
                 >
                   <span>{typedText}</span>
-                  <span className="inline-block w-1 sm:w-1.5 h-8 sm:h-12 bg-current ml-1 animate-pulse" />
+                  <span className="inline-block w-1 h-8 sm:h-12 bg-current ml-1 animate-pulse" />
                 </span>
               </h1>
 
-              <div className="pt-2 flex items-center justify-center">
+              <p className="font-ui text-[#A8A49A] text-[15px] font-light leading-relaxed max-w-lg mx-auto">
+                Explore verified performing ensembles, traditional acoustic baithaks, and high-energy stadium acts.
+              </p>
+
+              <div className="pt-3 flex items-center justify-center">
                 <a
                   href="#all-genres-grid"
-                  className="px-7 py-2.5 rounded-full bg-gradient-to-r from-[#E11D48] via-[#F43F5E] to-[#BE123C] text-white text-xs sm:text-sm font-bold shadow-md hover:shadow-lg hover:scale-105 transition-all cursor-pointer flex items-center gap-1.5 border border-white/20"
+                  className="font-ui font-semibold text-[13px] bg-[#C4952A] hover:bg-[#DDB96A] text-[#1A1916] px-8 py-3.5 rounded-full shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all cursor-pointer flex items-center gap-2"
                 >
-                  <span>View All Artists Roster</span>
+                  <span>Browse All Traditions</span>
                   <span>↓</span>
                 </a>
               </div>
             </div>
 
-            {/* ── 2. SCATTERED FREESTYLE PURE IMAGE CARDS (UP, DOWN, LEFT, RIGHT, TOP-RIGHT CORNER) ── */}
-
-            {/* Card 1: UP / TOP-CENTER-LEFT (Above the Heading) */}
+            {/* ── SCATTERED EDITORIAL FLOATING PHOTO SATELLITES ── */}
+            {/* Top-Left */}
             <div
               onClick={() => onSelectGenre("sufi")}
-              className="absolute top-0 left-[18%] sm:left-[22%] lg:left-[20%] w-36 sm:w-48 lg:w-52 h-26 sm:h-34 lg:h-38 rounded-[28px] overflow-hidden shadow-2xl border-2 border-white/40 hover:border-[#34D399] transition-all duration-500 hover:scale-110 cursor-pointer group bg-black z-20 -rotate-6 hover:rotate-0"
+              className="absolute top-0 left-[8%] sm:left-[14%] lg:left-[12%] w-36 sm:w-44 lg:w-48 h-26 sm:h-32 lg:h-36 rounded-2xl overflow-hidden shadow-2xl border border-white/20 hover:border-[#DDB96A] transition-all duration-500 hover:scale-105 cursor-pointer z-20 -rotate-6 hover:rotate-0"
               title="Explore Sufi"
             >
               <img
                 src="https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=500&h=400&fit=crop&auto=format"
                 alt="Sufi"
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                className="w-full h-full object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60 group-hover:opacity-10 transition-opacity" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+              <span className="absolute bottom-2 left-3 label-editorial text-white text-[9px]">SUFI</span>
             </div>
 
-            {/* Card 2: TOP-RIGHT CORNER (Floating High Right Corner) */}
+            {/* Top-Right */}
             <div
               onClick={() => onSelectGenre("bollywood")}
-              className="absolute top-1 right-[2%] sm:right-[4%] lg:right-[3%] w-44 sm:w-56 lg:w-64 h-32 sm:h-40 lg:h-44 rounded-[32px] overflow-hidden shadow-2xl border-2 border-white/40 hover:border-[#FB7185] transition-all duration-500 hover:scale-110 cursor-pointer group bg-black z-20 rotate-8 hover:rotate-0"
+              className="absolute top-2 right-[6%] sm:right-[12%] lg:right-[10%] w-40 sm:w-48 lg:w-52 h-28 sm:h-34 lg:h-38 rounded-2xl overflow-hidden shadow-2xl border border-white/20 hover:border-[#DDB96A] transition-all duration-500 hover:scale-105 cursor-pointer z-20 rotate-6 hover:rotate-0"
               title="Explore Bollywood"
             >
               <img
                 src="https://images.unsplash.com/photo-1501386761578-eac5c94b800a?w=600&h=400&fit=crop&auto=format"
                 alt="Bollywood"
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                className="w-full h-full object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60 group-hover:opacity-10 transition-opacity" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+              <span className="absolute bottom-2 left-3 label-editorial text-white text-[9px]">BOLLYWOOD</span>
             </div>
 
-            {/* Card 3: LEFT SIDE (Directly on the Left Edge of Heading) */}
-            <div
-              onClick={() => onSelectGenre("rock")}
-              className="absolute top-1/2 -translate-y-1/2 left-0 sm:left-[2%] lg:left-[1%] w-36 sm:w-44 lg:w-48 h-36 sm:h-44 lg:h-48 rounded-[30px] overflow-hidden shadow-2xl border-2 border-white/40 hover:border-[#F43F5E] transition-all duration-500 hover:scale-110 cursor-pointer group bg-black z-20 -rotate-8 hover:rotate-0 hidden md:block"
-              title="Explore Rock"
-            >
-              <img
-                src="https://images.unsplash.com/photo-1464375117522-1311d6a5b81f?w=450&h=450&fit=crop&auto=format"
-                alt="Rock"
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60 group-hover:opacity-10 transition-opacity" />
-            </div>
-
-            {/* Card 4: RIGHT SIDE (Directly on the Right Edge of Heading) */}
-            <div
-              onClick={() => onSelectGenre("devotional")}
-              className="absolute top-[55%] -translate-y-1/2 right-0 sm:right-[2%] lg:right-[1%] w-36 sm:w-46 lg:w-50 h-40 sm:h-48 lg:h-54 rounded-[36px] overflow-hidden shadow-2xl border-2 border-white/40 hover:border-[#FBBF24] transition-all duration-500 hover:scale-110 cursor-pointer group bg-black z-20 rotate-6 hover:rotate-0 hidden md:block"
-              title="Explore Devotional"
-            >
-              <img
-                src="https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=450&h=500&fit=crop&auto=format"
-                alt="Devotional"
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60 group-hover:opacity-10 transition-opacity" />
-            </div>
-
-            {/* Card 5: DOWN / BOTTOM-LEFT (Below Heading on Left) */}
+            {/* Bottom-Left */}
             <div
               onClick={() => onSelectGenre("gazal")}
-              className="absolute bottom-0 left-[10%] sm:left-[16%] lg:left-[14%] w-44 sm:w-56 lg:w-60 h-30 sm:h-36 lg:h-40 rounded-[30px] overflow-hidden shadow-2xl border-2 border-white/40 hover:border-[#FDE047] transition-all duration-500 hover:scale-110 cursor-pointer group bg-black z-20 rotate-5 hover:rotate-0"
+              className="absolute bottom-0 left-[8%] sm:left-[12%] lg:left-[14%] w-40 sm:w-48 lg:w-52 h-28 sm:h-32 lg:h-36 rounded-2xl overflow-hidden shadow-2xl border border-white/20 hover:border-[#DDB96A] transition-all duration-500 hover:scale-105 cursor-pointer z-20 rotate-4 hover:rotate-0"
               title="Explore Ghazal"
             >
               <img
                 src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=550&h=400&fit=crop&auto=format"
                 alt="Ghazal"
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                className="w-full h-full object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60 group-hover:opacity-10 transition-opacity" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+              <span className="absolute bottom-2 left-3 label-editorial text-white text-[9px]">GHAZAL</span>
             </div>
 
-            {/* Card 6: DOWN / BOTTOM-RIGHT (Below Heading on Right) */}
+            {/* Bottom-Right */}
             <div
-              onClick={() => onSelectGenre("carnival")}
-              className="absolute bottom-0 right-[14%] sm:right-[18%] lg:right-[16%] w-40 sm:w-50 lg:w-56 h-32 sm:h-40 lg:h-44 rounded-[32px] overflow-hidden shadow-2xl border-2 border-white/40 hover:border-[#C084FC] transition-all duration-500 hover:scale-110 cursor-pointer group bg-black z-20 -rotate-5 hover:rotate-0"
-              title="Explore Carnival"
+              onClick={() => onSelectGenre("rock")}
+              className="absolute bottom-0 right-[8%] sm:right-[12%] lg:right-[14%] w-36 sm:w-44 lg:w-48 h-26 sm:h-32 lg:h-36 rounded-2xl overflow-hidden shadow-2xl border border-white/20 hover:border-[#DDB96A] transition-all duration-500 hover:scale-105 cursor-pointer z-20 -rotate-4 hover:rotate-0"
+              title="Explore Rock"
             >
               <img
-                src="https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=500&h=450&fit=crop&auto=format"
-                alt="Carnival"
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                src="https://images.unsplash.com/photo-1464375117522-1311d6a5b81f?w=450&h=450&fit=crop&auto=format"
+                alt="Rock"
+                className="w-full h-full object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60 group-hover:opacity-10 transition-opacity" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+              <span className="absolute bottom-2 left-3 label-editorial text-white text-[9px]">ROCK</span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── ALL 6 GENRES DETAILED DIRECTORY CATALOG ────────────────────────── */}
-      <main id="all-genres-grid" className="max-w-7xl mx-auto px-4 sm:px-6 py-14 space-y-10">
-        <div className="text-center max-w-2xl mx-auto space-y-2">
-          <span className="text-xs font-bold text-[#BE123C] uppercase tracking-widest bg-[#FFF0F3] px-3.5 py-1 rounded-full border border-[#F3E5E8]">
-            ✦ Complete Performance Roster
+      {/* ── ALL 6 GENRES EDITORIAL DIRECTORY ─────────────────────────────── */}
+      <main id="all-genres-grid" className="max-w-7xl mx-auto px-6 lg:px-8 py-20 space-y-12">
+        <div className="max-w-xl">
+          <span className="label-editorial text-[#C4952A] tracking-[0.22em] block mb-3" style={{ fontSize: "10px" }}>
+            CATALOG OF GENRES
           </span>
-          <h2 className="font-display font-bold text-3xl sm:text-4xl text-[#1A1A1A]">
-            Curated Musical &amp; Entertainment Traditions
+          <h2
+            className="font-serif font-light text-[#1A1916] leading-tight"
+            style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(32px, 4vw, 52px)" }}
+          >
+            Curated Performance<br />
+            <em style={{ fontStyle: "italic" }}>Traditions</em>
           </h2>
-          <p className="text-xs sm:text-sm text-[#5B5B5B]">
-            Select any genre card below to view verified artists, detailed rate cards, audio medleys, and technical riders.
+          <p className="font-ui text-[#7A776F] text-[15px] leading-relaxed mt-3">
+            Select any tradition below to view verified artists, detailed rate cards, audio medleys, and technical riders.
           </p>
         </div>
 
@@ -255,81 +246,79 @@ export function GenresCatalogPage({
             return (
               <div
                 key={genreId}
-                className="bg-white rounded-3xl overflow-hidden border border-[#F3E5E8] shadow-sm hover:shadow-xl hover:border-[#E11D48]/40 transition-all duration-300 flex flex-col justify-between group"
+                className="bg-[#FAF7F2] rounded-2xl overflow-hidden border border-[#EDE8DF] hover:border-[#C4952A]/40 transition-all duration-400 flex flex-col justify-between group lift-card"
               >
                 {/* Hero Header Media */}
                 <div
                   onClick={() => onSelectGenre(genreId)}
-                  className="relative h-60 overflow-hidden bg-gray-900 cursor-pointer"
+                  className="relative h-64 overflow-hidden bg-gray-900 cursor-pointer img-zoom"
                 >
                   <img
                     src={meta.heroImg}
                     alt={meta.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 brightness-95 group-hover:brightness-105"
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
 
                   {/* Badges on Hero */}
                   <div className="absolute top-4 left-4 flex items-center gap-2">
-                    <span className="text-lg bg-black/50 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/20 shadow-md">
-                      {meta.icon}
-                    </span>
-                    <span
-                      className="text-xs font-bold text-white px-3 py-1 rounded-full shadow-md bg-[#E11D48]"
-                    >
+                    <span className="text-xs font-semibold text-white/90 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full border border-white/20">
                       {genreArtists.length} Verified Artists
                     </span>
                   </div>
 
-                  <div className="absolute bottom-4 left-4 right-4 text-white">
-                    <h3 className="font-display font-bold text-2xl drop-shadow-md">
+                  <div className="absolute bottom-4 left-5 right-5 text-white">
+                    <span className="label-editorial text-[#DDB96A] text-[9px] tracking-widest block mb-1">
+                      {meta.tag}
+                    </span>
+                    <h3
+                      className="font-serif font-light text-2xl drop-shadow-md text-white group-hover:text-[#DDB96A] transition-colors"
+                      style={{ fontFamily: "'Cormorant Garamond', serif" }}
+                    >
                       {meta.title}
                     </h3>
-                    <p className="text-xs text-white/80 line-clamp-1 mt-0.5">
-                      {meta.tag} — {meta.description}
-                    </p>
                   </div>
                 </div>
 
                 {/* Body Details */}
                 <div className="p-6 flex-1 flex flex-col justify-between space-y-5">
                   <div className="space-y-4">
-                    <p className="text-xs text-[#5B5B5B] leading-relaxed line-clamp-3">
+                    <p className="font-ui text-[13px] text-[#7A776F] leading-relaxed line-clamp-3">
                       {meta.longDescription}
                     </p>
 
-                    {/* Instruments & Occasions Tags */}
+                    {/* Instruments Tags */}
                     <div className="space-y-2">
-                      <div className="text-[11px] font-bold text-[#1A1A1A] uppercase tracking-wider">
-                        Key Instruments
+                      <div className="label-editorial text-[#4A4845]" style={{ fontSize: "9px" }}>
+                        SIGNATURE INSTRUMENTS
                       </div>
                       <div className="flex flex-wrap gap-1.5">
                         {meta.elements?.instruments?.map(inst => (
                           <span
                             key={inst.name}
-                            className="text-[11px] bg-[#FFF8F8] border border-[#F3E5E8] text-[#BE123C] font-medium px-2.5 py-1 rounded-lg"
+                            className="font-ui text-[11px] bg-[#F5F0E8] border border-[#EDE8DF] text-[#4A4845] font-medium px-2.5 py-1 rounded-md"
                           >
-                            {inst.icon || "♪"} {inst.name}
+                            {inst.name}
                           </span>
                         ))}
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3 pt-3 border-t border-[#F3E5E8] text-xs">
+                    <div className="grid grid-cols-2 gap-3 pt-3 border-t border-[#EDE8DF] text-xs">
                       <div>
-                        <span className="text-[#5B5B5B] block text-[10px] uppercase font-semibold">Typical Range</span>
-                        <span className="font-display font-bold text-sm text-[#1A1A1A]">{meta.avgPriceRange}</span>
+                        <span className="label-editorial text-[#7A776F] block" style={{ fontSize: "8px" }}>TYPICAL RANGE</span>
+                        <span className="font-ui font-semibold text-[13px] text-[#1A1916] mt-0.5 block">{meta.avgPriceRange}</span>
                       </div>
                       <div>
-                        <span className="text-[#5B5B5B] block text-[10px] uppercase font-semibold">Stage &amp; Atmosphere</span>
-                        <span className="font-bold text-[#BE123C] text-xs truncate block">{meta.elements?.stageVibe || "Live Concert Vibe"}</span>
+                        <span className="label-editorial text-[#7A776F] block" style={{ fontSize: "8px" }}>ATMOSPHERE</span>
+                        <span className="font-ui font-medium text-[12px] text-[#C4952A] truncate block mt-0.5">{meta.elements?.stageVibe || "Live Concert"}</span>
                       </div>
                     </div>
                   </div>
 
                   <button
                     onClick={() => onSelectGenre(genreId)}
-                    className="w-full py-3 rounded-2xl bg-[#FFF0F3] hover:bg-[#E11D48] text-[#BE123C] hover:text-white text-xs font-bold border border-[#F3E5E8] transition-all cursor-pointer flex items-center justify-center gap-2 shadow-xs group-hover:bg-[#E11D48] group-hover:text-white"
+                    className="w-full py-3 rounded-full bg-[#1A1916] hover:bg-[#2E2C28] text-[#FAF7F2] font-ui text-[13px] font-semibold transition-all cursor-pointer flex items-center justify-center gap-2 group-hover:bg-[#C4952A] group-hover:text-[#1A1916]"
                   >
                     <span>View All {meta.title} Artists</span>
                     <span>→</span>

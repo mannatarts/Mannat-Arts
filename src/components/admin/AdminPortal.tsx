@@ -1,11 +1,11 @@
 import { useState, useMemo } from "react";
-import { Artist, GENRE_METADATA } from "../../data/artistsData";
+import { Artist, GenreInfo, GENRE_METADATA } from "../../data/artistsData";
 import { BlogArticle, BlogContentSection } from "../../data/blogData";
 
 const BLOG_CATEGORY_OPTIONS = [
-  { id: "Wedding Music", color: "#BE123C" },
+  { id: "Wedding Music", color: "#9A7219" },
   { id: "Event Planning", color: "#9333EA" },
-  { id: "Artist Spotlights", color: "#E11D48" },
+  { id: "Artist Spotlights", color: "#C4952A" },
   { id: "Sound & Acoustics", color: "#2563EB" },
   { id: "Heritage Traditions", color: "#D97706" },
 ];
@@ -44,12 +44,16 @@ interface AdminPortalProps {
   onLogout: () => void;
   onPreviewArtist: (artist: Artist) => void;
   onPreviewArticle: (article: BlogArticle) => void;
+  genres?: Record<string, GenreInfo>;
+  onUpdateGenre?: (genreId: string, updated: Partial<GenreInfo>) => void;
 }
 
 type AdminView =
   | "artists-list"
   | "artist-form"
   | "top6"
+  | "genres-list"
+  | "genre-form"
   | "blogs-list"
   | "blog-form"
   | "bookings"
@@ -88,6 +92,8 @@ export function AdminPortal({
   onResetToDefaults,
   onExitToClient,
   onLogout,
+  genres = GENRE_METADATA,
+  onUpdateGenre,
 }: AdminPortalProps) {
   const [currentView, setCurrentView] = useState<AdminView>("artists-list");
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
@@ -102,6 +108,91 @@ export function AdminPortal({
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3000);
+  };
+
+  /* ── In-Page Genre Form State ──────────────────────────────────────────── */
+  const [editingGenreId, setEditingGenreId] = useState<string | null>(null);
+  const [genreFormData, setGenreFormData] = useState<Partial<GenreInfo>>({
+    title: "",
+    tag: "",
+    description: "",
+    longDescription: "",
+    heroImg: "",
+    avgPriceRange: "",
+    popularOccasions: [],
+  });
+  const [genreOccasionsInput, setGenreOccasionsInput] = useState("");
+  const [genreImageSourceMode, setGenreImageSourceMode] = useState<"upload" | "url">("upload");
+
+  const startEditGenre = (genreId: string) => {
+    const active = (genres && genres[genreId]) || GENRE_METADATA[genreId];
+    if (!active) return;
+    setEditingGenreId(genreId);
+    setGenreFormData(active);
+    setGenreOccasionsInput(active.popularOccasions ? active.popularOccasions.join(", ") : "");
+    setCurrentView("genre-form");
+    setMobileSidebarOpen(false);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleGenreImageFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      alert("Please upload a valid image file");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = ev => {
+      if (ev.target?.result) {
+        setGenreFormData(p => ({ ...p, heroImg: ev.target?.result as string }));
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSaveGenre = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingGenreId) return;
+    const occasions = genreOccasionsInput.split(",").map(s => s.trim()).filter(Boolean);
+    const updated: Partial<GenreInfo> = {
+      title: genreFormData.title?.trim(),
+      tag: genreFormData.tag?.trim(),
+      description: genreFormData.description?.trim(),
+      longDescription: genreFormData.longDescription?.trim(),
+      heroImg: genreFormData.heroImg,
+      avgPriceRange: genreFormData.avgPriceRange?.trim(),
+      popularOccasions: occasions.length > 0 ? occasions : undefined,
+    };
+    if (onUpdateGenre) {
+      onUpdateGenre(editingGenreId, updated);
+      showToast(`Updated banner content for ${genreFormData.title || editingGenreId}`);
+    }
+    setCurrentView("genres-list");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  // Acts management state for artist
+  const [newActCategory, setNewActCategory] = useState("");
+  const [newActDescription, setNewActDescription] = useState("");
+
+  const handleAddAct = (category: string, description: string) => {
+    if (!category.trim()) return;
+    const currentActs = artistFormData.whatElseTheyDo || [];
+    setArtistFormData(p => ({
+      ...p,
+      whatElseTheyDo: [...currentActs, { category: category.trim(), description: description.trim() || "Live performance showcase", icon: "♪" }],
+    }));
+    setNewActCategory("");
+    setNewActDescription("");
+  };
+
+  const handleRemoveAct = (index: number) => {
+    const currentActs = artistFormData.whatElseTheyDo || [];
+    setArtistFormData(p => ({
+      ...p,
+      whatElseTheyDo: currentActs.filter((_, i) => i !== index),
+    }));
   };
 
   /* ── In-Page Artist Form State ─────────────────────────────────────────── */
@@ -126,7 +217,7 @@ export function AdminPortal({
     experienceYears: 7,
     eventsCompleted: 140,
     primaryInstruments: ["Harmonium", "Tabla", "Vocals"],
-    themeColor: "#BE123C",
+    themeColor: "#9A7219",
     whatElseTheyDo: [
       { category: "Gazal Mehfils", description: "Intimate late-night mehfil sets", icon: "📜" },
       { category: "Bollywood Acoustic", description: "Unplugged 90s Bollywood medleys", icon: "🎸" },
@@ -168,7 +259,7 @@ export function AdminPortal({
       experienceYears: 5,
       eventsCompleted: 80,
       primaryInstruments: ["Vocals", "Guitar"],
-      themeColor: "#BE123C",
+      themeColor: "#9A7219",
       whatElseTheyDo: [
         { category: "Acoustic Pop", description: "Unplugged melodies", icon: "🎵" },
         { category: "Bollywood Dance", description: "High-energy dance hits", icon: "🎬" },
@@ -245,7 +336,7 @@ export function AdminPortal({
       experienceYears: Number(artistFormData.experienceYears) || 5,
       eventsCompleted: Number(artistFormData.eventsCompleted) || 50,
       primaryInstruments: instruments.length > 0 ? instruments : ["Vocals"],
-      themeColor: artistFormData.themeColor || "#BE123C",
+      themeColor: artistFormData.themeColor || "#9A7219",
       whatElseTheyDo: artistFormData.whatElseTheyDo || [],
       sampleSetlist: setlist.length > 0 ? setlist : ["Signature Anthem"],
       sampleTracks: artistFormData.sampleTracks || [{ title: "Live Concert Demo", duration: "4:30", type: "Live Performance" }],
@@ -270,7 +361,7 @@ export function AdminPortal({
   const [blogTitle, setBlogTitle] = useState("");
   const [blogSubtitle, setBlogSubtitle] = useState("");
   const [blogCategory, setBlogCategory] = useState("Wedding Music");
-  const [blogCategoryColor, setBlogCategoryColor] = useState("#BE123C");
+  const [blogCategoryColor, setBlogCategoryColor] = useState("#9A7219");
   const [blogReadTime, setBlogReadTime] = useState("5 min read");
   const [blogPublishedDate, setBlogPublishedDate] = useState("Feb 25, 2026");
   const [blogCoverImg, setBlogCoverImg] = useState("https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=800&h=500&fit=crop&auto=format");
@@ -303,7 +394,7 @@ export function AdminPortal({
     setBlogTitle("");
     setBlogSubtitle("");
     setBlogCategory("Wedding Music");
-    setBlogCategoryColor("#BE123C");
+    setBlogCategoryColor("#9A7219");
     setBlogReadTime("5 min read");
     setBlogPublishedDate(today);
     setBlogCoverImg("https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=800&h=500&fit=crop&auto=format");
@@ -333,7 +424,7 @@ export function AdminPortal({
     setBlogTitle(art.title);
     setBlogSubtitle(art.subtitle);
     setBlogCategory(art.category);
-    setBlogCategoryColor(art.categoryColor || "#BE123C");
+    setBlogCategoryColor(art.categoryColor || "#9A7219");
     setBlogReadTime(art.readTime);
     setBlogPublishedDate(art.publishedDate);
     setBlogCoverImg(art.coverImg);
@@ -394,9 +485,10 @@ export function AdminPortal({
 
     const completeArticle: BlogArticle = {
       id: editingArticleId || `article-${Date.now()}`,
+      slug: existing?.slug || blogTitle.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || `article-${Date.now()}`,
       title: blogTitle.trim(),
       subtitle: blogSubtitle.trim() || "Expert insights for memorable live events.",
-      category: blogCategory,
+      category: blogCategory as BlogArticle["category"],
       categoryColor: blogCategoryColor,
       readTime: blogReadTime || "5 min read",
       publishedDate: blogPublishedDate || "Feb 25, 2026",
@@ -496,7 +588,7 @@ export function AdminPortal({
     <div className="min-h-screen bg-[#FDFBFB] text-[#1A1A1A] flex font-body">
       {/* Toast Feedback */}
       {toastMessage && (
-        <div className="fixed top-5 right-5 z-50 bg-[#E11D48] text-white px-5 py-2.5 rounded-2xl shadow-xl text-xs font-bold animate-fadeIn flex items-center gap-2">
+        <div className="fixed top-5 right-5 z-50 bg-[#C4952A] text-white px-5 py-2.5 rounded-2xl shadow-xl text-xs font-bold animate-fadeIn flex items-center gap-2">
           <span>✓</span>
           <span>{toastMessage}</span>
         </div>
@@ -504,20 +596,20 @@ export function AdminPortal({
 
       {/* ── LEFT NAVIGATION SIDEBAR ────────────────────────────────────────── */}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-[#F3E5E8] flex flex-col justify-between transition-transform duration-300 md:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-[#EDE8DF] flex flex-col justify-between transition-transform duration-300 md:translate-x-0 ${
           mobileSidebarOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full"
         }`}
       >
         <div className="flex flex-col h-full">
           {/* Brand Header */}
-          <div className="p-5 border-b border-[#F3E5E8] flex items-center justify-between">
+          <div className="p-5 border-b border-[#EDE8DF] flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#E11D48] to-[#9333EA] flex items-center justify-center text-white font-bold text-sm shadow-sm">
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#C4952A] to-[#9333EA] flex items-center justify-center text-white font-bold text-sm shadow-sm">
                 ⚡
               </div>
               <div>
                 <h1 className="font-display font-bold text-base text-[#1A1A1A] leading-tight">StageBridge</h1>
-                <span className="text-[10px] font-bold text-[#BE123C] uppercase tracking-wider">
+                <span className="text-[10px] font-bold text-[#9A7219] uppercase tracking-wider">
                   Admin Console
                 </span>
               </div>
@@ -546,7 +638,7 @@ export function AdminPortal({
                 }}
                 className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                   currentView === "artists-list"
-                    ? "bg-[#FFF0F3] text-[#BE123C] font-bold border border-[#F3E5E8]"
+                    ? "bg-[#F5F0E8] text-[#9A7219] font-bold border border-[#EDE8DF]"
                     : "text-[#5B5B5B] hover:bg-gray-50 hover:text-[#1A1A1A]"
                 }`}
               >
@@ -561,7 +653,7 @@ export function AdminPortal({
                 onClick={startCreateArtist}
                 className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                   currentView === "artist-form" && !editingArtistId
-                    ? "bg-[#FFF0F3] text-[#BE123C] font-bold border border-[#F3E5E8]"
+                    ? "bg-[#F5F0E8] text-[#9A7219] font-bold border border-[#EDE8DF]"
                     : "text-[#5B5B5B] hover:bg-gray-50 hover:text-[#1A1A1A]"
                 }`}
               >
@@ -576,7 +668,7 @@ export function AdminPortal({
                 }}
                 className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                   currentView === "top6"
-                    ? "bg-[#FFF0F3] text-[#BE123C] font-bold border border-[#F3E5E8]"
+                    ? "bg-[#F5F0E8] text-[#9A7219] font-bold border border-[#EDE8DF]"
                     : "text-[#5B5B5B] hover:bg-gray-50 hover:text-[#1A1A1A]"
                 }`}
               >
@@ -584,6 +676,31 @@ export function AdminPortal({
                 <span>Home Top 6 Performers</span>
                 <span className="ml-auto text-[10px] bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full font-bold">
                   {featuredArtistIds.length}/6
+                </span>
+              </button>
+            </div>
+
+            {/* Genre Banner Pages CMS Section */}
+            <div className="space-y-1">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-[#5B5B5B] px-3 mb-1.5">
+                Genre Banner CMS
+              </div>
+
+              <button
+                onClick={() => {
+                  setCurrentView("genres-list");
+                  setMobileSidebarOpen(false);
+                }}
+                className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                  currentView === "genres-list" || currentView === "genre-form"
+                    ? "bg-[#F5F0E8] text-[#9A7219] font-bold border border-[#EDE8DF]"
+                    : "text-[#5B5B5B] hover:bg-gray-50 hover:text-[#1A1A1A]"
+                }`}
+              >
+                <span>🎨</span>
+                <span>Genre Banner Pages</span>
+                <span className="ml-auto text-[10px] bg-rose-100 text-[#9A7219] px-2 py-0.5 rounded-full font-bold">
+                  6 Genres
                 </span>
               </button>
             </div>
@@ -601,7 +718,7 @@ export function AdminPortal({
                 }}
                 className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                   currentView === "blogs-list"
-                    ? "bg-[#FFF0F3] text-[#BE123C] font-bold border border-[#F3E5E8]"
+                    ? "bg-[#F5F0E8] text-[#9A7219] font-bold border border-[#EDE8DF]"
                     : "text-[#5B5B5B] hover:bg-gray-50 hover:text-[#1A1A1A]"
                 }`}
               >
@@ -616,7 +733,7 @@ export function AdminPortal({
                 onClick={startCreateStory}
                 className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                   currentView === "blog-form" && !editingArticleId
-                    ? "bg-[#FFF0F3] text-[#BE123C] font-bold border border-[#F3E5E8]"
+                    ? "bg-[#F5F0E8] text-[#9A7219] font-bold border border-[#EDE8DF]"
                     : "text-[#5B5B5B] hover:bg-gray-50 hover:text-[#1A1A1A]"
                 }`}
               >
@@ -638,7 +755,7 @@ export function AdminPortal({
                 }}
                 className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                   currentView === "bookings"
-                    ? "bg-[#FFF0F3] text-[#BE123C] font-bold border border-[#F3E5E8]"
+                    ? "bg-[#F5F0E8] text-[#9A7219] font-bold border border-[#EDE8DF]"
                     : "text-[#5B5B5B] hover:bg-gray-50 hover:text-[#1A1A1A]"
                 }`}
               >
@@ -656,7 +773,7 @@ export function AdminPortal({
                 }}
                 className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                   currentView === "settings"
-                    ? "bg-[#FFF0F3] text-[#BE123C] font-bold border border-[#F3E5E8]"
+                    ? "bg-[#F5F0E8] text-[#9A7219] font-bold border border-[#EDE8DF]"
                     : "text-[#5B5B5B] hover:bg-gray-50 hover:text-[#1A1A1A]"
                 }`}
               >
@@ -667,10 +784,10 @@ export function AdminPortal({
           </nav>
 
           {/* Footer Actions */}
-          <div className="p-4 border-t border-[#F3E5E8] space-y-2">
+          <div className="p-4 border-t border-[#EDE8DF] space-y-2">
             <button
               onClick={onExitToClient}
-              className="w-full py-2.5 rounded-xl text-xs font-semibold bg-gray-50 hover:bg-[#FFF0F3] text-[#1A1A1A] hover:text-[#BE123C] border border-[#F3E5E8] transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+              className="w-full py-2.5 rounded-xl text-xs font-semibold bg-gray-50 hover:bg-[#F5F0E8] text-[#1A1A1A] hover:text-[#9A7219] border border-[#EDE8DF] transition-colors cursor-pointer flex items-center justify-center gap-1.5"
             >
               <span>👁️</span>
               <span>View Live Website</span>
@@ -698,10 +815,10 @@ export function AdminPortal({
       {/* ── RIGHT MAIN CONTENT AREA ────────────────────────────────────────── */}
       <main className="flex-1 md:ml-64 p-4 sm:p-8 min-h-screen overflow-y-auto">
         {/* Mobile Header Bar */}
-        <div className="md:hidden flex items-center justify-between bg-white p-4 rounded-2xl border border-[#F3E5E8] mb-6 shadow-xs">
+        <div className="md:hidden flex items-center justify-between bg-white p-4 rounded-2xl border border-[#EDE8DF] mb-6 shadow-xs">
           <button
             onClick={() => setMobileSidebarOpen(true)}
-            className="text-xs font-bold bg-[#FFF0F3] text-[#BE123C] px-3.5 py-2 rounded-xl flex items-center gap-1.5"
+            className="text-xs font-bold bg-[#F5F0E8] text-[#9A7219] px-3.5 py-2 rounded-xl flex items-center gap-1.5"
           >
             <span>☰</span>
             <span>Admin Menu</span>
@@ -734,7 +851,7 @@ export function AdminPortal({
 
               <button
                 onClick={startCreateArtist}
-                className="px-4 py-2.5 rounded-xl bg-[#E11D48] hover:bg-[#BE123C] text-white text-xs font-bold shadow-sm hover:shadow transition-all cursor-pointer flex items-center gap-1.5"
+                className="px-4 py-2.5 rounded-xl bg-[#C4952A] hover:bg-[#9A7219] text-white text-xs font-bold shadow-sm hover:shadow transition-all cursor-pointer flex items-center gap-1.5"
               >
                 <span>➕</span>
                 <span>Add New Performer</span>
@@ -742,20 +859,20 @@ export function AdminPortal({
             </div>
 
             {/* Filter Bar */}
-            <div className="bg-white p-4 rounded-2xl border border-[#F3E5E8] shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="bg-white p-4 rounded-2xl border border-[#EDE8DF] shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
               <div className="flex items-center gap-2 w-full sm:w-auto">
                 <input
                   type="text"
                   placeholder="Search artist name, city..."
                   value={artistSearch}
                   onChange={e => setArtistSearch(e.target.value)}
-                  className="text-xs bg-[#FFF8F8] border border-[#F3E5E8] rounded-xl px-3.5 py-2 text-[#1A1A1A] w-full sm:w-64 focus:outline-none"
+                  className="text-xs bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3.5 py-2 text-[#1A1A1A] w-full sm:w-64 focus:outline-none"
                 />
 
                 <select
                   value={selectedGenreFilter}
                   onChange={e => setSelectedGenreFilter(e.target.value)}
-                  className="text-xs bg-[#FFF8F8] border border-[#F3E5E8] rounded-xl px-3 py-2 text-[#1A1A1A] cursor-pointer"
+                  className="text-xs bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3 py-2 text-[#1A1A1A] cursor-pointer"
                 >
                   <option value="all">All Genres</option>
                   <option value="sufi">Sufi</option>
@@ -773,9 +890,9 @@ export function AdminPortal({
             </div>
 
             {/* Clean Data Table */}
-            <div className="bg-white border border-[#F3E5E8] rounded-2xl overflow-hidden shadow-xs">
+            <div className="bg-white border border-[#EDE8DF] rounded-2xl overflow-hidden shadow-xs">
               <table className="w-full text-left text-xs">
-                <thead className="bg-[#FFF8F8] text-[#5B5B5B] uppercase text-[10px] border-b border-[#F3E5E8]">
+                <thead className="bg-[#FAF7F2] text-[#5B5B5B] uppercase text-[10px] border-b border-[#EDE8DF]">
                   <tr>
                     <th className="py-3.5 px-4">Performer</th>
                     <th className="py-3.5 px-4">Genre</th>
@@ -785,18 +902,18 @@ export function AdminPortal({
                     <th className="py-3.5 px-4 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#F3E5E8]">
+                <tbody className="divide-y divide-[#EDE8DF]">
                   {filteredArtists.map(artist => {
                     const isTopPerformer = featuredArtistIds.includes(artist.id);
 
                     return (
-                      <tr key={artist.id} className="hover:bg-[#FFF8F8] transition-colors">
+                      <tr key={artist.id} className="hover:bg-[#FAF7F2] transition-colors">
                         <td className="py-3.5 px-4">
                           <div className="flex items-center gap-3">
                             <img
                               src={artist.img}
                               alt={artist.name}
-                              className="w-10 h-10 rounded-xl object-cover border border-[#F3E5E8]"
+                              className="w-10 h-10 rounded-xl object-cover border border-[#EDE8DF]"
                             />
                             <div>
                               <div className="font-display font-bold text-sm text-[#1A1A1A]">
@@ -822,7 +939,7 @@ export function AdminPortal({
                           {artist.city}, {artist.state}
                         </td>
 
-                        <td className="py-3.5 px-4 font-display font-bold text-sm text-[#BE123C]">
+                        <td className="py-3.5 px-4 font-display font-bold text-sm text-[#9A7219]">
                           {artist.price}
                         </td>
 
@@ -844,7 +961,7 @@ export function AdminPortal({
                           <div className="flex items-center justify-end gap-1.5">
                             <button
                               onClick={() => startEditArtist(artist)}
-                              className="px-3 py-1 rounded-lg bg-[#FFF0F3] hover:bg-[#E11D48] text-[#BE123C] hover:text-white font-bold transition-colors cursor-pointer border border-[#F3E5E8]"
+                              className="px-3 py-1 rounded-lg bg-[#F5F0E8] hover:bg-[#C4952A] text-[#9A7219] hover:text-white font-bold transition-colors cursor-pointer border border-[#EDE8DF]"
                             >
                               Edit
                             </button>
@@ -877,11 +994,11 @@ export function AdminPortal({
         {currentView === "artist-form" && (
           <div className="space-y-6 max-w-4xl mx-auto">
             {/* Header with Back button */}
-            <div className="flex items-center justify-between border-b border-[#F3E5E8] pb-4">
+            <div className="flex items-center justify-between border-b border-[#EDE8DF] pb-4">
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => setCurrentView("artists-list")}
-                  className="w-8 h-8 rounded-full bg-gray-100 hover:bg-[#FFF0F3] text-[#5B5B5B] hover:text-[#BE123C] flex items-center justify-center font-bold text-sm transition-colors cursor-pointer"
+                  className="w-8 h-8 rounded-full bg-gray-100 hover:bg-[#F5F0E8] text-[#5B5B5B] hover:text-[#9A7219] flex items-center justify-center font-bold text-sm transition-colors cursor-pointer"
                 >
                   ←
                 </button>
@@ -906,7 +1023,7 @@ export function AdminPortal({
                 <button
                   type="button"
                   onClick={handleSaveArtist}
-                  className="px-5 py-2 rounded-xl bg-[#E11D48] hover:bg-[#BE123C] text-white text-xs font-bold shadow-sm transition-colors cursor-pointer"
+                  className="px-5 py-2 rounded-xl bg-[#C4952A] hover:bg-[#9A7219] text-white text-xs font-bold shadow-sm transition-colors cursor-pointer"
                 >
                   Save Performer
                 </button>
@@ -916,8 +1033,8 @@ export function AdminPortal({
             {/* In-Page Form Body */}
             <form onSubmit={handleSaveArtist} className="space-y-6">
               {/* Section 1: Basic Identity */}
-              <div className="bg-white p-6 rounded-3xl border border-[#F3E5E8] shadow-xs space-y-4">
-                <h3 className="font-display font-bold text-sm text-[#BE123C] uppercase tracking-wider">
+              <div className="bg-white p-6 rounded-3xl border border-[#EDE8DF] shadow-xs space-y-4">
+                <h3 className="font-display font-bold text-sm text-[#9A7219] uppercase tracking-wider">
                   1. Basic Identity &amp; Genre
                 </h3>
 
@@ -932,7 +1049,7 @@ export function AdminPortal({
                       placeholder="e.g. Zakir Khan & Sufi Souls"
                       value={artistFormData.name || ""}
                       onChange={e => setArtistFormData(p => ({ ...p, name: e.target.value }))}
-                      className="w-full text-xs bg-[#FFF8F8] border border-[#F3E5E8] rounded-xl px-3.5 py-2.5 text-[#1A1A1A] focus:outline-none focus:ring-2 focus:ring-[#E11D48]/30 font-medium"
+                      className="w-full text-xs bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3.5 py-2.5 text-[#1A1A1A] focus:outline-none focus:ring-2 focus:ring-[#C4952A]/30 font-medium"
                     />
                   </div>
 
@@ -945,7 +1062,7 @@ export function AdminPortal({
                       placeholder="e.g. The Soul Qawwal"
                       value={artistFormData.stageName || ""}
                       onChange={e => setArtistFormData(p => ({ ...p, stageName: e.target.value }))}
-                      className="w-full text-xs bg-[#FFF8F8] border border-[#F3E5E8] rounded-xl px-3.5 py-2.5 text-[#1A1A1A]"
+                      className="w-full text-xs bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3.5 py-2.5 text-[#1A1A1A]"
                     />
                   </div>
                 </div>
@@ -964,10 +1081,10 @@ export function AdminPortal({
                           ...p,
                           genre: g,
                           genreTitle: meta ? meta.title : g.toUpperCase(),
-                          themeColor: "#BE123C",
+                          themeColor: "#9A7219",
                         }));
                       }}
-                      className="w-full text-xs bg-[#FFF8F8] border border-[#F3E5E8] rounded-xl px-3.5 py-2.5 text-[#1A1A1A] cursor-pointer"
+                      className="w-full text-xs bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3.5 py-2.5 text-[#1A1A1A] cursor-pointer"
                     >
                       {GENRE_OPTIONS.map(g => (
                         <option key={g} value={g}>
@@ -984,7 +1101,7 @@ export function AdminPortal({
                     <select
                       value={artistFormData.bandType || "4-6 Piece Band"}
                       onChange={e => setArtistFormData(p => ({ ...p, bandType: e.target.value as any }))}
-                      className="w-full text-xs bg-[#FFF8F8] border border-[#F3E5E8] rounded-xl px-3.5 py-2.5 text-[#1A1A1A] cursor-pointer"
+                      className="w-full text-xs bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3.5 py-2.5 text-[#1A1A1A] cursor-pointer"
                     >
                       {BAND_TYPES.map(b => (
                         <option key={b} value={b}>
@@ -1004,7 +1121,7 @@ export function AdminPortal({
                     placeholder="e.g. Contemporary & Traditional Qawwali Ensemble"
                     value={artistFormData.tagline || ""}
                     onChange={e => setArtistFormData(p => ({ ...p, tagline: e.target.value }))}
-                    className="w-full text-xs bg-[#FFF8F8] border border-[#F3E5E8] rounded-xl px-3.5 py-2.5 text-[#1A1A1A]"
+                    className="w-full text-xs bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3.5 py-2.5 text-[#1A1A1A]"
                   />
                 </div>
 
@@ -1017,14 +1134,14 @@ export function AdminPortal({
                     placeholder="Describe artist history, prestigious concerts performed..."
                     value={artistFormData.bio || ""}
                     onChange={e => setArtistFormData(p => ({ ...p, bio: e.target.value }))}
-                    className="w-full text-xs bg-[#FFF8F8] border border-[#F3E5E8] rounded-xl px-3.5 py-2.5 text-[#1A1A1A]"
+                    className="w-full text-xs bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3.5 py-2.5 text-[#1A1A1A]"
                   />
                 </div>
               </div>
 
               {/* Section 2: Photography & Rates */}
-              <div className="bg-white p-6 rounded-3xl border border-[#F3E5E8] shadow-xs space-y-4">
-                <h3 className="font-display font-bold text-sm text-[#BE123C] uppercase tracking-wider">
+              <div className="bg-white p-6 rounded-3xl border border-[#EDE8DF] shadow-xs space-y-4">
+                <h3 className="font-display font-bold text-sm text-[#9A7219] uppercase tracking-wider">
                   2. Photography, Location &amp; Rates
                 </h3>
 
@@ -1036,13 +1153,13 @@ export function AdminPortal({
                         <label className="text-xs font-semibold text-[#3A3A3A]">
                           Performer Photo *
                         </label>
-                        <div className="flex items-center gap-1 bg-[#FFF8F8] border border-[#F3E5E8] p-0.5 rounded-lg text-[10px]">
+                        <div className="flex items-center gap-1 bg-[#FAF7F2] border border-[#EDE8DF] p-0.5 rounded-lg text-[10px]">
                           <button
                             type="button"
                             onClick={() => setArtistImageSourceMode("upload")}
                             className={`px-2 py-0.5 rounded font-semibold cursor-pointer transition-colors ${
                               artistImageSourceMode === "upload"
-                                ? "bg-[#E11D48] text-white"
+                                ? "bg-[#C4952A] text-white"
                                 : "text-[#5B5B5B]"
                             }`}
                           >
@@ -1053,7 +1170,7 @@ export function AdminPortal({
                             onClick={() => setArtistImageSourceMode("url")}
                             className={`px-2 py-0.5 rounded font-semibold cursor-pointer transition-colors ${
                               artistImageSourceMode === "url"
-                                ? "bg-[#E11D48] text-white"
+                                ? "bg-[#C4952A] text-white"
                                 : "text-[#5B5B5B]"
                             }`}
                           >
@@ -1063,7 +1180,7 @@ export function AdminPortal({
                       </div>
 
                       {artistImageSourceMode === "upload" ? (
-                        <div className="relative border-2 border-dashed border-[#E5D5D8] hover:border-[#E11D48] rounded-2xl p-5 bg-[#FFFDFD] text-center cursor-pointer transition-colors group">
+                        <div className="relative border-2 border-dashed border-[#E5D5D8] hover:border-[#C4952A] rounded-2xl p-5 bg-[#FFFDFD] text-center cursor-pointer transition-colors group">
                           <input
                             type="file"
                             accept="image/*"
@@ -1086,7 +1203,7 @@ export function AdminPortal({
                           placeholder="https://images.unsplash.com/..."
                           value={artistFormData.img || ""}
                           onChange={e => setArtistFormData(p => ({ ...p, img: e.target.value }))}
-                          className="w-full text-xs bg-[#FFF8F8] border border-[#F3E5E8] rounded-xl px-3.5 py-2.5 text-[#1A1A1A]"
+                          className="w-full text-xs bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3.5 py-2.5 text-[#1A1A1A]"
                         />
                       )}
                     </div>
@@ -1099,7 +1216,7 @@ export function AdminPortal({
                           placeholder="e.g. Mumbai"
                           value={artistFormData.city || ""}
                           onChange={e => setArtistFormData(p => ({ ...p, city: e.target.value }))}
-                          className="w-full text-xs bg-[#FFF8F8] border border-[#F3E5E8] rounded-xl px-3.5 py-2.5 text-[#1A1A1A]"
+                          className="w-full text-xs bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3.5 py-2.5 text-[#1A1A1A]"
                         />
                       </div>
                       <div>
@@ -1109,7 +1226,7 @@ export function AdminPortal({
                           placeholder="e.g. Maharashtra"
                           value={artistFormData.state || ""}
                           onChange={e => setArtistFormData(p => ({ ...p, state: e.target.value }))}
-                          className="w-full text-xs bg-[#FFF8F8] border border-[#F3E5E8] rounded-xl px-3.5 py-2.5 text-[#1A1A1A]"
+                          className="w-full text-xs bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3.5 py-2.5 text-[#1A1A1A]"
                         />
                       </div>
                     </div>
@@ -1126,7 +1243,7 @@ export function AdminPortal({
                             const formatted = num > 0 ? `₹${num.toLocaleString("en-IN")}` : "₹0";
                             setArtistFormData(p => ({ ...p, price: formatted, priceNum: num }));
                           }}
-                          className="w-full text-xs bg-[#FFF8F8] border border-[#F3E5E8] rounded-xl px-3.5 py-2.5 text-[#1A1A1A]"
+                          className="w-full text-xs bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3.5 py-2.5 text-[#1A1A1A]"
                         />
                       </div>
                       <div>
@@ -1136,7 +1253,7 @@ export function AdminPortal({
                           placeholder="e.g. 90–120 mins"
                           value={artistFormData.performanceDuration || ""}
                           onChange={e => setArtistFormData(p => ({ ...p, performanceDuration: e.target.value }))}
-                          className="w-full text-xs bg-[#FFF8F8] border border-[#F3E5E8] rounded-xl px-3.5 py-2.5 text-[#1A1A1A]"
+                          className="w-full text-xs bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3.5 py-2.5 text-[#1A1A1A]"
                         />
                       </div>
                     </div>
@@ -1145,7 +1262,7 @@ export function AdminPortal({
                   {/* Live Photo Preview */}
                   <div className="text-center">
                     <span className="block text-[11px] font-semibold text-[#5B5B5B] mb-1">Live Photo Preview</span>
-                    <div className="w-full h-44 rounded-2xl overflow-hidden bg-gray-100 border border-[#F3E5E8] shadow-inner relative group">
+                    <div className="w-full h-44 rounded-2xl overflow-hidden bg-gray-100 border border-[#EDE8DF] shadow-inner relative group">
                       {artistFormData.img ? (
                         <>
                           <img
@@ -1173,8 +1290,8 @@ export function AdminPortal({
               </div>
 
               {/* Section 3: Repertoire, Setlist & Tech Rider */}
-              <div className="bg-white p-6 rounded-3xl border border-[#F3E5E8] shadow-xs space-y-4">
-                <h3 className="font-display font-bold text-sm text-[#BE123C] uppercase tracking-wider">
+              <div className="bg-white p-6 rounded-3xl border border-[#EDE8DF] shadow-xs space-y-4">
+                <h3 className="font-display font-bold text-sm text-[#9A7219] uppercase tracking-wider">
                   3. Instruments, Setlist &amp; Stage Rider
                 </h3>
 
@@ -1187,7 +1304,7 @@ export function AdminPortal({
                     placeholder="Harmonium, Tabla, Dholak, Vocals"
                     value={artistInstrumentsInput}
                     onChange={e => setArtistInstrumentsInput(e.target.value)}
-                    className="w-full text-xs bg-[#FFF8F8] border border-[#F3E5E8] rounded-xl px-3.5 py-2.5 text-[#1A1A1A]"
+                    className="w-full text-xs bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3.5 py-2.5 text-[#1A1A1A]"
                   />
                 </div>
 
@@ -1201,7 +1318,7 @@ export function AdminPortal({
                       placeholder="Dama Dam Mast Qalandar&#10;Kun Faya Kun&#10;Afreen Afreen"
                       value={artistSetlistInput}
                       onChange={e => setArtistSetlistInput(e.target.value)}
-                      className="w-full text-xs bg-[#FFF8F8] border border-[#F3E5E8] rounded-xl px-3.5 py-2.5 text-[#1A1A1A]"
+                      className="w-full text-xs bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3.5 py-2.5 text-[#1A1A1A]"
                     />
                   </div>
 
@@ -1214,9 +1331,143 @@ export function AdminPortal({
                       placeholder="4 Vocal Mics with boom stands&#10;2 DI Boxes&#10;Stage wedge monitors"
                       value={artistTechRiderInput}
                       onChange={e => setArtistTechRiderInput(e.target.value)}
-                      className="w-full text-xs bg-[#FFF8F8] border border-[#F3E5E8] rounded-xl px-3.5 py-2.5 text-[#1A1A1A]"
+                      className="w-full text-xs bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3.5 py-2.5 text-[#1A1A1A]"
                     />
                   </div>
+                </div>
+              </div>
+
+              {/* Section 4: Choose Acts & Performance Styles */}
+              <div className="bg-white p-6 rounded-3xl border border-[#EDE8DF] shadow-xs space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-display font-bold text-sm text-[#9A7219] uppercase tracking-wider">
+                      4. Choose Acts &amp; Performance Styles
+                    </h3>
+                    <p className="text-xs text-[#5B5B5B] mt-0.5">
+                      Configure the multi-genre acts and styles this artist performs (displayed on performer cards and profiles).
+                    </p>
+                  </div>
+                  <span className="text-xs font-bold bg-[#F5F0E8] text-[#9A7219] px-3 py-1 rounded-full border border-[#EDE8DF]">
+                    {(artistFormData.whatElseTheyDo || []).length} Active Acts
+                  </span>
+                </div>
+
+                {/* Quick Presets */}
+                <div>
+                  <label className="block text-xs font-semibold text-[#3A3A3A] mb-1.5">
+                    Quick Add Act Presets:
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      { cat: "Gazal Mehfils", desc: "Intimate late-night acoustic baithaks" },
+                      { cat: "Bollywood Acoustic", desc: "Unplugged 90s & modern medleys" },
+                      { cat: "Sufi Fusion", desc: "Mystic trance and acoustic qawwalis" },
+                      { cat: "Wedding Sangeet Entry", desc: "Grand celebration entry performance" },
+                      { cat: "Retro 80s & 90s", desc: "Classic nostalgic Hindi favorites" },
+                      { cat: "Cocktail Unplugged", desc: "Mellow acoustic melodies for VIP soirees" },
+                      { cat: "Indie Rock Anthems", desc: "High-octane stadium-style festival set" },
+                      { cat: "Devotional Kirtan", desc: "Soulful morning bhajans & divine chants" },
+                    ].map(preset => (
+                      <button
+                        key={preset.cat}
+                        type="button"
+                        onClick={() => handleAddAct(preset.cat, preset.desc)}
+                        className="text-xs bg-[#FAF7F2] hover:bg-[#F5F0E8] text-[#9A7219] border border-[#EDE8DF] hover:border-[#9A7219]/40 px-3 py-1.5 rounded-xl font-medium transition-colors cursor-pointer flex items-center gap-1"
+                      >
+                        <span>+</span>
+                        <span>{preset.cat}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Current Acts List */}
+                <div className="space-y-3 pt-2">
+                  {(artistFormData.whatElseTheyDo || []).length === 0 ? (
+                    <div className="p-4 bg-gray-50 rounded-2xl text-center text-xs text-gray-500 border border-dashed border-gray-200">
+                      No additional acts configured yet. Add acts above or use custom input below.
+                    </div>
+                  ) : (
+                    (artistFormData.whatElseTheyDo || []).map((act, idx) => (
+                      <div
+                        key={idx}
+                        className="p-3.5 bg-[#FFFDFD] border border-[#EDE8DF] rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 group hover:border-[#C4952A]/30 transition-colors"
+                      >
+                        <div className="flex-1 grid sm:grid-cols-2 gap-3 w-full">
+                          <div>
+                            <label className="block text-[10px] font-semibold text-[#5B5B5B] mb-0.5 uppercase">
+                              Act Title / Category
+                            </label>
+                            <input
+                              type="text"
+                              value={act.category}
+                              onChange={e => {
+                                const newActs = [...(artistFormData.whatElseTheyDo || [])];
+                                newActs[idx] = { ...newActs[idx], category: e.target.value };
+                                setArtistFormData(p => ({ ...p, whatElseTheyDo: newActs }));
+                              }}
+                              className="w-full text-xs bg-white border border-[#EDE8DF] rounded-lg px-3 py-1.5 text-[#1A1A1A] font-semibold"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] font-semibold text-[#5B5B5B] mb-0.5 uppercase">
+                              Act Description
+                            </label>
+                            <input
+                              type="text"
+                              value={act.description}
+                              onChange={e => {
+                                const newActs = [...(artistFormData.whatElseTheyDo || [])];
+                                newActs[idx] = { ...newActs[idx], description: e.target.value };
+                                setArtistFormData(p => ({ ...p, whatElseTheyDo: newActs }));
+                              }}
+                              className="w-full text-xs bg-white border border-[#EDE8DF] rounded-lg px-3 py-1.5 text-[#1A1A1A]"
+                            />
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveAct(idx)}
+                          className="text-gray-400 hover:text-red-600 p-2 rounded-lg hover:bg-red-50 text-xs transition-colors cursor-pointer flex-shrink-0"
+                          title="Remove Act"
+                        >
+                          ✕ Remove
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                {/* Custom Act Creator */}
+                <div className="p-4 bg-[#FAF7F2] border border-[#EDE8DF] rounded-2xl space-y-3">
+                  <div className="text-xs font-semibold text-[#1A1A1A]">
+                    Add Custom Act / Performance Style:
+                  </div>
+                  <div className="grid sm:grid-cols-2 gap-3">
+                    <input
+                      type="text"
+                      placeholder="Act Name (e.g. Unplugged Ghazals)"
+                      value={newActCategory}
+                      onChange={e => setNewActCategory(e.target.value)}
+                      className="text-xs bg-white border border-[#EDE8DF] rounded-xl px-3.5 py-2 text-[#1A1A1A]"
+                    />
+                    <input
+                      type="text"
+                      placeholder="Short Description (e.g. 60-min baithak with harmonium)"
+                      value={newActDescription}
+                      onChange={e => setNewActDescription(e.target.value)}
+                      className="text-xs bg-white border border-[#EDE8DF] rounded-xl px-3.5 py-2 text-[#1A1A1A]"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleAddAct(newActCategory, newActDescription)}
+                    className="px-4 py-2 bg-[#1A1A1A] hover:bg-black text-white text-xs font-semibold rounded-xl transition-colors cursor-pointer"
+                  >
+                    + Add Act to Profile
+                  </button>
                 </div>
               </div>
 
@@ -1231,9 +1482,348 @@ export function AdminPortal({
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2.5 rounded-xl bg-[#E11D48] hover:bg-[#BE123C] text-white text-xs font-bold shadow-md hover:shadow-lg transition-all cursor-pointer"
+                  className="px-6 py-2.5 rounded-xl bg-[#C4952A] hover:bg-[#9A7219] text-white text-xs font-bold shadow-md hover:shadow-lg transition-all cursor-pointer"
                 >
                   Save Performer Profile
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {/* ═══════════════════════════════════════════════════════════════════ */}
+        {/* VIEW: GENRE BANNER PAGES CMS LIST */}
+        {/* ═══════════════════════════════════════════════════════════════════ */}
+        {currentView === "genres-list" && (
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <h2 className="font-display font-bold text-2xl text-[#1A1A1A]">
+                  Genre Banner Pages CMS
+                </h2>
+                <p className="text-xs text-[#5B5B5B] mt-0.5">
+                  Manage headline banner imagery, titles, descriptions, and popular event occasions for each dedicated genre page.
+                </p>
+              </div>
+            </div>
+
+            {/* Grid of 6 Genres */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {GENRE_OPTIONS.map(genreId => {
+                const genre = (genres && genres[genreId]) || GENRE_METADATA[genreId];
+                if (!genre) return null;
+                return (
+                  <div
+                    key={genre.id}
+                    className="bg-white rounded-3xl border border-[#EDE8DF] overflow-hidden shadow-xs hover:shadow-lg transition-all flex flex-col justify-between group"
+                  >
+                    <div>
+                      {/* Hero Banner Preview */}
+                      <div className="relative h-44 overflow-hidden bg-gray-900">
+                        <img
+                          src={genre.heroImg}
+                          alt={genre.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                        <div className="absolute top-3 left-3 bg-[#C4952A] text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm">
+                          {genre.tag}
+                        </div>
+                        <div className="absolute bottom-3 left-3.5 right-3.5 text-white">
+                          <div className="font-display font-bold text-xl drop-shadow">
+                            {genre.title}
+                          </div>
+                          <div className="text-[11px] text-white/80 line-clamp-1">
+                            {genre.avgPriceRange}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Content Details */}
+                      <div className="p-5 space-y-3">
+                        <p className="text-xs text-[#5B5B5B] leading-relaxed line-clamp-2">
+                          {genre.description}
+                        </p>
+
+                        <div className="space-y-1.5">
+                          <div className="text-[10px] font-bold text-[#9A7219] uppercase tracking-wider">
+                            Popular Event Occasions:
+                          </div>
+                          <div className="flex flex-wrap gap-1">
+                            {genre.popularOccasions.map((occ, i) => (
+                              <span
+                                key={i}
+                                className="text-[10px] bg-[#FAF7F2] text-[#4A4A4A] px-2 py-0.5 rounded-lg border border-[#EDE8DF]"
+                              >
+                                {occ}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Card Actions */}
+                    <div className="p-5 pt-0">
+                      <button
+                        onClick={() => startEditGenre(genre.id)}
+                        className="w-full py-2.5 bg-[#F5F0E8] hover:bg-[#C4952A] text-[#9A7219] hover:text-white border border-[#EDE8DF] hover:border-[#C4952A] rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                      >
+                        <span>✏️ Edit Banner &amp; Content</span>
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* ═══════════════════════════════════════════════════════════════════ */}
+        {/* VIEW: EDIT GENRE BANNER FORM */}
+        {/* ═══════════════════════════════════════════════════════════════════ */}
+        {currentView === "genre-form" && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between border-b border-[#EDE8DF] pb-4">
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setCurrentView("genres-list")}
+                  className="w-8 h-8 rounded-full bg-gray-100 hover:bg-[#F5F0E8] text-[#5B5B5B] hover:text-[#9A7219] flex items-center justify-center font-bold text-sm transition-colors cursor-pointer"
+                >
+                  ←
+                </button>
+                <div>
+                  <h2 className="font-display font-bold text-2xl text-[#1A1A1A]">
+                    Edit Banner Page: {genreFormData.title}
+                  </h2>
+                  <p className="text-xs text-[#5B5B5B]">
+                    Update banner hero photo, headline typography, long description, and event tags.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setCurrentView("genres-list")}
+                  className="px-4 py-2 rounded-xl text-xs font-semibold text-[#5B5B5B] hover:bg-gray-100 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveGenre}
+                  className="px-5 py-2 rounded-xl bg-[#C4952A] hover:bg-[#9A7219] text-white text-xs font-bold shadow-sm transition-colors cursor-pointer"
+                >
+                  Save Banner Changes
+                </button>
+              </div>
+            </div>
+
+            <form onSubmit={handleSaveGenre} className="space-y-6">
+              {/* Section 1: Hero Banner Image */}
+              <div className="bg-white p-6 rounded-3xl border border-[#EDE8DF] shadow-xs space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-display font-bold text-sm text-[#9A7219] uppercase tracking-wider">
+                    1. Banner Hero Imagery
+                  </h3>
+                  <div className="flex items-center gap-1 bg-[#FAF7F2] border border-[#EDE8DF] p-0.5 rounded-lg text-[10px]">
+                    <button
+                      type="button"
+                      onClick={() => setGenreImageSourceMode("upload")}
+                      className={`px-2 py-0.5 rounded font-semibold cursor-pointer transition-colors ${
+                        genreImageSourceMode === "upload" ? "bg-[#C4952A] text-white" : "text-[#5B5B5B]"
+                      }`}
+                    >
+                      📁 Upload File
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setGenreImageSourceMode("url")}
+                      className={`px-2 py-0.5 rounded font-semibold cursor-pointer transition-colors ${
+                        genreImageSourceMode === "url" ? "bg-[#C4952A] text-white" : "text-[#5B5B5B]"
+                      }`}
+                    >
+                      🔗 Web URL
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-12 gap-6 items-center">
+                  <div className="md:col-span-7 space-y-3">
+                    {genreImageSourceMode === "upload" ? (
+                      <div className="relative border-2 border-dashed border-[#E5D5D8] hover:border-[#C4952A] rounded-2xl p-6 bg-[#FFFDFD] text-center cursor-pointer transition-colors group">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleGenreImageFileUpload}
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                        />
+                        <div className="space-y-1">
+                          <div className="text-3xl group-hover:scale-110 transition-transform inline-block">🖼️</div>
+                          <div className="text-xs font-semibold text-[#1A1A1A]">
+                            Click or Drag new banner image to upload
+                          </div>
+                          <div className="text-[10px] text-[#5B5B5B]">
+                            High-resolution PNG, JPG, or WEBP recommended (1920x1080)
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div>
+                        <label className="block text-xs font-semibold text-[#3A3A3A] mb-1">
+                          Image Web URL
+                        </label>
+                        <input
+                          type="url"
+                          placeholder="https://images.unsplash.com/..."
+                          value={genreFormData.heroImg || ""}
+                          onChange={e => setGenreFormData(p => ({ ...p, heroImg: e.target.value }))}
+                          className="w-full text-xs bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3.5 py-2.5 text-[#1A1A1A]"
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Live Wide Banner Preview */}
+                  <div className="md:col-span-5">
+                    <span className="block text-[11px] font-semibold text-[#5B5B5B] mb-1">
+                      Live Banner Hero Preview:
+                    </span>
+                    <div className="relative h-44 rounded-2xl overflow-hidden bg-black/80 border border-[#EDE8DF] shadow-md">
+                      {genreFormData.heroImg ? (
+                        <img
+                          src={genreFormData.heroImg}
+                          alt="Banner Preview"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-xs text-gray-400">
+                          No banner image
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                      <div className="absolute bottom-2.5 left-3 text-white">
+                        <div className="font-display font-bold text-base drop-shadow">
+                          {genreFormData.title}
+                        </div>
+                        <div className="text-[10px] text-white/80">
+                          {genreFormData.tag}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Section 2: Banner Copywriting & Content */}
+              <div className="bg-white p-6 rounded-3xl border border-[#EDE8DF] shadow-xs space-y-4">
+                <h3 className="font-display font-bold text-sm text-[#9A7219] uppercase tracking-wider">
+                  2. Banner Titles &amp; Narrative Story
+                </h3>
+
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-[#3A3A3A] mb-1">
+                      Genre Banner Title *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={genreFormData.title || ""}
+                      onChange={e => setGenreFormData(p => ({ ...p, title: e.target.value }))}
+                      className="w-full text-xs bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3.5 py-2.5 text-[#1A1A1A] font-semibold"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#3A3A3A] mb-1">
+                      Sub-Tagline *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={genreFormData.tag || ""}
+                      onChange={e => setGenreFormData(p => ({ ...p, tag: e.target.value }))}
+                      className="w-full text-xs bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3.5 py-2.5 text-[#1A1A1A]"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-[#3A3A3A] mb-1">
+                    Short Summary (Catalogue &amp; Preview Cards)
+                  </label>
+                  <input
+                    type="text"
+                    value={genreFormData.description || ""}
+                    onChange={e => setGenreFormData(p => ({ ...p, description: e.target.value }))}
+                    className="w-full text-xs bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3.5 py-2.5 text-[#1A1A1A]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-[#3A3A3A] mb-1">
+                    Long Banner Hero Story (Primary Headline Paragraph on Genre Page)
+                  </label>
+                  <textarea
+                    rows={4}
+                    value={genreFormData.longDescription || ""}
+                    onChange={e => setGenreFormData(p => ({ ...p, longDescription: e.target.value }))}
+                    className="w-full text-xs bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3.5 py-2.5 text-[#1A1A1A] leading-relaxed"
+                  />
+                </div>
+              </div>
+
+              {/* Section 3: Commercial & Occasions */}
+              <div className="bg-white p-6 rounded-3xl border border-[#EDE8DF] shadow-xs space-y-4">
+                <h3 className="font-display font-bold text-sm text-[#9A7219] uppercase tracking-wider">
+                  3. Rates &amp; Occasions
+                </h3>
+
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-[#3A3A3A] mb-1">
+                      Average Price Range Display
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. ₹35,000 – ₹2,50,000"
+                      value={genreFormData.avgPriceRange || ""}
+                      onChange={e => setGenreFormData(p => ({ ...p, avgPriceRange: e.target.value }))}
+                      className="w-full text-xs bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3.5 py-2.5 text-[#1A1A1A]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#3A3A3A] mb-1">
+                      Popular Occasions (Comma-separated)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Sufi Nights, Wedding Sangeet, Corporate Galas"
+                      value={genreOccasionsInput}
+                      onChange={e => setGenreOccasionsInput(e.target.value)}
+                      className="w-full text-xs bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3.5 py-2.5 text-[#1A1A1A]"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Form Bottom Save Actions */}
+              <div className="flex items-center justify-end gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setCurrentView("genres-list")}
+                  className="px-5 py-2.5 rounded-xl text-xs font-semibold text-[#5B5B5B] hover:bg-gray-100 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2.5 rounded-xl bg-[#C4952A] hover:bg-[#9A7219] text-white text-xs font-bold shadow-md hover:shadow-lg transition-all cursor-pointer"
+                >
+                  Save Genre Banner Content
                 </button>
               </div>
             </form>
@@ -1256,12 +1846,12 @@ export function AdminPortal({
               </div>
 
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-[#BE123C] bg-[#FFF0F3] px-3.5 py-1.5 rounded-full border border-[#F3E5E8]">
+                <span className="text-xs font-bold text-[#9A7219] bg-[#F5F0E8] px-3.5 py-1.5 rounded-full border border-[#EDE8DF]">
                   {featuredArtistIds.length} of 6 selected
                 </span>
                 <button
                   onClick={handleAutoPickTop6}
-                  className="text-xs font-bold bg-[#E11D48] hover:bg-[#BE123C] text-white px-4 py-2 rounded-full transition-colors cursor-pointer shadow-xs"
+                  className="text-xs font-bold bg-[#C4952A] hover:bg-[#9A7219] text-white px-4 py-2 rounded-full transition-colors cursor-pointer shadow-xs"
                 >
                   ⚡ Auto-Pick Top 6 by Rating
                 </button>
@@ -1288,13 +1878,13 @@ export function AdminPortal({
                       <img
                         src={artist.img}
                         alt={artist.name}
-                        className="w-12 h-12 rounded-xl object-cover border border-[#F3E5E8]"
+                        className="w-12 h-12 rounded-xl object-cover border border-[#EDE8DF]"
                       />
                       <div>
                         <h4 className="font-display font-bold text-sm text-[#1A1A1A] line-clamp-1">
                           {artist.name}
                         </h4>
-                        <div className="text-[11px] text-[#BE123C] font-semibold">
+                        <div className="text-[11px] text-[#9A7219] font-semibold">
                           {artist.genreTitle} • {artist.price}
                         </div>
                         <div className="text-[10px] text-[#5B5B5B]">
@@ -1316,7 +1906,7 @@ export function AdminPortal({
             </div>
 
             {/* Available to Add */}
-            <div className="space-y-3 pt-4 border-t border-[#F3E5E8]">
+            <div className="space-y-3 pt-4 border-t border-[#EDE8DF]">
               <h3 className="font-display font-bold text-sm text-[#5B5B5B] uppercase tracking-wider">
                 Available Artists (Click to Add to Top 6):
               </h3>
@@ -1327,7 +1917,7 @@ export function AdminPortal({
                   .map(artist => (
                     <div
                       key={artist.id}
-                      className="bg-white rounded-2xl p-3 border border-[#F3E5E8] flex items-center justify-between gap-3 hover:border-[#E11D48]/40 transition-colors"
+                      className="bg-white rounded-2xl p-3 border border-[#EDE8DF] flex items-center justify-between gap-3 hover:border-[#C4952A]/40 transition-colors"
                     >
                       <div className="flex items-center gap-2.5">
                         <img
@@ -1348,7 +1938,7 @@ export function AdminPortal({
                       <button
                         onClick={() => handleToggleTopPerformer(artist.id)}
                         disabled={featuredArtistIds.length >= 6}
-                        className="text-xs font-bold bg-[#FFF0F3] hover:bg-[#E11D48] text-[#BE123C] hover:text-white px-3 py-1.5 rounded-xl border border-[#F3E5E8] transition-colors cursor-pointer disabled:opacity-40"
+                        className="text-xs font-bold bg-[#F5F0E8] hover:bg-[#C4952A] text-[#9A7219] hover:text-white px-3 py-1.5 rounded-xl border border-[#EDE8DF] transition-colors cursor-pointer disabled:opacity-40"
                       >
                         + Add to Top 6
                       </button>
@@ -1376,7 +1966,7 @@ export function AdminPortal({
 
               <button
                 onClick={startCreateStory}
-                className="px-4 py-2.5 rounded-xl bg-[#E11D48] hover:bg-[#BE123C] text-white text-xs font-bold shadow-sm hover:shadow transition-all cursor-pointer flex items-center gap-1.5"
+                className="px-4 py-2.5 rounded-xl bg-[#C4952A] hover:bg-[#9A7219] text-white text-xs font-bold shadow-sm hover:shadow transition-all cursor-pointer flex items-center gap-1.5"
               >
                 <span>➕</span>
                 <span>Write New Story</span>
@@ -1384,13 +1974,13 @@ export function AdminPortal({
             </div>
 
             {/* Search */}
-            <div className="bg-white p-4 rounded-2xl border border-[#F3E5E8] shadow-xs flex items-center justify-between">
+            <div className="bg-white p-4 rounded-2xl border border-[#EDE8DF] shadow-xs flex items-center justify-between">
               <input
                 type="text"
                 placeholder="Search stories by headline or author..."
                 value={blogSearch}
                 onChange={e => setBlogSearch(e.target.value)}
-                className="text-xs bg-[#FFF8F8] border border-[#F3E5E8] rounded-xl px-3.5 py-2 text-[#1A1A1A] w-full sm:w-80 focus:outline-none"
+                className="text-xs bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3.5 py-2 text-[#1A1A1A] w-full sm:w-80 focus:outline-none"
               />
               <div className="text-xs text-[#5B5B5B] font-medium hidden sm:block">
                 {filteredArticles.length} published stories
@@ -1402,7 +1992,7 @@ export function AdminPortal({
               {filteredArticles.map(art => (
                 <div
                   key={art.id}
-                  className="bg-white rounded-3xl p-5 border border-[#F3E5E8] shadow-xs flex flex-col justify-between space-y-4 hover:shadow-md transition-shadow"
+                  className="bg-white rounded-3xl p-5 border border-[#EDE8DF] shadow-xs flex flex-col justify-between space-y-4 hover:shadow-md transition-shadow"
                 >
                   <div className="space-y-3">
                     <div className="relative h-40 rounded-2xl overflow-hidden bg-gray-100">
@@ -1427,7 +2017,7 @@ export function AdminPortal({
                     </p>
                   </div>
 
-                  <div className="pt-3 border-t border-[#F3E5E8] flex items-center justify-between">
+                  <div className="pt-3 border-t border-[#EDE8DF] flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <img
                         src={art.author.avatar}
@@ -1442,7 +2032,7 @@ export function AdminPortal({
                     <div className="flex items-center gap-1.5">
                       <button
                         onClick={() => startEditStory(art)}
-                        className="px-3 py-1 rounded-lg bg-[#FFF0F3] hover:bg-[#E11D48] text-[#BE123C] hover:text-white text-xs font-bold transition-colors cursor-pointer"
+                        className="px-3 py-1 rounded-lg bg-[#F5F0E8] hover:bg-[#C4952A] text-[#9A7219] hover:text-white text-xs font-bold transition-colors cursor-pointer"
                       >
                         Edit
                       </button>
@@ -1471,11 +2061,11 @@ export function AdminPortal({
         {currentView === "blog-form" && (
           <div className="space-y-6 max-w-4xl mx-auto">
             {/* Header with Back button */}
-            <div className="flex items-center justify-between border-b border-[#F3E5E8] pb-4">
+            <div className="flex items-center justify-between border-b border-[#EDE8DF] pb-4">
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => setCurrentView("blogs-list")}
-                  className="w-8 h-8 rounded-full bg-gray-100 hover:bg-[#FFF0F3] text-[#5B5B5B] hover:text-[#BE123C] flex items-center justify-center font-bold text-sm transition-colors cursor-pointer"
+                  className="w-8 h-8 rounded-full bg-gray-100 hover:bg-[#F5F0E8] text-[#5B5B5B] hover:text-[#9A7219] flex items-center justify-center font-bold text-sm transition-colors cursor-pointer"
                 >
                   ←
                 </button>
@@ -1500,7 +2090,7 @@ export function AdminPortal({
                 <button
                   type="button"
                   onClick={handleSaveStory}
-                  className="px-5 py-2 rounded-xl bg-[#E11D48] hover:bg-[#BE123C] text-white text-xs font-bold shadow-sm transition-colors cursor-pointer"
+                  className="px-5 py-2 rounded-xl bg-[#C4952A] hover:bg-[#9A7219] text-white text-xs font-bold shadow-sm transition-colors cursor-pointer"
                 >
                   Publish Story
                 </button>
@@ -1510,8 +2100,8 @@ export function AdminPortal({
             {/* In-Page Form Body */}
             <form onSubmit={handleSaveStory} className="space-y-6">
               {/* Section 1: Title & Category */}
-              <div className="bg-white p-6 rounded-3xl border border-[#F3E5E8] shadow-xs space-y-4">
-                <h3 className="font-display font-bold text-sm text-[#BE123C] uppercase tracking-wider">
+              <div className="bg-white p-6 rounded-3xl border border-[#EDE8DF] shadow-xs space-y-4">
+                <h3 className="font-display font-bold text-sm text-[#9A7219] uppercase tracking-wider">
                   1. Title &amp; Publishing Info
                 </h3>
 
@@ -1525,7 +2115,7 @@ export function AdminPortal({
                     placeholder="e.g. How to Sequence Live Music for a 500-Guest Wedding"
                     value={blogTitle}
                     onChange={e => setBlogTitle(e.target.value)}
-                    className="w-full text-xs bg-[#FFF8F8] border border-[#F3E5E8] rounded-xl px-3.5 py-2.5 text-[#1A1A1A] font-medium"
+                    className="w-full text-xs bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3.5 py-2.5 text-[#1A1A1A] font-medium"
                   />
                 </div>
 
@@ -1538,7 +2128,7 @@ export function AdminPortal({
                     placeholder="e.g. A comprehensive guide on acoustic flow and DJ handoffs..."
                     value={blogSubtitle}
                     onChange={e => setBlogSubtitle(e.target.value)}
-                    className="w-full text-xs bg-[#FFF8F8] border border-[#F3E5E8] rounded-xl px-3.5 py-2.5 text-[#1A1A1A]"
+                    className="w-full text-xs bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3.5 py-2.5 text-[#1A1A1A]"
                   />
                 </div>
 
@@ -1553,7 +2143,7 @@ export function AdminPortal({
                         setBlogCategory(val);
                         if (match) setBlogCategoryColor(match.color);
                       }}
-                      className="w-full text-xs bg-[#FFF8F8] border border-[#F3E5E8] rounded-xl px-3 py-2 text-[#1A1A1A] cursor-pointer"
+                      className="w-full text-xs bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3 py-2 text-[#1A1A1A] cursor-pointer"
                     >
                       {BLOG_CATEGORY_OPTIONS.map(c => (
                         <option key={c.id} value={c.id}>
@@ -1569,7 +2159,7 @@ export function AdminPortal({
                       type="text"
                       value={blogReadTime}
                       onChange={e => setBlogReadTime(e.target.value)}
-                      className="w-full text-xs bg-[#FFF8F8] border border-[#F3E5E8] rounded-xl px-3 py-2 text-[#1A1A1A]"
+                      className="w-full text-xs bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3 py-2 text-[#1A1A1A]"
                     />
                   </div>
 
@@ -1579,7 +2169,7 @@ export function AdminPortal({
                       type="text"
                       value={blogPublishedDate}
                       onChange={e => setBlogPublishedDate(e.target.value)}
-                      className="w-full text-xs bg-[#FFF8F8] border border-[#F3E5E8] rounded-xl px-3 py-2 text-[#1A1A1A]"
+                      className="w-full text-xs bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3 py-2 text-[#1A1A1A]"
                     />
                   </div>
 
@@ -1590,7 +2180,7 @@ export function AdminPortal({
                         type="checkbox"
                         checked={blogFeatured}
                         onChange={e => setBlogFeatured(e.target.checked)}
-                        className="rounded text-[#E11D48]"
+                        className="rounded text-[#C4952A]"
                       />
                       <span className="text-xs font-medium text-[#1A1A1A]">Spotlight Hero</span>
                     </label>
@@ -1599,8 +2189,8 @@ export function AdminPortal({
               </div>
 
               {/* Section 2: Media & Author */}
-              <div className="bg-white p-6 rounded-3xl border border-[#F3E5E8] shadow-xs space-y-4">
-                <h3 className="font-display font-bold text-sm text-[#BE123C] uppercase tracking-wider">
+              <div className="bg-white p-6 rounded-3xl border border-[#EDE8DF] shadow-xs space-y-4">
+                <h3 className="font-display font-bold text-sm text-[#9A7219] uppercase tracking-wider">
                   2. Cover Photo &amp; Author Credentials
                 </h3>
 
@@ -1610,12 +2200,12 @@ export function AdminPortal({
                     <div>
                       <div className="flex items-center justify-between mb-1.5">
                         <label className="text-xs font-semibold text-[#3A3A3A]">Cover Photo *</label>
-                        <div className="flex items-center gap-1 bg-[#FFF8F8] border border-[#F3E5E8] p-0.5 rounded-lg text-[10px]">
+                        <div className="flex items-center gap-1 bg-[#FAF7F2] border border-[#EDE8DF] p-0.5 rounded-lg text-[10px]">
                           <button
                             type="button"
                             onClick={() => setBlogCoverMode("upload")}
                             className={`px-2 py-0.5 rounded font-semibold cursor-pointer ${
-                              blogCoverMode === "upload" ? "bg-[#E11D48] text-white" : "text-[#5B5B5B]"
+                              blogCoverMode === "upload" ? "bg-[#C4952A] text-white" : "text-[#5B5B5B]"
                             }`}
                           >
                             📁 Upload File
@@ -1624,7 +2214,7 @@ export function AdminPortal({
                             type="button"
                             onClick={() => setBlogCoverMode("url")}
                             className={`px-2 py-0.5 rounded font-semibold cursor-pointer ${
-                              blogCoverMode === "url" ? "bg-[#E11D48] text-white" : "text-[#5B5B5B]"
+                              blogCoverMode === "url" ? "bg-[#C4952A] text-white" : "text-[#5B5B5B]"
                             }`}
                           >
                             🔗 Web URL
@@ -1633,7 +2223,7 @@ export function AdminPortal({
                       </div>
 
                       {blogCoverMode === "upload" ? (
-                        <div className="relative border-2 border-dashed border-[#E5D5D8] hover:border-[#E11D48] rounded-2xl p-5 bg-[#FFFDFD] text-center cursor-pointer transition-colors group">
+                        <div className="relative border-2 border-dashed border-[#E5D5D8] hover:border-[#C4952A] rounded-2xl p-5 bg-[#FFFDFD] text-center cursor-pointer transition-colors group">
                           <input
                             type="file"
                             accept="image/*"
@@ -1656,7 +2246,7 @@ export function AdminPortal({
                           placeholder="https://images.unsplash.com/..."
                           value={blogCoverImg}
                           onChange={e => setBlogCoverImg(e.target.value)}
-                          className="w-full text-xs bg-[#FFF8F8] border border-[#F3E5E8] rounded-xl px-3.5 py-2 text-[#1A1A1A]"
+                          className="w-full text-xs bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3.5 py-2 text-[#1A1A1A]"
                         />
                       )}
                     </div>
@@ -1668,7 +2258,7 @@ export function AdminPortal({
                           type="text"
                           value={blogAuthorName}
                           onChange={e => setBlogAuthorName(e.target.value)}
-                          className="w-full text-xs bg-[#FFF8F8] border border-[#F3E5E8] rounded-xl px-3.5 py-2 text-[#1A1A1A]"
+                          className="w-full text-xs bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3.5 py-2 text-[#1A1A1A]"
                         />
                       </div>
                       <div>
@@ -1677,7 +2267,7 @@ export function AdminPortal({
                           type="text"
                           value={blogAuthorRole}
                           onChange={e => setBlogAuthorRole(e.target.value)}
-                          className="w-full text-xs bg-[#FFF8F8] border border-[#F3E5E8] rounded-xl px-3.5 py-2 text-[#1A1A1A]"
+                          className="w-full text-xs bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3.5 py-2 text-[#1A1A1A]"
                         />
                       </div>
                     </div>
@@ -1685,17 +2275,17 @@ export function AdminPortal({
                     {/* Author Avatar */}
                     <div>
                       <label className="block text-xs font-semibold text-[#3A3A3A] mb-1">Author Avatar</label>
-                      <div className="flex items-center gap-3 bg-[#FFF8F8] p-2.5 border border-[#F3E5E8] rounded-xl">
+                      <div className="flex items-center gap-3 bg-[#FAF7F2] p-2.5 border border-[#EDE8DF] rounded-xl">
                         <img
                           src={blogAuthorAvatar}
                           alt="Avatar"
-                          className="w-8 h-8 rounded-full object-cover border border-[#F3E5E8]"
+                          className="w-8 h-8 rounded-full object-cover border border-[#EDE8DF]"
                         />
                         <input
                           type="file"
                           accept="image/*"
                           onChange={handleBlogAvatarUpload}
-                          className="text-xs text-[#5B5B5B] file:mr-2 file:py-1 file:px-2.5 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-[#FFF0F3] file:text-[#BE123C] cursor-pointer"
+                          className="text-xs text-[#5B5B5B] file:mr-2 file:py-1 file:px-2.5 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-[#F5F0E8] file:text-[#9A7219] cursor-pointer"
                         />
                       </div>
                     </div>
@@ -1704,7 +2294,7 @@ export function AdminPortal({
                   {/* Live Cover Preview */}
                   <div className="text-center">
                     <span className="block text-[11px] font-semibold text-[#5B5B5B] mb-1">Cover Preview</span>
-                    <div className="w-full h-44 rounded-2xl overflow-hidden bg-gray-100 border border-[#F3E5E8] shadow-inner relative">
+                    <div className="w-full h-44 rounded-2xl overflow-hidden bg-gray-100 border border-[#EDE8DF] shadow-inner relative">
                       {blogCoverImg ? (
                         <img
                           src={blogCoverImg}
@@ -1727,7 +2317,7 @@ export function AdminPortal({
                     value={blogSummary}
                     onChange={e => setBlogSummary(e.target.value)}
                     placeholder="Brief 2-sentence takeaway..."
-                    className="w-full text-xs bg-[#FFF8F8] border border-[#F3E5E8] rounded-xl px-3.5 py-2 text-[#1A1A1A]"
+                    className="w-full text-xs bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3.5 py-2 text-[#1A1A1A]"
                   />
                 </div>
               </div>
@@ -1743,7 +2333,7 @@ export function AdminPortal({
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2.5 rounded-xl bg-[#E11D48] hover:bg-[#BE123C] text-white text-xs font-bold shadow-md hover:shadow-lg transition-all cursor-pointer"
+                  className="px-6 py-2.5 rounded-xl bg-[#C4952A] hover:bg-[#9A7219] text-white text-xs font-bold shadow-md hover:shadow-lg transition-all cursor-pointer"
                 >
                   Publish Story
                 </button>
@@ -1766,9 +2356,9 @@ export function AdminPortal({
               </p>
             </div>
 
-            <div className="bg-white border border-[#F3E5E8] rounded-2xl overflow-hidden shadow-xs">
+            <div className="bg-white border border-[#EDE8DF] rounded-2xl overflow-hidden shadow-xs">
               <table className="w-full text-left text-xs">
-                <thead className="bg-[#FFF8F8] text-[#5B5B5B] uppercase text-[10px] border-b border-[#F3E5E8]">
+                <thead className="bg-[#FAF7F2] text-[#5B5B5B] uppercase text-[10px] border-b border-[#EDE8DF]">
                   <tr>
                     <th className="py-3.5 px-4">Client</th>
                     <th className="py-3.5 px-4">Performer</th>
@@ -1779,15 +2369,15 @@ export function AdminPortal({
                     <th className="py-3.5 px-4 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#F3E5E8]">
+                <tbody className="divide-y divide-[#EDE8DF]">
                   {bookingInquiries.map(inq => (
-                    <tr key={inq.id} className="hover:bg-[#FFF8F8]">
+                    <tr key={inq.id} className="hover:bg-[#FAF7F2]">
                       <td className="py-3.5 px-4">
                         <div className="font-bold text-[#1A1A1A]">{inq.clientName}</div>
                         <div className="text-[10px] text-[#5B5B5B]">{inq.clientPhone} • {inq.clientEmail}</div>
                       </td>
 
-                      <td className="py-3.5 px-4 font-bold text-[#BE123C]">
+                      <td className="py-3.5 px-4 font-bold text-[#9A7219]">
                         {inq.artistName}
                       </td>
 
@@ -1852,27 +2442,27 @@ export function AdminPortal({
               </p>
             </div>
 
-            <div className="bg-white p-6 rounded-3xl border border-[#F3E5E8] shadow-xs space-y-4">
+            <div className="bg-white p-6 rounded-3xl border border-[#EDE8DF] shadow-xs space-y-4">
               <h3 className="font-display font-bold text-sm text-[#1A1A1A] uppercase tracking-wider">
                 Active System Metrics
               </h3>
               <div className="grid grid-cols-3 gap-4 text-center">
-                <div className="bg-[#FFF8F8] p-4 rounded-2xl border border-[#F3E5E8]">
-                  <div className="font-display font-bold text-xl text-[#BE123C]">{artists.length}</div>
+                <div className="bg-[#FAF7F2] p-4 rounded-2xl border border-[#EDE8DF]">
+                  <div className="font-display font-bold text-xl text-[#9A7219]">{artists.length}</div>
                   <div className="text-[10px] text-[#5B5B5B] uppercase font-bold mt-0.5">Total Artists</div>
                 </div>
-                <div className="bg-[#FFF8F8] p-4 rounded-2xl border border-[#F3E5E8]">
-                  <div className="font-display font-bold text-xl text-[#BE123C]">{articles.length}</div>
+                <div className="bg-[#FAF7F2] p-4 rounded-2xl border border-[#EDE8DF]">
+                  <div className="font-display font-bold text-xl text-[#9A7219]">{articles.length}</div>
                   <div className="text-[10px] text-[#5B5B5B] uppercase font-bold mt-0.5">Journal Guides</div>
                 </div>
-                <div className="bg-[#FFF8F8] p-4 rounded-2xl border border-[#F3E5E8]">
-                  <div className="font-display font-bold text-xl text-[#BE123C]">{bookingInquiries.length}</div>
+                <div className="bg-[#FAF7F2] p-4 rounded-2xl border border-[#EDE8DF]">
+                  <div className="font-display font-bold text-xl text-[#9A7219]">{bookingInquiries.length}</div>
                   <div className="text-[10px] text-[#5B5B5B] uppercase font-bold mt-0.5">Inquiries</div>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-3xl border border-[#F3E5E8] shadow-xs flex items-center justify-between">
+            <div className="bg-white p-6 rounded-3xl border border-[#EDE8DF] shadow-xs flex items-center justify-between">
               <div>
                 <h3 className="font-display font-bold text-sm text-red-600">
                   Restore Factory Defaults

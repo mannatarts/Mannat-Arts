@@ -58,7 +58,7 @@ export function BlogArticleModal({
 
       <div className="relative w-full max-w-4xl bg-white rounded-3xl shadow-2xl overflow-hidden z-10 my-8 border border-white/40 flex flex-col max-h-[92vh]">
         {/* Header Bar */}
-        <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-[#F3E5E8] px-6 py-3.5 flex items-center justify-between">
+        <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-[#EDE8DF] px-6 py-3.5 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span
               className="px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider text-white shadow-sm"
@@ -76,7 +76,7 @@ export function BlogArticleModal({
             {/* Font Size Toggle */}
             <button
               onClick={() => setFontSize(f => (f === "normal" ? "large" : "normal"))}
-              className="px-2.5 py-1.5 rounded-lg border border-[#F3E5E8] hover:bg-[#FFF0F3] text-xs font-semibold text-[#5B5B5B] hover:text-[#E11D48] transition-colors cursor-pointer"
+              className="px-2.5 py-1.5 rounded-lg border border-[#EDE8DF] hover:bg-[#F5F0E8] text-xs font-semibold text-[#5B5B5B] hover:text-[#C4952A] transition-colors cursor-pointer"
               title="Toggle reading font size"
             >
               {fontSize === "normal" ? "A+" : "A-"}
@@ -87,8 +87,8 @@ export function BlogArticleModal({
               onClick={() => onToggleBookmark(article.id)}
               className={`px-3 py-1.5 rounded-full border text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                 isBookmarked
-                  ? "bg-[#FFF0F3] border-[#E11D48] text-[#E11D48]"
-                  : "border-[#F3E5E8] text-[#5B5B5B] hover:bg-[#FFF0F3] hover:text-[#E11D48]"
+                  ? "bg-[#F5F0E8] border-[#C4952A] text-[#C4952A]"
+                  : "border-[#EDE8DF] text-[#5B5B5B] hover:bg-[#F5F0E8] hover:text-[#C4952A]"
               }`}
             >
               <span>{isBookmarked ? "🔖 Saved" : "🏷️ Save"}</span>
@@ -99,8 +99,8 @@ export function BlogArticleModal({
               onClick={() => onToggleLike(article.id)}
               className={`px-3 py-1.5 rounded-full border text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
                 isLiked
-                  ? "bg-gradient-to-r from-[#E11D48] to-[#BE123C] text-white border-transparent shadow-md scale-105"
-                  : "border-[#F3E5E8] text-[#5B5B5B] hover:bg-[#FFF0F3] hover:text-[#E11D48]"
+                  ? "bg-gradient-to-r from-[#C4952A] to-[#9A7219] text-white border-transparent shadow-md scale-105"
+                  : "border-[#EDE8DF] text-[#5B5B5B] hover:bg-[#F5F0E8] hover:text-[#C4952A]"
               }`}
             >
               <span>❤️</span>
@@ -110,7 +110,7 @@ export function BlogArticleModal({
             {/* Share */}
             <button
               onClick={handleCopyLink}
-              className="px-3 py-1.5 rounded-full border border-[#F3E5E8] hover:bg-[#FFF0F3] text-xs font-medium text-[#5B5B5B] hover:text-[#E11D48] transition-colors cursor-pointer flex items-center gap-1"
+              className="px-3 py-1.5 rounded-full border border-[#EDE8DF] hover:bg-[#F5F0E8] text-xs font-medium text-[#5B5B5B] hover:text-[#C4952A] transition-colors cursor-pointer flex items-center gap-1"
             >
               {copied ? <span className="text-emerald-600 font-semibold">✓ Copied</span> : <span>🔗 Share</span>}
             </button>
@@ -118,7 +118,7 @@ export function BlogArticleModal({
             {/* Close */}
             <button
               onClick={onClose}
-              className="w-8 h-8 rounded-full bg-gray-100 hover:bg-[#FFF0F3] text-[#5B5B5B] hover:text-[#E11D48] flex items-center justify-center text-sm font-bold transition-colors cursor-pointer ml-1"
+              className="w-8 h-8 rounded-full bg-gray-100 hover:bg-[#F5F0E8] text-[#5B5B5B] hover:text-[#C4952A] flex items-center justify-center text-sm font-bold transition-colors cursor-pointer ml-1"
             >
               ✕
             </button>
@@ -137,7 +137,7 @@ export function BlogArticleModal({
             </p>
 
             {/* Author Profile Bar */}
-            <div className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-2xl bg-[#FFF8F8] border border-[#F3E5E8]">
+            <div className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-2xl bg-[#FAF7F2] border border-[#EDE8DF]">
               <div className="flex items-center gap-3">
                 <img
                   src={article.author.avatar}
@@ -148,7 +148,7 @@ export function BlogArticleModal({
                   <div className="font-display font-bold text-sm text-[#1A1A1A]">
                     {article.author.name}
                   </div>
-                  <div className="font-body text-xs text-[#BE123C] font-medium">
+                  <div className="font-body text-xs text-[#9A7219] font-medium">
                     {article.author.role}
                   </div>
                 </div>
@@ -184,19 +184,19 @@ export function BlogArticleModal({
 
           {/* Key Takeaways Box */}
           {article.keyTakeaways && article.keyTakeaways.length > 0 && (
-            <div className="bg-gradient-to-br from-[#FFF0F3] to-[#FFF8F8] border-2 border-[#E11D48]/20 rounded-3xl p-6 shadow-sm">
+            <div className="bg-gradient-to-br from-[#F5F0E8] to-[#FAF7F2] border-2 border-[#C4952A]/20 rounded-3xl p-6 shadow-sm">
               <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 rounded-full bg-[#E11D48] text-white flex items-center justify-center text-sm font-bold">
+                <div className="w-8 h-8 rounded-full bg-[#C4952A] text-white flex items-center justify-center text-sm font-bold">
                   ★
                 </div>
-                <h3 className="font-display font-bold text-xl text-[#BE123C]">
+                <h3 className="font-display font-bold text-xl text-[#9A7219]">
                   Key Takeaways &amp; Highlights
                 </h3>
               </div>
               <ul className="space-y-2.5">
                 {article.keyTakeaways.map((item, idx) => (
                   <li key={idx} className="flex items-start gap-3 text-sm text-[#3A3A3A] font-body leading-relaxed">
-                    <span className="text-[#E11D48] font-bold text-base leading-none mt-1">✦</span>
+                    <span className="text-[#C4952A] font-bold text-base leading-none mt-1">✦</span>
                     <span>{item}</span>
                   </li>
                 ))}
@@ -222,11 +222,11 @@ export function BlogArticleModal({
 
                 {/* Pull Quote */}
                 {sec.quote && (
-                  <blockquote className="my-6 p-6 rounded-2xl bg-gradient-to-r from-[#1F030A] to-[#3B0716] text-white border-l-4 border-[#E11D48] shadow-md">
+                  <blockquote className="my-6 p-6 rounded-2xl bg-gradient-to-r from-[#1A1916] to-[#2E2C28] text-white border-l-4 border-[#C4952A] shadow-md">
                     <p className="font-display italic text-lg sm:text-xl text-white/95 mb-3">
                       “{sec.quote.text}”
                     </p>
-                    <cite className="font-body text-xs uppercase tracking-widest text-[#FB7185] font-semibold not-italic">
+                    <cite className="font-body text-xs uppercase tracking-widest text-[#DDB96A] font-semibold not-italic">
                       — {sec.quote.author}
                     </cite>
                   </blockquote>
@@ -234,7 +234,7 @@ export function BlogArticleModal({
 
                 {/* Interactive Checklist */}
                 {sec.checklist && sec.checklist.length > 0 && (
-                  <div className="my-6 bg-white p-5 rounded-2xl border border-[#F3E5E8] shadow-sm">
+                  <div className="my-6 bg-white p-5 rounded-2xl border border-[#EDE8DF] shadow-sm">
                     <div className="font-display font-bold text-sm text-[#1A1A1A] mb-3 flex items-center gap-2">
                       <span>📋</span>
                       <span>Organizer Action Checklist (Interactive)</span>
@@ -249,15 +249,15 @@ export function BlogArticleModal({
                             onClick={() => toggleCheck(checkKey)}
                             className={`flex items-start gap-3 p-2.5 rounded-xl cursor-pointer transition-colors border ${
                               isChecked
-                                ? "bg-[#FFF0F3]/60 border-[#E11D48]/30 line-through text-[#8A8A8A]"
-                                : "bg-[#FFFDFD] border-[#F3E5E8] text-[#333333] hover:bg-[#FFF5F6]"
+                                ? "bg-[#F5F0E8]/60 border-[#C4952A]/30 line-through text-[#8A8A8A]"
+                                : "bg-[#FFFDFD] border-[#EDE8DF] text-[#333333] hover:bg-[#FAF7F2]"
                             }`}
                           >
                             <input
                               type="checkbox"
                               checked={isChecked}
                               readOnly
-                              className="mt-1 rounded text-[#E11D48] focus:ring-[#E11D48] cursor-pointer"
+                              className="mt-1 rounded text-[#C4952A] focus:ring-[#C4952A] cursor-pointer"
                             />
                             <span className="text-xs sm:text-sm font-medium">{item}</span>
                           </label>
@@ -269,10 +269,10 @@ export function BlogArticleModal({
 
                 {/* Pro Tip */}
                 {sec.proTip && (
-                  <div className="p-4 rounded-2xl bg-[#FFF5F6] border border-[#E11D48]/20 flex items-start gap-3">
+                  <div className="p-4 rounded-2xl bg-[#FAF7F2] border border-[#C4952A]/20 flex items-start gap-3">
                     <span className="text-xl">💡</span>
                     <div>
-                      <span className="font-bold text-xs uppercase tracking-wider text-[#BE123C] block mb-0.5">
+                      <span className="font-bold text-xs uppercase tracking-wider text-[#9A7219] block mb-0.5">
                         Pro Tip:
                       </span>
                       <span className="text-xs sm:text-sm text-[#4A4A4A] font-medium">
@@ -287,9 +287,9 @@ export function BlogArticleModal({
 
           {/* Related Genre & Artist Callout Card */}
           {article.relatedGenreId && (
-            <div className="p-6 rounded-3xl bg-gradient-to-br from-[#FFF0F3] via-white to-[#FFE5EC] border-2 border-[#E11D48]/25 shadow-md flex flex-col sm:flex-row items-center justify-between gap-6">
+            <div className="p-6 rounded-3xl bg-gradient-to-br from-[#F5F0E8] via-white to-[#F5F0E8] border-2 border-[#C4952A]/25 shadow-md flex flex-col sm:flex-row items-center justify-between gap-6">
               <div className="space-y-1 text-center sm:text-left">
-                <span className="text-[11px] font-bold uppercase tracking-widest text-[#E11D48] bg-[#E11D48]/10 px-2.5 py-0.5 rounded-full">
+                <span className="text-[11px] font-bold uppercase tracking-widest text-[#C4952A] bg-[#C4952A]/10 px-2.5 py-0.5 rounded-full">
                   Featured in this story
                 </span>
                 <h4 className="font-display font-bold text-xl text-[#1A1A1A]">
@@ -307,7 +307,7 @@ export function BlogArticleModal({
                       onClose();
                       onSelectGenre(article.relatedGenreId!);
                     }}
-                    className="font-body font-bold text-xs px-5 py-3 rounded-full bg-gradient-to-r from-[#E11D48] to-[#BE123C] text-white shadow-md hover:shadow-lg hover:scale-105 transition-all cursor-pointer"
+                    className="font-body font-bold text-xs px-5 py-3 rounded-full bg-gradient-to-r from-[#C4952A] to-[#9A7219] text-white shadow-md hover:shadow-lg hover:scale-105 transition-all cursor-pointer"
                   >
                     Explore {article.relatedGenreId.toUpperCase()} Performers →
                   </button>
@@ -317,7 +317,7 @@ export function BlogArticleModal({
           )}
 
           {/* Related Articles Carousel / Grid */}
-          <div className="pt-8 border-t border-[#F3E5E8]">
+          <div className="pt-8 border-t border-[#EDE8DF]">
             <h3 className="font-display font-bold text-2xl text-[#1A1A1A] mb-6">
               More Stories You Might Like
             </h3>
@@ -326,7 +326,7 @@ export function BlogArticleModal({
                 <div
                   key={item.id}
                   onClick={() => onSelectArticle(item)}
-                  className="group bg-[#FFF8F8] rounded-2xl overflow-hidden border border-[#F3E5E8] hover:border-[#E11D48]/40 hover:shadow-lg transition-all duration-300 cursor-pointer flex flex-col"
+                  className="group bg-[#FAF7F2] rounded-2xl overflow-hidden border border-[#EDE8DF] hover:border-[#C4952A]/40 hover:shadow-lg transition-all duration-300 cursor-pointer flex flex-col"
                 >
                   <div className="h-32 overflow-hidden bg-gray-200 relative">
                     <img
@@ -342,12 +342,12 @@ export function BlogArticleModal({
                     </span>
                   </div>
                   <div className="p-3.5 flex-1 flex flex-col justify-between">
-                    <h4 className="font-display font-bold text-sm text-[#1A1A1A] group-hover:text-[#E11D48] transition-colors line-clamp-2 mb-2">
+                    <h4 className="font-display font-bold text-sm text-[#1A1A1A] group-hover:text-[#C4952A] transition-colors line-clamp-2 mb-2">
                       {item.title}
                     </h4>
                     <div className="flex items-center justify-between text-[11px] text-[#7A7A7A]">
                       <span>{item.readTime}</span>
-                      <span className="text-[#E11D48] font-bold">Read →</span>
+                      <span className="text-[#C4952A] font-bold">Read →</span>
                     </div>
                   </div>
                 </div>

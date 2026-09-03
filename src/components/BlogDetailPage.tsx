@@ -46,110 +46,114 @@ export function BlogDetailPage({
   const otherArticles = sourceArticles.filter(a => a.id !== article.id).slice(0, 3);
 
   return (
-    <div className="min-h-screen bg-[#FFFDFD] text-[#1A1A1A]">
-      {/* ── Top Dedicated Header / Navigation Bar ────────────────────────── */}
-      <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-[#F3E5E8] shadow-xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          {/* StageBridge Logo */}
-          <div
-            className="flex items-center gap-2.5 cursor-pointer select-none"
+    <div className="min-h-screen text-[#1A1916] pb-28" style={{ background: "#FAF7F2", fontFamily: "'Manrope', system-ui, sans-serif" }}>
+      {/* ── Top Dedicated Header ────────────────────────────────────────── */}
+      <header className="sticky top-0 z-40 bg-[#FAF7F2]/95 backdrop-blur-md border-b border-[#EDE8DF] shadow-xs">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8 h-[68px] flex items-center justify-between">
+          <button
+            className="flex flex-col leading-none cursor-pointer select-none text-left"
             onClick={onBack}
           >
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#E11D48] to-[#9333EA] flex items-center justify-center shadow-md">
-              <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-                <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm-1 1.93c-3.94-.49-7-3.85-7-7.93H2c0 4.96 3.57 9.09 8.4 9.83V22h3v-4.24c4.83-.74 8.4-4.87 8.4-9.83h-2c0 4.08-3.06 7.44-7 7.93V15h-1z" />
-              </svg>
-            </div>
-            <span className="font-display font-bold text-xl text-[#1A1A1A] tracking-tight">StageBridge</span>
-            <span className="text-[9px] font-body text-[#E11D48] font-bold tracking-[0.2em] uppercase bg-[#E11D48]/10 px-1.5 py-0.5 rounded-full">Pro</span>
-          </div>
+            <span
+              className="font-serif text-[22px] font-light tracking-[0.06em] text-[#1A1916] hover:text-[#C4952A] transition-colors"
+              style={{ fontFamily: "'Cormorant Garamond', serif", letterSpacing: "0.08em" }}
+            >
+              MANNAT ARTS
+            </span>
+            <span className="label-editorial text-[#C4952A] tracking-[0.22em]" style={{ fontSize: "7px" }}>
+              CULTURAL STORIES
+            </span>
+          </button>
 
-          {/* Action Tools: Like & Share & Directory */}
-          <div className="flex items-center gap-2.5">
-            {/* Like */}
+          {/* Action Tools: Like & Share */}
+          <div className="flex items-center gap-3">
             <button
               onClick={() => onToggleLike(article.id)}
-              className={`px-3.5 py-1.5 rounded-full border text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+              className={`font-ui px-4 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                 isLiked
-                  ? "bg-gradient-to-r from-[#E11D48] to-[#BE123C] text-white border-transparent shadow-md scale-105"
-                  : "border-[#F3E5E8] text-[#5B5B5B] hover:bg-[#FFF0F3] hover:text-[#E11D48]"
+                  ? "bg-[#C4952A] text-[#1A1916] shadow-sm"
+                  : "bg-[#F5F0E8] text-[#7A776F] hover:text-[#1A1916] border border-[#EDE8DF]"
               }`}
             >
-              <span>❤️</span>
+              <span>♥</span>
               <span>{currentLikes} Likes</span>
             </button>
 
-            {/* Share */}
             <button
               onClick={handleCopyLink}
-              className="px-3.5 py-1.5 rounded-full border border-[#F3E5E8] hover:bg-[#FFF0F3] text-xs font-medium text-[#5B5B5B] hover:text-[#E11D48] transition-colors cursor-pointer flex items-center gap-1"
+              className="font-ui px-4 py-1.5 rounded-full border border-[#EDE8DF] bg-[#F5F0E8] hover:bg-[#EDE8DF] text-xs font-medium text-[#1A1916] transition-colors cursor-pointer flex items-center gap-1.5"
             >
-              {copied ? <span className="text-emerald-600 font-semibold">✓ Copied</span> : <span>🔗 Share</span>}
+              {copied ? <span>✓ Link Copied</span> : <span>Share Guide</span>}
             </button>
 
-
+            <button
+              onClick={onBack}
+              className="font-ui text-xs font-semibold text-[#7A776F] hover:text-[#1A1916] transition-colors cursor-pointer ml-2"
+            >
+              ← Back to Journal
+            </button>
           </div>
         </div>
       </header>
 
       {/* ── Main Article Container ────────────────────────────────────────── */}
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-10 lg:py-14">
+      <main className="max-w-5xl mx-auto px-6 lg:px-8 py-12 lg:py-16">
         {/* Title, Subtitle & Metadata */}
-        <div className="mb-8">
-          <div className="flex items-center gap-2 mb-4">
-            <span
-              className="px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider text-white shadow-xs"
-              style={{ backgroundColor: article.categoryColor }}
-            >
+        <div className="mb-10 space-y-4">
+          <div className="flex items-center gap-3">
+            <span className="label-editorial text-[#C4952A] bg-[#F5F0E8] px-3.5 py-1 rounded-full border border-[#EDE8DF]" style={{ fontSize: "9px" }}>
               {article.category}
             </span>
-            <span className="text-xs font-medium text-[#7A7A7A]">
+            <span className="font-ui text-xs text-[#7A776F]">
               • {article.readTime}
             </span>
-            <span className="text-xs font-medium text-[#7A7A7A]">
+            <span className="font-ui text-xs text-[#7A776F]">
               • {article.publishedDate}
             </span>
           </div>
 
-          <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold text-[#1A1A1A] leading-[1.18] mb-5">
+          <h1
+            className="font-serif font-light text-3xl sm:text-4xl lg:text-5xl text-[#1A1916] leading-[1.12] tracking-tight"
+            style={{ fontFamily: "'Cormorant Garamond', serif" }}
+          >
             {article.title}
           </h1>
 
-          <p className="font-body text-lg sm:text-xl text-[#5B5B5B] leading-relaxed font-normal">
+          <p className="font-ui text-base sm:text-lg text-[#7A776F] leading-relaxed max-w-3xl">
             {article.subtitle}
           </p>
         </div>
 
         {/* Author Profile Banner */}
-        <div className="flex flex-wrap items-center justify-between gap-4 p-5 rounded-2xl bg-[#FFF8F8] border border-[#F3E5E8] mb-10">
+        <div className="flex flex-wrap items-center justify-between gap-4 p-5 rounded-2xl bg-[#F5F0E8] border border-[#EDE8DF] mb-12">
           <div className="flex items-center gap-3.5">
             <img
               src={article.author.avatar}
               alt={article.author.name}
-              className="w-13 h-13 rounded-full object-cover border-2 border-white shadow-sm"
+              className="w-12 h-12 rounded-full object-cover border border-[#EDE8DF]"
             />
             <div>
-              <div className="font-display font-bold text-base text-[#1A1A1A]">
+              <div className="font-ui font-semibold text-sm text-[#1A1916]">
                 {article.author.name}
               </div>
-              <div className="font-body text-xs text-[#BE123C] font-semibold">
+              <div className="label-editorial text-[#C4952A]" style={{ fontSize: "8px" }}>
                 {article.author.role}
               </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-4 text-xs font-body text-[#7A7A7A]">
-            <div className="bg-white px-3 py-1.5 rounded-full border border-[#F3E5E8]">
-              👁️ <strong className="text-[#1A1A1A]">{article.views.toLocaleString()}</strong> reads
+          <div className="flex items-center gap-3 text-xs font-ui text-[#7A776F]">
+            <div className="bg-white px-3 py-1.5 rounded-full border border-[#EDE8DF]">
+              👁️ <strong className="text-[#1A1916]">{article.views.toLocaleString()}</strong> reads
             </div>
-            <div className="bg-white px-3 py-1.5 rounded-full border border-[#F3E5E8]">
-              ❤️ <strong className="text-[#1A1A1A]">{currentLikes}</strong> likes
+            <div className="bg-white px-3 py-1.5 rounded-full border border-[#EDE8DF]">
+              ♥ <strong className="text-[#1A1916]">{currentLikes}</strong> likes
             </div>
           </div>
         </div>
 
         {/* Full Featured Cover Image */}
-        <div className="relative rounded-3xl overflow-hidden shadow-xl h-80 sm:h-[480px] bg-gray-900 mb-12">
+        <div className="relative rounded-3xl overflow-hidden shadow-lg h-80 sm:h-[460px] bg-gray-900 mb-14">
           <img
             src={article.coverImg}
             alt={article.title}
@@ -161,7 +165,7 @@ export function BlogDetailPage({
               {article.tags.map(t => (
                 <span
                   key={t}
-                  className="px-3 py-1 rounded-full text-xs font-semibold bg-black/60 text-white backdrop-blur-md border border-white/20"
+                  className="font-ui px-3 py-1 rounded-full text-xs font-medium bg-black/60 text-white backdrop-blur-md border border-white/20"
                 >
                   #{t}
                 </span>
@@ -176,19 +180,20 @@ export function BlogDetailPage({
           <div className="lg:col-span-8 space-y-10">
             {/* Key Takeaways Box */}
             {article.keyTakeaways && article.keyTakeaways.length > 0 && (
-              <div className="bg-gradient-to-br from-[#FFF0F3] to-[#FFF8F8] border-2 border-[#E11D48]/20 rounded-3xl p-6 sm:p-8 shadow-sm">
-                <div className="flex items-center gap-2.5 mb-4">
-                  <div className="w-8 h-8 rounded-full bg-[#E11D48] text-white flex items-center justify-center text-sm font-bold shadow-sm">
-                    ★
-                  </div>
-                  <h3 className="font-display font-bold text-xl sm:text-2xl text-[#BE123C]">
+              <div className="bg-[#F5F0E8] border border-[#C4952A]/30 rounded-3xl p-7 space-y-4">
+                <div className="flex items-center gap-2.5">
+                  <span className="text-[#C4952A] font-serif text-xl">✦</span>
+                  <h3
+                    className="font-serif font-light text-xl sm:text-2xl text-[#1A1916]"
+                    style={{ fontFamily: "'Cormorant Garamond', serif" }}
+                  >
                     Key Takeaways &amp; Executive Summary
                   </h3>
                 </div>
                 <ul className="space-y-3">
                   {article.keyTakeaways.map((item, idx) => (
-                    <li key={idx} className="flex items-start gap-3 text-sm sm:text-base text-[#3A3A3A] font-body leading-relaxed">
-                      <span className="text-[#E11D48] font-bold text-lg leading-none mt-0.5">✦</span>
+                    <li key={idx} className="flex items-start gap-3 text-sm text-[#4A4845] font-ui leading-relaxed">
+                      <span className="text-[#C4952A] font-bold text-base mt-0.5">•</span>
                       <span>{item}</span>
                     </li>
                   ))}
@@ -197,177 +202,111 @@ export function BlogDetailPage({
             )}
 
             {/* Sections Body Content */}
-            <div className="space-y-10 font-body text-base sm:text-lg leading-relaxed text-[#333333]">
+            <div className="space-y-10 font-ui text-base leading-relaxed text-[#4A4845]">
               {article.content.map((sec, sIdx) => (
                 <div key={sIdx} className="space-y-4">
                   {sec.sectionHeading && (
-                    <h2 className="font-display text-2xl sm:text-3xl font-bold text-[#1A1A1A] tracking-tight pt-3 border-b border-[#F3E5E8] pb-2">
+                    <h2
+                      className="font-serif font-light text-2xl sm:text-3xl text-[#1A1916] tracking-tight pt-4 border-b border-[#EDE8DF] pb-3"
+                      style={{ fontFamily: "'Cormorant Garamond', serif" }}
+                    >
                       {sec.sectionHeading}
                     </h2>
                   )}
 
                   {sec.paragraphs.map((p, pIdx) => (
-                    <p key={pIdx} className="text-[#444444] leading-relaxed">
+                    <p key={pIdx} className="text-[#4A4845] leading-relaxed">
                       {p}
                     </p>
                   ))}
 
-                  {/* Pull Quote */}
-                  {sec.quote && (
-                    <blockquote className="my-8 p-6 sm:p-8 rounded-2xl bg-gradient-to-r from-[#1F030A] to-[#3B0716] text-white border-l-4 border-[#E11D48] shadow-lg">
-                      <p className="font-display italic text-xl sm:text-2xl text-white/95 mb-3 leading-snug">
-                        “{sec.quote.text}”
-                      </p>
-                      <cite className="font-body text-xs uppercase tracking-widest text-[#FB7185] font-semibold not-italic">
-                        — {sec.quote.author}
-                      </cite>
-                    </blockquote>
-                  )}
-
-                  {/* Interactive Checklist */}
+                  {/* Checklist if section has one */}
                   {sec.checklist && sec.checklist.length > 0 && (
-                    <div className="my-8 bg-white p-6 rounded-2xl border border-[#F3E5E8] shadow-sm">
-                      <div className="font-display font-bold text-base text-[#1A1A1A] mb-4 flex items-center gap-2">
-                        <span>📋</span>
-                        <span>Organizer Action Checklist (Interactive)</span>
+                    <div className="bg-[#F5F0E8] border border-[#EDE8DF] rounded-2xl p-5 space-y-3 my-4">
+                      <div className="label-editorial text-[#C4952A]" style={{ fontSize: "9px" }}>
+                        ACTIONABLE CHECKLIST
                       </div>
-                      <div className="space-y-2.5">
-                        {sec.checklist.map((item, cIdx) => {
-                          const checkKey = `${article.id}-${sIdx}-${cIdx}`;
-                          const isChecked = checkedItems[checkKey] || false;
-                          return (
-                            <label
-                              key={cIdx}
-                              onClick={() => toggleCheck(checkKey)}
-                              className={`flex items-start gap-3 p-3 rounded-xl cursor-pointer transition-colors border ${
-                                isChecked
-                                  ? "bg-[#FFF0F3]/70 border-[#E11D48]/30 line-through text-[#8A8A8A]"
-                                  : "bg-[#FFFDFD] border-[#F3E5E8] text-[#333333] hover:bg-[#FFF5F6]"
-                              }`}
-                            >
-                              <input
-                                type="checkbox"
-                                checked={isChecked}
-                                readOnly
-                                className="mt-1 rounded text-[#E11D48] focus:ring-[#E11D48] cursor-pointer"
-                              />
-                              <span className="text-sm font-medium">{item}</span>
-                            </label>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Pro Tip */}
-                  {sec.proTip && (
-                    <div className="p-5 rounded-2xl bg-[#FFF5F6] border border-[#E11D48]/20 flex items-start gap-3.5 my-6">
-                      <span className="text-2xl">💡</span>
-                      <div>
-                        <span className="font-bold text-xs uppercase tracking-wider text-[#BE123C] block mb-1">
-                          StageBridge Pro Tip:
-                        </span>
-                        <span className="text-sm sm:text-base text-[#4A4A4A] font-medium">
-                          {sec.proTip}
-                        </span>
+                      <div className="space-y-2">
+                        {sec.checklist.map((c, i) => (
+                          <label
+                            key={i}
+                            className="flex items-start gap-3 p-3 rounded-xl bg-white border border-[#EDE8DF] cursor-pointer hover:border-[#C4952A]/40 transition-colors select-none"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={checkedItems[`${article.id}-${sIdx}-${i}`] || false}
+                              onChange={() => toggleCheck(`${article.id}-${sIdx}-${i}`)}
+                              className="mt-0.5 accent-[#C4952A] w-4 h-4 rounded cursor-pointer"
+                            />
+                            <span className={`font-ui text-xs sm:text-sm ${checkedItems[`${article.id}-${sIdx}-${i}`] ? "line-through text-[#7A776F]" : "text-[#1A1916]"}`}>
+                              {c}
+                            </span>
+                          </label>
+                        ))}
                       </div>
                     </div>
                   )}
                 </div>
               ))}
             </div>
-
-            {/* Featured Genre CTA Banner */}
-            {article.relatedGenreId && (
-              <div className="p-8 rounded-3xl bg-gradient-to-br from-[#FFF0F3] via-white to-[#FFE5EC] border-2 border-[#E11D48]/25 shadow-md flex flex-col sm:flex-row items-center justify-between gap-6">
-                <div className="space-y-1 text-center sm:text-left">
-                  <span className="text-[11px] font-bold uppercase tracking-widest text-[#E11D48] bg-[#E11D48]/10 px-3 py-1 rounded-full">
-                    Featured in this guide
-                  </span>
-                  <h4 className="font-display font-bold text-2xl text-[#1A1A1A] mt-2">
-                    Book {article.relatedGenreId.toUpperCase()} Performers
-                  </h4>
-                  <p className="font-body text-xs text-[#5B5B5B] max-w-md">
-                    Verified artist profiles, soundclips, transparent pricing, and instant date lock-in.
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-3 flex-shrink-0">
-                  {onSelectGenre && (
-                    <button
-                      onClick={() => onSelectGenre(article.relatedGenreId!)}
-                      className="font-body font-bold text-xs px-6 py-3.5 rounded-full bg-gradient-to-r from-[#E11D48] to-[#BE123C] text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all cursor-pointer"
-                    >
-                      Explore {article.relatedGenreId.toUpperCase()} Artists →
-                    </button>
-                  )}
-                </div>
-              </div>
-            )}
           </div>
 
-          {/* Sidebar (4 cols) */}
+          {/* Sidebar / Aside (4 cols) */}
           <aside className="lg:col-span-4 space-y-6">
-            {/* Author Bio Card */}
-            <div className="bg-white p-6 rounded-3xl border border-[#F3E5E8] shadow-sm">
-              <h4 className="font-display font-bold text-xs uppercase tracking-widest text-[#8A8A8A] mb-4">
-                About the Author
-              </h4>
-              <div className="flex items-center gap-3 mb-3">
-                <img
-                  src={article.author.avatar}
-                  alt={article.author.name}
-                  className="w-12 h-12 rounded-full object-cover border border-[#F3E5E8]"
-                />
-                <div>
-                  <div className="font-display font-bold text-sm text-[#1A1A1A]">
-                    {article.author.name}
-                  </div>
-                  <div className="font-body text-xs text-[#BE123C]">
-                    {article.author.role}
-                  </div>
+            {/* Quick Context Card */}
+            <div className="bg-[#F5F0E8] rounded-2xl p-6 border border-[#EDE8DF] space-y-4">
+              <span className="label-editorial text-[#C4952A]" style={{ fontSize: "9px" }}>
+                ABOUT THIS GUIDE
+              </span>
+              <div className="space-y-3 text-xs font-ui text-[#7A776F]">
+                <div className="flex justify-between pb-2 border-b border-[#EDE8DF]">
+                  <span>Tradition:</span>
+                  <strong className="text-[#1A1916]">{article.category}</strong>
+                </div>
+                <div className="flex justify-between pb-2 border-b border-[#EDE8DF]">
+                  <span>Reading Duration:</span>
+                  <strong className="text-[#1A1916]">{article.readTime}</strong>
+                </div>
+                <div className="flex justify-between pb-2 border-b border-[#EDE8DF]">
+                  <span>Curator:</span>
+                  <strong className="text-[#1A1916]">{article.author.name}</strong>
                 </div>
               </div>
-              <p className="font-body text-xs text-[#5B5B5B] leading-relaxed">
-                Contributing editor at StageBridge Journal, specializing in live sound engineering, wedding music sequencing, and classical Indian performance traditions.
-              </p>
+
+              {article.relatedGenreId && onSelectGenre && (
+                <button
+                  onClick={() => onSelectGenre(article.relatedGenreId as any)}
+                  className="w-full py-3 rounded-full bg-[#1A1916] hover:bg-[#2E2C28] text-[#FAF7F2] font-ui text-xs font-semibold transition-all cursor-pointer shadow-sm"
+                >
+                  Explore {article.relatedGenreId.toUpperCase()} Ensembles →
+                </button>
+              )}
             </div>
 
-            {/* Quick Summary Pill Card */}
-            <div className="bg-[#FFF8F8] p-6 rounded-3xl border border-[#F3E5E8] space-y-3">
-              <h4 className="font-display font-bold text-xs uppercase tracking-widest text-[#BE123C]">
-                Article Synopsis
-              </h4>
-              <p className="font-body text-xs text-[#5B5B5B] leading-relaxed">
-                {article.summary}
-              </p>
-              <div className="pt-2 border-t border-[#F3E5E8] flex items-center justify-between text-xs font-body text-[#7A7A7A]">
-                <span>Category: {article.category}</span>
-                <span className="text-[#E11D48] font-bold">{article.readTime}</span>
-              </div>
-            </div>
-
-            {/* Quick Share & Like CTA Box */}
-            <div className="bg-gradient-to-br from-[#1F030A] to-[#3B0716] text-white p-6 rounded-3xl shadow-md space-y-4">
-              <h4 className="font-display font-bold text-lg text-white">
+            {/* Quick Share Box */}
+            <div className="bg-[#1A1916] text-white p-7 rounded-3xl shadow-md space-y-4">
+              <h4
+                className="font-serif font-light text-xl text-white"
+                style={{ fontFamily: "'Cormorant Garamond', serif" }}
+              >
                 Found this helpful?
               </h4>
-              <p className="font-body text-xs text-white/70 leading-relaxed">
-                Show love to the author or share this guide with your wedding planner or event committee.
+              <p className="font-ui text-xs text-[#A8A49A] leading-relaxed">
+                Show your appreciation or share this masterclass with your event planning committee.
               </p>
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => onToggleLike(article.id)}
-                  className="flex-1 font-body font-bold text-xs py-2.5 rounded-full bg-[#E11D48] hover:bg-[#BE123C] text-white transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                  className="flex-1 font-ui font-semibold text-xs py-2.5 rounded-full bg-[#C4952A] hover:bg-[#DDB96A] text-[#1A1916] transition-all cursor-pointer flex items-center justify-center gap-1.5"
                 >
-                  <span>❤️</span>
+                  <span>♥</span>
                   <span>{currentLikes} Likes</span>
                 </button>
                 <button
                   onClick={handleCopyLink}
-                  className="flex-1 font-body font-bold text-xs py-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/20 transition-all cursor-pointer flex items-center justify-center gap-1"
+                  className="flex-1 font-ui font-semibold text-xs py-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/20 transition-all cursor-pointer flex items-center justify-center gap-1"
                 >
-                  {copied ? "✓ Copied" : "🔗 Share"}
+                  {copied ? "✓ Copied" : "Share"}
                 </button>
               </div>
             </div>
@@ -375,19 +314,22 @@ export function BlogDetailPage({
         </div>
 
         {/* ── Bottom: Related Articles Shelf ──────────────────────────────── */}
-        <section className="mt-20 pt-12 border-t border-[#F3E5E8]">
+        <section className="mt-20 pt-12 border-t border-[#EDE8DF]">
           <div className="flex items-center justify-between mb-8">
             <div>
-              <span className="text-xs font-bold text-[#E11D48] uppercase tracking-widest block mb-1">
-                ✦ Keep Reading
+              <span className="label-editorial text-[#C4952A] tracking-widest block mb-1" style={{ fontSize: "9px" }}>
+                · KEEP READING ·
               </span>
-              <h3 className="font-display font-bold text-2xl sm:text-3xl text-[#1A1A1A]">
-                More Guides from StageBridge Journal
+              <h3
+                className="font-serif font-light text-2xl sm:text-3xl text-[#1A1916]"
+                style={{ fontFamily: "'Cormorant Garamond', serif" }}
+              >
+                More from the Mannat Arts Journal
               </h3>
             </div>
             <button
               onClick={onBack}
-              className="font-body text-xs font-semibold text-[#E11D48] hover:underline cursor-pointer"
+              className="font-ui text-xs font-semibold text-[#1A1916] hover:text-[#C4952A] cursor-pointer"
             >
               Browse All Stories →
             </button>
@@ -398,28 +340,28 @@ export function BlogDetailPage({
               <div
                 key={item.id}
                 onClick={() => onSelectArticle(item)}
-                className="group bg-white rounded-3xl overflow-hidden border border-[#F3E5E8] hover:border-[#E11D48]/40 hover:shadow-xl transition-all duration-300 cursor-pointer flex flex-col"
+                className="group bg-[#FAF7F2] rounded-2xl overflow-hidden border border-[#EDE8DF] hover:border-[#C4952A]/40 shadow-sm hover:shadow-xl transition-all duration-400 cursor-pointer flex flex-col lift-card"
               >
-                <div className="h-44 overflow-hidden bg-gray-200 relative">
+                <div className="h-44 overflow-hidden bg-gray-200 relative img-zoom">
                   <img
                     src={item.coverImg}
                     alt={item.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                   />
-                  <span
-                    className="absolute top-3 left-3 text-[10px] font-bold text-white px-2.5 py-1 rounded-full shadow-sm"
-                    style={{ backgroundColor: item.categoryColor }}
-                  >
+                  <span className="absolute top-3 left-3 label-editorial text-[8px] bg-white text-[#1A1916] px-2.5 py-1 rounded-full shadow-sm font-bold">
                     {item.category}
                   </span>
                 </div>
                 <div className="p-5 flex-1 flex flex-col justify-between space-y-3">
-                  <h4 className="font-display font-bold text-base text-[#1A1A1A] group-hover:text-[#E11D48] transition-colors line-clamp-2">
+                  <h4
+                    className="font-serif font-light text-lg text-[#1A1916] group-hover:text-[#C4952A] transition-colors line-clamp-2 leading-snug"
+                    style={{ fontFamily: "'Cormorant Garamond', serif" }}
+                  >
                     {item.title}
                   </h4>
-                  <div className="flex items-center justify-between text-xs text-[#7A7A7A] pt-2 border-t border-[#F3E5E8]">
+                  <div className="flex items-center justify-between text-xs text-[#7A776F] pt-2 border-t border-[#EDE8DF]">
                     <span>{item.readTime}</span>
-                    <span className="text-[#E11D48] font-bold">Read Story →</span>
+                    <span className="font-ui text-xs font-semibold text-[#1A1916]">Read Guide →</span>
                   </div>
                 </div>
               </div>
