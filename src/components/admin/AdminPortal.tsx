@@ -1,2492 +1,835 @@
-import { useState, useMemo } from "react";
-import { Artist, GenreInfo, GENRE_METADATA } from "../../data/artistsData";
-import { BlogArticle, BlogContentSection } from "../../data/blogData";
+import { useState, useEffect } from "react";
+import {
+  CMSDataStore,
+  UserRole,
+  Experience,
+  MoodItem,
+  OccasionItem,
+  TestimonialItem,
+  MediaItem,
+  NavLinkItem,
+  FooterConfig,
+  GlobalSEOConfig,
+  GeneralSettingsConfig,
+  HomepageConfig,
+} from "../../data/cmsTypes";
+import { Artist, GenreInfo } from "../../data/artistsData";
+import { BlogArticle } from "../../data/blogData";
 
-const BLOG_CATEGORY_OPTIONS = [
-  { id: "Wedding Music", color: "#9A7219" },
-  { id: "Event Planning", color: "#9333EA" },
-  { id: "Artist Spotlights", color: "#C4952A" },
-  { id: "Sound & Acoustics", color: "#2563EB" },
-  { id: "Heritage Traditions", color: "#D97706" },
-];
+import { DashboardView } from "./views/DashboardView";
+import { HomepageCMSView } from "./views/HomepageCMSView";
+import { ExperiencesCMSView } from "./views/ExperiencesCMSView";
+import { ArtistsCMSView } from "./views/ArtistsCMSView";
+import { GenresCMSView } from "./views/GenresCMSView";
+import { MoodsCMSView } from "./views/MoodsCMSView";
+import { OccasionsCMSView } from "./views/OccasionsCMSView";
+import { StoriesCMSView } from "./views/StoriesCMSView";
+import { TestimonialsCMSView } from "./views/TestimonialsCMSView";
+import { RecommendationsView } from "./views/RecommendationsView";
+import { FeaturedContentView } from "./views/FeaturedContentView";
+import { MediaLibraryView } from "./views/MediaLibraryView";
+import { NavigationCMSView } from "./views/NavigationCMSView";
+import { FooterCMSView } from "./views/FooterCMSView";
+import { SEOCMSView } from "./views/SEOCMSView";
+import { SettingsCMSView } from "./views/SettingsCMSView";
+import { UsersCMSView } from "./views/UsersCMSView";
+import { ActivityLogView } from "./views/ActivityLogView";
 
-export interface BookingInquiry {
-  id: string;
-  clientName: string;
-  clientEmail: string;
-  clientPhone: string;
-  artistId: string;
-  artistName: string;
-  eventType: string;
-  city: string;
-  eventDate: string;
-  budget: string;
-  status: "Pending" | "Confirmed" | "Completed" | "Declined";
-  createdAt: string;
-  notes?: string;
-}
+import { ToastNotification, ToastMessage } from "./ToastNotification";
+import { GlobalSearchModal } from "./GlobalSearchModal";
+import { WebsitePreviewModal } from "./WebsitePreviewModal";
 
-interface AdminPortalProps {
-  artists: Artist[];
-  featuredArtistIds: string[];
-  onSetFeaturedArtistIds: (ids: string[]) => void;
-  onAddArtist: (artist: Artist) => void;
-  onUpdateArtist: (artist: Artist) => void;
-  onDeleteArtist: (artistId: string) => void;
-  articles: BlogArticle[];
-  onAddArticle: (article: BlogArticle) => void;
-  onUpdateArticle: (article: BlogArticle) => void;
-  onDeleteArticle: (articleId: string) => void;
-  bookingInquiries: BookingInquiry[];
-  onUpdateInquiryStatus: (inquiryId: string, status: BookingInquiry["status"]) => void;
-  onResetToDefaults: () => void;
+import { loadCMSStore } from "../../data/cmsData";
+export type { BookingInquiry } from "../../data/cmsTypes";
+
+export type AdminCMSView =
+  | "dashboard"
+  | "homepage"
+  | "experiences"
+  | "artists"
+  | "genres"
+  | "moods"
+  | "occasions"
+  | "stories"
+  | "testimonials"
+  | "recommendations"
+  | "featured"
+  | "media"
+  | "navigation"
+  | "footer"
+  | "seo"
+  | "settings"
+  | "users"
+  | "activity";
+
+export interface AdminPortalProps {
+  cmsStore?: CMSDataStore;
+  onUpdateHomepage?: (cfg: HomepageConfig) => void;
+  onAddExperience?: (exp: Experience) => void;
+  onUpdateExperience?: (exp: Experience) => void;
+  onDeleteExperience?: (id: string) => void;
+  onAddArtist?: (a: Artist) => void;
+  onUpdateArtist?: (a: Artist) => void;
+  onDeleteArtist?: (id: string) => void;
+  featuredArtistIds?: string[];
+  onSetFeaturedArtistIds?: (ids: string[]) => void;
+  onUpdateGenre?: (genreId: string, updated: Partial<GenreInfo>) => void;
+  onUpdateMoods?: (moods: MoodItem[]) => void;
+  onUpdateOccasions?: (occasions: OccasionItem[]) => void;
+  onAddArticle?: (a: BlogArticle) => void;
+  onUpdateArticle?: (a: BlogArticle) => void;
+  onDeleteArticle?: (id: string) => void;
+  onUpdateTestimonials?: (t: TestimonialItem[]) => void;
+  onUploadMedia?: (m: MediaItem) => void;
+  onDeleteMedia?: (id: string) => void;
+  onUpdateNavigation?: (nav: NavLinkItem[]) => void;
+  onUpdateFooter?: (f: FooterConfig) => void;
+  onUpdateSEO?: (s: GlobalSEOConfig) => void;
+  onUpdateSettings?: (s: GeneralSettingsConfig) => void;
+  onResetAllToDefaults?: () => void;
   onExitToClient: () => void;
   onLogout: () => void;
-  onPreviewArtist: (artist: Artist) => void;
-  onPreviewArticle: (article: BlogArticle) => void;
+  onPreviewArtist?: (artist: Artist) => void;
+  onPreviewArticle?: (article: BlogArticle) => void;
+  onPublishAll?: () => void;
+
+  // Legacy fallback props
+  artists?: Artist[];
+  articles?: BlogArticle[];
+  bookingInquiries?: any[];
+  onUpdateInquiryStatus?: (id: string, status: any) => void;
+  onResetToDefaults?: () => void;
   genres?: Record<string, GenreInfo>;
-  onUpdateGenre?: (genreId: string, updated: Partial<GenreInfo>) => void;
 }
 
-type AdminView =
-  | "artists-list"
-  | "artist-form"
-  | "top6"
-  | "genres-list"
-  | "genre-form"
-  | "blogs-list"
-  | "blog-form"
-  | "bookings"
-  | "settings";
-
-const GENRE_OPTIONS: Array<"sufi" | "rock" | "gazal" | "bollywood" | "carnival" | "devotional"> = [
-  "sufi",
-  "rock",
-  "gazal",
-  "bollywood",
-  "carnival",
-  "devotional",
-];
-
-const BAND_TYPES: Array<"Solo" | "Duo" | "Trio" | "4-6 Piece Band" | "Full Troupe (8+ Members)"> = [
-  "Solo",
-  "Duo",
-  "Trio",
-  "4-6 Piece Band",
-  "Full Troupe (8+ Members)",
-];
-
 export function AdminPortal({
-  artists,
-  featuredArtistIds,
-  onSetFeaturedArtistIds,
-  onAddArtist,
-  onUpdateArtist,
-  onDeleteArtist,
-  articles,
-  onAddArticle,
-  onUpdateArticle,
-  onDeleteArticle,
-  bookingInquiries,
-  onUpdateInquiryStatus,
-  onResetToDefaults,
+  cmsStore: propStore,
+  onUpdateHomepage = () => {},
+  onAddExperience = () => {},
+  onUpdateExperience = () => {},
+  onDeleteExperience = () => {},
+  onAddArtist = () => {},
+  onUpdateArtist = () => {},
+  onDeleteArtist = () => {},
+  featuredArtistIds = [],
+  onSetFeaturedArtistIds = () => {},
+  onUpdateGenre = () => {},
+  onUpdateMoods = () => {},
+  onUpdateOccasions = () => {},
+  onAddArticle = () => {},
+  onUpdateArticle = () => {},
+  onDeleteArticle = () => {},
+  onUpdateTestimonials = () => {},
+  onUploadMedia = () => {},
+  onDeleteMedia = () => {},
+  onUpdateNavigation = () => {},
+  onUpdateFooter = () => {},
+  onUpdateSEO = () => {},
+  onUpdateSettings = () => {},
+  onResetAllToDefaults = () => {},
   onExitToClient,
   onLogout,
-  genres = GENRE_METADATA,
-  onUpdateGenre,
+  onPreviewArtist,
+  onPreviewArticle,
+  onPublishAll,
 }: AdminPortalProps) {
-  const [currentView, setCurrentView] = useState<AdminView>("artists-list");
-  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const fallbackStore = loadCMSStore();
+  const cmsStore = propStore || fallbackStore;
+  const [currentView, setCurrentView] = useState<AdminCMSView>("dashboard");
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
+  const [currentUserRole, setCurrentUserRole] = useState<UserRole>("super_admin");
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+  const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
-  // Search & Filter state
-  const [artistSearch, setArtistSearch] = useState("");
-  const [selectedGenreFilter, setSelectedGenreFilter] = useState("all");
-  const [blogSearch, setBlogSearch] = useState("");
-
-  // Toast feedback
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const showToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3000);
-  };
-
-  /* ── In-Page Genre Form State ──────────────────────────────────────────── */
-  const [editingGenreId, setEditingGenreId] = useState<string | null>(null);
-  const [genreFormData, setGenreFormData] = useState<Partial<GenreInfo>>({
-    title: "",
-    tag: "",
-    description: "",
-    longDescription: "",
-    heroImg: "",
-    avgPriceRange: "",
-    popularOccasions: [],
-  });
-  const [genreOccasionsInput, setGenreOccasionsInput] = useState("");
-  const [genreImageSourceMode, setGenreImageSourceMode] = useState<"upload" | "url">("upload");
-
-  const startEditGenre = (genreId: string) => {
-    const active = (genres && genres[genreId]) || GENRE_METADATA[genreId];
-    if (!active) return;
-    setEditingGenreId(genreId);
-    setGenreFormData(active);
-    setGenreOccasionsInput(active.popularOccasions ? active.popularOccasions.join(", ") : "");
-    setCurrentView("genre-form");
-    setMobileSidebarOpen(false);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  const handleGenreImageFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      alert("Please upload a valid image file");
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = ev => {
-      if (ev.target?.result) {
-        setGenreFormData(p => ({ ...p, heroImg: ev.target?.result as string }));
+  // Keyboard shortcut: Cmd+K or Ctrl+K for search
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setIsSearchOpen(true);
       }
     };
-    reader.readAsDataURL(file);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  const addToast = (text: string, type: "success" | "info" | "warning" = "success") => {
+    const id = `toast-${Date.now()}`;
+    setToasts((prev) => [...prev, { id, text, type }]);
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, 3500);
   };
 
-  const handleSaveGenre = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingGenreId) return;
-    const occasions = genreOccasionsInput.split(",").map(s => s.trim()).filter(Boolean);
-    const updated: Partial<GenreInfo> = {
-      title: genreFormData.title?.trim(),
-      tag: genreFormData.tag?.trim(),
-      description: genreFormData.description?.trim(),
-      longDescription: genreFormData.longDescription?.trim(),
-      heroImg: genreFormData.heroImg,
-      avgPriceRange: genreFormData.avgPriceRange?.trim(),
-      popularOccasions: occasions.length > 0 ? occasions : undefined,
-    };
-    if (onUpdateGenre) {
-      onUpdateGenre(editingGenreId, updated);
-      showToast(`Updated banner content for ${genreFormData.title || editingGenreId}`);
-    }
-    setCurrentView("genres-list");
-    window.scrollTo({ top: 0, behavior: "smooth" });
+  const removeToast = (id: string) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
   };
 
-  // Acts management state for artist
-  const [newActCategory, setNewActCategory] = useState("");
-  const [newActDescription, setNewActDescription] = useState("");
-
-  const handleAddAct = (category: string, description: string) => {
-    if (!category.trim()) return;
-    const currentActs = artistFormData.whatElseTheyDo || [];
-    setArtistFormData(p => ({
-      ...p,
-      whatElseTheyDo: [...currentActs, { category: category.trim(), description: description.trim() || "Live performance showcase", icon: "♪" }],
-    }));
-    setNewActCategory("");
-    setNewActDescription("");
-  };
-
-  const handleRemoveAct = (index: number) => {
-    const currentActs = artistFormData.whatElseTheyDo || [];
-    setArtistFormData(p => ({
-      ...p,
-      whatElseTheyDo: currentActs.filter((_, i) => i !== index),
-    }));
-  };
-
-  /* ── In-Page Artist Form State ─────────────────────────────────────────── */
-  const [editingArtistId, setEditingArtistId] = useState<string | null>(null);
-  const [artistFormData, setArtistFormData] = useState<Partial<Artist>>({
-    name: "",
-    stageName: "",
-    genre: "sufi",
-    genreTitle: "Sufi & Qawwali",
-    tagline: "",
-    bio: "",
-    img: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=600&h=400&fit=crop&auto=format",
-    rating: 4.9,
-    reviewsCount: 24,
-    price: "₹45,000",
-    priceNum: 45000,
-    city: "Mumbai",
-    state: "Maharashtra",
-    travelsPanIndia: true,
-    performanceDuration: "90–120 mins",
-    bandType: "4-6 Piece Band",
-    experienceYears: 7,
-    eventsCompleted: 140,
-    primaryInstruments: ["Harmonium", "Tabla", "Vocals"],
-    themeColor: "#9A7219",
-    whatElseTheyDo: [
-      { category: "Gazal Mehfils", description: "Intimate late-night mehfil sets", icon: "📜" },
-      { category: "Bollywood Acoustic", description: "Unplugged 90s Bollywood medleys", icon: "🎸" },
-    ],
-    sampleSetlist: ["Dama Dam Mast Qalandar", "Kun Faya Kun", "Afreen Afreen", "Chaap Tilak"],
-    techRider: [
-      "4 Vocal Microphones with boom stands (Shure SM58)",
-      "2 Direct Inputs (DI Box) for acoustic instruments",
-      "2 Stage Wedge Monitors with independent auxiliary mix",
-    ],
-  });
-
-  const [artistInstrumentsInput, setArtistInstrumentsInput] = useState("");
-  const [artistSetlistInput, setArtistSetlistInput] = useState("");
-  const [artistTechRiderInput, setArtistTechRiderInput] = useState("");
-  const [artistImageSourceMode, setArtistImageSourceMode] = useState<"upload" | "url">("upload");
-
-  const startCreateArtist = () => {
-    setEditingArtistId(null);
-    const newId = `artist-${Date.now()}`;
-    setArtistFormData({
-      id: newId,
-      name: "",
-      stageName: "",
-      genre: "sufi",
-      genreTitle: "Sufi & Qawwali",
-      tagline: "",
-      bio: "",
-      img: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=600&h=400&fit=crop&auto=format",
-      rating: 4.9,
-      reviewsCount: 12,
-      price: "₹40,000",
-      priceNum: 40000,
-      city: "Mumbai",
-      state: "Maharashtra",
-      travelsPanIndia: true,
-      performanceDuration: "90–120 mins",
-      bandType: "4-6 Piece Band",
-      experienceYears: 5,
-      eventsCompleted: 80,
-      primaryInstruments: ["Vocals", "Guitar"],
-      themeColor: "#9A7219",
-      whatElseTheyDo: [
-        { category: "Acoustic Pop", description: "Unplugged melodies", icon: "🎵" },
-        { category: "Bollywood Dance", description: "High-energy dance hits", icon: "🎬" },
-      ],
-      sampleSetlist: ["Signature Anthem", "Popular Medley", "Celebration Encore"],
-      sampleTracks: [{ title: "Live Concert Sample", duration: "4:30", type: "Live Concert" }],
-      techRider: ["2 Wireless Vocal Mics", "2 DI Boxes for Instruments", "Stage Monitors with AUX send"],
-      reviews: [],
+  const handlePublishAllChanges = () => {
+    onPublishAll?.();
+    const nowStr = new Date().toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
-    setArtistInstrumentsInput("Vocals, Guitar");
-    setArtistSetlistInput("Signature Anthem\nPopular Medley\nCelebration Encore");
-    setArtistTechRiderInput("2 Wireless Vocal Mics\n2 DI Boxes for Instruments\nStage Monitors with AUX send");
-    setCurrentView("artist-form");
-    setMobileSidebarOpen(false);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    onUpdateSettings({
+      ...cmsStore.settings,
+      lastPublished: nowStr,
+      isLive: true,
+    });
+    addToast("All changes published to live website!", "success");
   };
 
-  const startEditArtist = (artist: Artist) => {
-    setEditingArtistId(artist.id);
-    setArtistFormData(artist);
-    setArtistInstrumentsInput(artist.primaryInstruments ? artist.primaryInstruments.join(", ") : "");
-    setArtistSetlistInput(artist.sampleSetlist ? artist.sampleSetlist.join("\n") : "");
-    setArtistTechRiderInput(artist.techRider ? artist.techRider.join("\n") : "");
-    setCurrentView("artist-form");
-    setMobileSidebarOpen(false);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
+  // SVG Icon helper — consistent 16×16 black stroked icons
+  const Icon = ({ path, viewBox = "0 0 24 24" }: { path: string | string[]; viewBox?: string }) => (
+    <svg
+      className="w-4 h-4 flex-shrink-0"
+      fill="none"
+      stroke="currentColor"
+      viewBox={viewBox}
+      strokeWidth={1.6}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      {Array.isArray(path) ? path.map((d, i) => <path key={i} d={d} />) : <path d={path} />}
+    </svg>
+  );
 
-  const handleArtistImageFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      alert("Please upload a valid image file (PNG, JPG, WEBP)");
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = event => {
-      if (event.target?.result) {
-        setArtistFormData(p => ({ ...p, img: event.target?.result as string }));
-      }
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleSaveArtist = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!artistFormData.name?.trim()) {
-      alert("Please enter the performer / band name.");
-      return;
-    }
-
-    const instruments = artistInstrumentsInput.split(",").map(s => s.trim()).filter(Boolean);
-    const setlist = artistSetlistInput.split("\n").map(s => s.trim()).filter(Boolean);
-    const techRider = artistTechRiderInput.split("\n").map(s => s.trim()).filter(Boolean);
-
-    const completeArtist: Artist = {
-      id: artistFormData.id || `artist-${Date.now()}`,
-      name: artistFormData.name.trim(),
-      stageName: artistFormData.stageName?.trim() || undefined,
-      genre: artistFormData.genre || "sufi",
-      genreTitle: artistFormData.genreTitle || "Sufi & Qawwali",
-      tagline: artistFormData.tagline?.trim() || "Exceptional Live Performer",
-      bio: artistFormData.bio?.trim() || "Renowned performer with extensive concert experience.",
-      img: artistFormData.img || "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=600&h=400&fit=crop&auto=format",
-      rating: artistFormData.rating || 4.9,
-      reviewsCount: artistFormData.reviewsCount || 10,
-      price: artistFormData.price || "₹40,000",
-      priceNum: artistFormData.priceNum || 40000,
-      city: artistFormData.city?.trim() || "Mumbai",
-      state: artistFormData.state?.trim() || "Maharashtra",
-      travelsPanIndia: Boolean(artistFormData.travelsPanIndia),
-      performanceDuration: artistFormData.performanceDuration || "90–120 mins",
-      bandType: artistFormData.bandType || "4-6 Piece Band",
-      experienceYears: Number(artistFormData.experienceYears) || 5,
-      eventsCompleted: Number(artistFormData.eventsCompleted) || 50,
-      primaryInstruments: instruments.length > 0 ? instruments : ["Vocals"],
-      themeColor: artistFormData.themeColor || "#9A7219",
-      whatElseTheyDo: artistFormData.whatElseTheyDo || [],
-      sampleSetlist: setlist.length > 0 ? setlist : ["Signature Anthem"],
-      sampleTracks: artistFormData.sampleTracks || [{ title: "Live Concert Demo", duration: "4:30", type: "Live Performance" }],
-      techRider: techRider.length > 0 ? techRider : ["2 Vocal Mics", "Stage Monitors"],
-      reviews: artistFormData.reviews || [],
-    };
-
-    if (editingArtistId) {
-      onUpdateArtist(completeArtist);
-      showToast(`Updated ${completeArtist.name}`);
-    } else {
-      onAddArtist(completeArtist);
-      showToast(`Added ${completeArtist.name} to Roster`);
-    }
-
-    setCurrentView("artists-list");
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  /* ── In-Page Blog Story Form State ─────────────────────────────────────── */
-  const [editingArticleId, setEditingArticleId] = useState<string | null>(null);
-  const [blogTitle, setBlogTitle] = useState("");
-  const [blogSubtitle, setBlogSubtitle] = useState("");
-  const [blogCategory, setBlogCategory] = useState("Wedding Music");
-  const [blogCategoryColor, setBlogCategoryColor] = useState("#9A7219");
-  const [blogReadTime, setBlogReadTime] = useState("5 min read");
-  const [blogPublishedDate, setBlogPublishedDate] = useState("Feb 25, 2026");
-  const [blogCoverImg, setBlogCoverImg] = useState("https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=800&h=500&fit=crop&auto=format");
-  const [blogFeatured, setBlogFeatured] = useState(false);
-  const [blogAuthorName, setBlogAuthorName] = useState("Roshni Malhotra");
-  const [blogAuthorRole, setBlogAuthorRole] = useState("Lead Wedding Experience Architect");
-  const [blogAuthorAvatar, setBlogAuthorAvatar] = useState("https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&auto=format");
-  const [blogTagsInput, setBlogTagsInput] = useState("Wedding, Live Band, Sangeet");
-  const [blogSummary, setBlogSummary] = useState("");
-  const [blogKeyTakeaways, setBlogKeyTakeaways] = useState<string[]>([
-    "Curate your evening into 3 distinct energy phases.",
-    "Schedule dedicated sound checks 3 hours prior to guest arrival.",
-  ]);
-  const [blogSections, setBlogSections] = useState<BlogContentSection[]>([
+  // Nav item groups (7 Simplified Business Categories)
+  const navSections = [
     {
-      sectionHeading: "Setting the Stage and Opening Flow",
-      paragraphs: [
-        "The opening set sets the tone for the entire celebration. Start with warm acoustic arrangements before building into high-tempo party tracks.",
+      group: "OVERVIEW",
+      items: [
+        {
+          id: "dashboard",
+          label: "Dashboard & Stats",
+          icon: <Icon path="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />,
+        },
       ],
-      quote: { text: "Resonance matters more than sheer volume.", author: "Roshni Malhotra" },
-      proTip: "Pair live percussionists with the sound system for instant energy.",
     },
-  ]);
-  const [blogCoverMode, setBlogCoverMode] = useState<"upload" | "url">("upload");
-  const [blogAvatarMode, setBlogAvatarMode] = useState<"upload" | "url">("url");
+    {
+      group: "PAGES & CONTENT",
+      items: [
+        {
+          id: "homepage",
+          label: "Homepage & Banner",
+          icon: <Icon path={["M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5z", "M4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6z", "M16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"]} />,
+        },
+        {
+          id: "experiences",
+          label: "Curated Experiences",
+          icon: <Icon path="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />,
+        },
+      ],
+    },
+    {
+      group: "ARTISTS & MUSIC",
+      items: [
+        {
+          id: "artists",
+          label: "Artists & Performers",
+          icon: <Icon path={["M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"]} />,
+        },
+        {
+          id: "genres",
+          label: "Music Genres",
+          icon: <Icon path="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />,
+        },
+        {
+          id: "moods",
+          label: "Moods & Vibes",
+          icon: <Icon path="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />,
+        },
+        {
+          id: "occasions",
+          label: "Event Occasions",
+          icon: <Icon path={["M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"]} />,
+        },
+      ],
+    },
+    {
+      group: "STORIES & REVIEWS",
+      items: [
+        {
+          id: "stories",
+          label: "Journal & Stories",
+          icon: <Icon path={["M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"]} />,
+        },
+        {
+          id: "testimonials",
+          label: "Client Reviews",
+          icon: <Icon path={["M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"]} />,
+        },
+      ],
+    },
+    {
+      group: "DISCOVERY & MEDIA",
+      items: [
+        {
+          id: "media",
+          label: "Media Library",
+          icon: <Icon path={["M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"]} />,
+        },
+        {
+          id: "featured",
+          label: "Featured Spotlights",
+          icon: <Icon path="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />,
+        },
+        {
+          id: "recommendations",
+          label: "Smart Recommendations",
+          icon: <Icon path="M13 10V3L4 14h7v7l9-11h-7z" />,
+        },
+      ],
+    },
+    {
+      group: "WEBSITE SETUP",
+      items: [
+        {
+          id: "navigation",
+          label: "Header Navigation",
+          icon: <Icon path={["M4 6h16M4 12h16M4 18h16"]} />,
+        },
+        {
+          id: "footer",
+          label: "Footer & Social Links",
+          icon: <Icon path={["M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"]} />,
+        },
+        {
+          id: "seo",
+          label: "SEO & Google Previews",
+          icon: <Icon path="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />,
+        },
+      ],
+    },
+    {
+      group: "SETTINGS & ACCESS",
+      items: [
+        {
+          id: "settings",
+          label: "General Settings",
+          icon: <Icon path={["M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z", "M15 12a3 3 0 11-6 0 3 3 0 016 0z"]} />,
+        },
+        {
+          id: "users",
+          label: "Team & Permissions",
+          icon: <Icon path="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />,
+        },
+        {
+          id: "activity",
+          label: "Activity & Audit Log",
+          icon: <Icon path={["M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"]} />,
+        },
+      ],
+    },
+  ];
 
-  const startCreateStory = () => {
-    setEditingArticleId(null);
-    const today = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-    setBlogTitle("");
-    setBlogSubtitle("");
-    setBlogCategory("Wedding Music");
-    setBlogCategoryColor("#9A7219");
-    setBlogReadTime("5 min read");
-    setBlogPublishedDate(today);
-    setBlogCoverImg("https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=800&h=500&fit=crop&auto=format");
-    setBlogFeatured(false);
-    setBlogAuthorName("Roshni Malhotra");
-    setBlogAuthorRole("Event Experience Specialist");
-    setBlogAuthorAvatar("https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&auto=format");
-    setBlogTagsInput("Live Band, Sound Tech, Event Flow");
-    setBlogSummary("");
-    setBlogKeyTakeaways([
-      "Plan dedicated artist green rooms with acoustic isolation.",
-      "Conduct thorough stage rider testing prior to sound checks.",
-    ]);
-    setBlogSections([
-      {
-        sectionHeading: "Opening Set Curation",
-        paragraphs: ["Structure the setlist to begin warmly and transition smoothly."],
-      },
-    ]);
-    setCurrentView("blog-form");
-    setMobileSidebarOpen(false);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+  // Role permissions check
+  const isViewAllowed = (view: AdminCMSView): boolean => {
+    if (currentUserRole === "super_admin") return true;
+    if (currentUserRole === "content_manager") {
+      return ["dashboard", "experiences", "artists", "genres", "moods", "occasions", "stories", "media", "recommendations", "featured"].includes(view);
+    }
+    if (currentUserRole === "editor") {
+      return ["dashboard", "homepage", "stories", "testimonials", "media"].includes(view);
+    }
+    if (currentUserRole === "viewer") {
+      return ["dashboard", "experiences", "artists", "stories", "testimonials"].includes(view);
+    }
+    return true;
   };
 
-  const startEditStory = (art: BlogArticle) => {
-    setEditingArticleId(art.id);
-    setBlogTitle(art.title);
-    setBlogSubtitle(art.subtitle);
-    setBlogCategory(art.category);
-    setBlogCategoryColor(art.categoryColor || "#9A7219");
-    setBlogReadTime(art.readTime);
-    setBlogPublishedDate(art.publishedDate);
-    setBlogCoverImg(art.coverImg);
-    setBlogFeatured(Boolean(art.featured));
-    setBlogAuthorName(art.author.name);
-    setBlogAuthorRole(art.author.role);
-    setBlogAuthorAvatar(art.author.avatar);
-    setBlogTagsInput(art.tags ? art.tags.join(", ") : "");
-    setBlogSummary(art.summary);
-    setBlogKeyTakeaways(art.keyTakeaways || []);
-    setBlogSections(art.content || []);
-    setCurrentView("blog-form");
-    setMobileSidebarOpen(false);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  const handleBlogCoverUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      alert("Please upload a valid image file");
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = ev => {
-      if (ev.target?.result) {
-        setBlogCoverImg(ev.target?.result as string);
-      }
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleBlogAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      alert("Please upload a valid image file");
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = ev => {
-      if (ev.target?.result) {
-        setBlogAuthorAvatar(ev.target?.result as string);
-      }
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleSaveStory = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!blogTitle.trim()) {
-      alert("Please enter the article title.");
-      return;
-    }
-
-    const tags = blogTagsInput.split(",").map(s => s.trim()).filter(Boolean);
-    const existing = editingArticleId ? articles.find(a => a.id === editingArticleId) : null;
-
-    const completeArticle: BlogArticle = {
-      id: editingArticleId || `article-${Date.now()}`,
-      slug: existing?.slug || blogTitle.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || `article-${Date.now()}`,
-      title: blogTitle.trim(),
-      subtitle: blogSubtitle.trim() || "Expert insights for memorable live events.",
-      category: blogCategory as BlogArticle["category"],
-      categoryColor: blogCategoryColor,
-      readTime: blogReadTime || "5 min read",
-      publishedDate: blogPublishedDate || "Feb 25, 2026",
-      views: existing ? existing.views : 120,
-      initialLikes: existing ? existing.initialLikes : 15,
-      coverImg: blogCoverImg || "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=800&h=500&fit=crop&auto=format",
-      featured: blogFeatured,
-      author: {
-        name: blogAuthorName || "StageBridge Curator",
-        role: blogAuthorRole || "Event Specialist",
-        avatar: blogAuthorAvatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&auto=format",
-      },
-      tags: tags.length > 0 ? tags : ["Event", "Music"],
-      summary: blogSummary.trim() || blogSubtitle.trim() || "Detailed insights for event hosts.",
-      keyTakeaways: blogKeyTakeaways.filter(Boolean),
-      content: blogSections.length > 0 ? blogSections : [{ paragraphs: ["Complete guide content."] }],
-    };
-
-    if (editingArticleId) {
-      onUpdateArticle(completeArticle);
-      showToast(`Updated "${completeArticle.title}"`);
-    } else {
-      onAddArticle(completeArticle);
-      showToast(`Published "${completeArticle.title}"`);
-    }
-
-    setCurrentView("blogs-list");
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  /* ── Top 6 Performers Manager Handlers ─────────────────────────────────── */
-  const handleToggleTopPerformer = (artistId: string) => {
-    if (featuredArtistIds.includes(artistId)) {
-      if (featuredArtistIds.length <= 1) {
-        showToast("You must keep at least 1 featured performer for the home page.");
-        return;
-      }
-      const updated = featuredArtistIds.filter(id => id !== artistId);
-      onSetFeaturedArtistIds(updated);
-      showToast("Removed from Home Top 6");
-    } else {
-      if (featuredArtistIds.length >= 6) {
-        showToast("Maximum 6 performers allowed on Home. Uncheck one first.");
-        return;
-      }
-      const updated = [...featuredArtistIds, artistId];
-      onSetFeaturedArtistIds(updated);
-      showToast("Added to Home Top 6 Showcase!");
-    }
-  };
-
-  const handleAutoPickTop6 = () => {
-    const sorted = [...artists].sort((a, b) => (b.rating || 0) - (a.rating || 0));
-    const top6Ids = sorted.slice(0, 6).map(a => a.id);
-    onSetFeaturedArtistIds(top6Ids);
-    showToast("Selected Top 6 highest rated performers for Home!");
-  };
-
-  const homeFeaturedArtists = useMemo(() => {
-    return featuredArtistIds
-      .map(id => artists.find(a => a.id === id))
-      .filter((a): a is Artist => Boolean(a));
-  }, [artists, featuredArtistIds]);
-
-  // Filtered lists
-  const filteredArtists = useMemo(() => {
-    let list = [...artists];
-    if (selectedGenreFilter !== "all") {
-      list = list.filter(a => a.genre === selectedGenreFilter);
-    }
-    if (artistSearch.trim()) {
-      const q = artistSearch.toLowerCase();
-      list = list.filter(
-        a =>
-          a.name.toLowerCase().includes(q) ||
-          (a.stageName && a.stageName.toLowerCase().includes(q)) ||
-          a.city.toLowerCase().includes(q)
-      );
-    }
-    return list;
-  }, [artists, selectedGenreFilter, artistSearch]);
-
-  const filteredArticles = useMemo(() => {
-    let list = [...articles];
-    if (blogSearch.trim()) {
-      const q = blogSearch.toLowerCase();
-      list = list.filter(
-        a =>
-          a.title.toLowerCase().includes(q) ||
-          a.author.name.toLowerCase().includes(q)
-      );
-    }
-    return list;
-  }, [articles, blogSearch]);
+  const currentViewTitle = navSections
+    .flatMap((g) => g.items)
+    .find((i) => i.id === currentView)?.label || "CMS";
 
   return (
-    <div className="min-h-screen bg-[#FDFBFB] text-[#1A1A1A] flex font-body">
-      {/* Toast Feedback */}
-      {toastMessage && (
-        <div className="fixed top-5 right-5 z-50 bg-[#C4952A] text-white px-5 py-2.5 rounded-2xl shadow-xl text-xs font-bold animate-fadeIn flex items-center gap-2">
-          <span>✓</span>
-          <span>{toastMessage}</span>
-        </div>
-      )}
-
-      {/* ── LEFT NAVIGATION SIDEBAR ────────────────────────────────────────── */}
+    <div className="min-h-screen bg-[#F5F0E8] text-[#1A1916] flex font-ui antialiased">
+      {/* ─── SIDEBAR NAVIGATION (Desktop & Tablet) ─── */}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-[#EDE8DF] flex flex-col justify-between transition-transform duration-300 md:translate-x-0 ${
-          mobileSidebarOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full"
+        className={`hidden md:flex flex-col bg-white border-r border-[#EDE8DF] transition-all duration-300 z-30 select-none ${
+          sidebarCollapsed ? "w-20" : "w-64"
         }`}
       >
-        <div className="flex flex-col h-full">
-          {/* Brand Header */}
-          <div className="p-5 border-b border-[#EDE8DF] flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#C4952A] to-[#9333EA] flex items-center justify-center text-white font-bold text-sm shadow-sm">
-                ⚡
-              </div>
-              <div>
-                <h1 className="font-display font-bold text-base text-[#1A1A1A] leading-tight">StageBridge</h1>
-                <span className="text-[10px] font-bold text-[#9A7219] uppercase tracking-wider">
-                  Admin Console
-                </span>
-              </div>
+        {/* Brand Header */}
+        <div className="h-16 border-b border-[#EDE8DF] px-5 flex items-center justify-between">
+          {!sidebarCollapsed && (
+            <div className="cursor-pointer" onClick={() => setCurrentView("dashboard")}>
+              <span
+                className="font-serif text-lg font-medium tracking-[0.06em] text-[#1A1916] block"
+                style={{ fontFamily: "'Cormorant Garamond', serif" }}
+              >
+                MANNAT ARTS
+              </span>
+              <span className="font-ui text-[8px] font-bold text-[#C4952A] tracking-[0.2em] uppercase">
+                CONTENT PLATFORM
+              </span>
             </div>
-
-            <button
-              onClick={() => setMobileSidebarOpen(false)}
-              className="md:hidden text-gray-400 hover:text-gray-700 text-lg"
+          )}
+          {sidebarCollapsed && (
+            <div
+              className="w-9 h-9 rounded-xl bg-[#FAF7F2] border border-[#EDE8DF] flex items-center justify-center font-serif text-sm text-[#C4952A] font-bold mx-auto cursor-pointer"
+              onClick={() => setCurrentView("dashboard")}
             >
-              ✕
-            </button>
-          </div>
-
-          {/* Navigation Links */}
-          <nav className="p-4 space-y-6 flex-1 overflow-y-auto">
-            {/* Artists Section */}
-            <div className="space-y-1">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-[#5B5B5B] px-3 mb-1.5">
-                Artists &amp; Performers
-              </div>
-
-              <button
-                onClick={() => {
-                  setCurrentView("artists-list");
-                  setMobileSidebarOpen(false);
-                }}
-                className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                  currentView === "artists-list"
-                    ? "bg-[#F5F0E8] text-[#9A7219] font-bold border border-[#EDE8DF]"
-                    : "text-[#5B5B5B] hover:bg-gray-50 hover:text-[#1A1A1A]"
-                }`}
-              >
-                <span>🎭</span>
-                <span>Artists Directory</span>
-                <span className="ml-auto text-[10px] bg-gray-100 px-2 py-0.5 rounded-full font-bold">
-                  {artists.length}
-                </span>
-              </button>
-
-              <button
-                onClick={startCreateArtist}
-                className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                  currentView === "artist-form" && !editingArtistId
-                    ? "bg-[#F5F0E8] text-[#9A7219] font-bold border border-[#EDE8DF]"
-                    : "text-[#5B5B5B] hover:bg-gray-50 hover:text-[#1A1A1A]"
-                }`}
-              >
-                <span>➕</span>
-                <span>Add New Artist</span>
-              </button>
-
-              <button
-                onClick={() => {
-                  setCurrentView("top6");
-                  setMobileSidebarOpen(false);
-                }}
-                className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                  currentView === "top6"
-                    ? "bg-[#F5F0E8] text-[#9A7219] font-bold border border-[#EDE8DF]"
-                    : "text-[#5B5B5B] hover:bg-gray-50 hover:text-[#1A1A1A]"
-                }`}
-              >
-                <span>⭐</span>
-                <span>Home Top 6 Performers</span>
-                <span className="ml-auto text-[10px] bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full font-bold">
-                  {featuredArtistIds.length}/6
-                </span>
-              </button>
+              M
             </div>
+          )}
 
-            {/* Genre Banner Pages CMS Section */}
-            <div className="space-y-1">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-[#5B5B5B] px-3 mb-1.5">
-                Genre Banner CMS
+          <button
+            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+            className="w-7 h-7 rounded-lg flex items-center justify-center text-[#7A776F] hover:text-[#1A1916] hover:bg-[#FAF7F2] transition-colors"
+            title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            {sidebarCollapsed ? "→" : "←"}
+          </button>
+        </div>
+
+        {/* Navigation Items (Scrollable) */}
+        <div className="flex-1 overflow-y-auto py-4 px-3 space-y-4">
+          {navSections.map((section, sIdx) => {
+            const allowedItems = section.items.filter((item) => isViewAllowed(item.id as AdminCMSView));
+            if (allowedItems.length === 0) return null;
+
+            return (
+              <div key={sIdx} className="space-y-1">
+                {section.group && !sidebarCollapsed && (
+                  <p className="px-3 text-[10px] font-bold text-[#7A776F] tracking-[0.18em] uppercase mb-1.5">
+                    {section.group}
+                  </p>
+                )}
+                {allowedItems.map((item) => {
+                  const isActive = currentView === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => setCurrentView(item.id as AdminCMSView)}
+                      className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                        isActive
+                          ? "bg-[#1A1916] text-[#FAF7F2] shadow-xs"
+                          : "text-[#4A4845] hover:text-[#1A1916] hover:bg-[#FAF7F2]"
+                      }`}
+                      title={sidebarCollapsed ? item.label : undefined}
+                    >
+                      <span className="shrink-0">{item.icon}</span>
+                      {!sidebarCollapsed && <span>{item.label}</span>}
+                    </button>
+                  );
+                })}
               </div>
+            );
+          })}
+        </div>
 
-              <button
-                onClick={() => {
-                  setCurrentView("genres-list");
-                  setMobileSidebarOpen(false);
-                }}
-                className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                  currentView === "genres-list" || currentView === "genre-form"
-                    ? "bg-[#F5F0E8] text-[#9A7219] font-bold border border-[#EDE8DF]"
-                    : "text-[#5B5B5B] hover:bg-gray-50 hover:text-[#1A1A1A]"
-                }`}
-              >
-                <span>🎨</span>
-                <span>Genre Banner Pages</span>
-                <span className="ml-auto text-[10px] bg-rose-100 text-[#9A7219] px-2 py-0.5 rounded-full font-bold">
-                  6 Genres
-                </span>
-              </button>
-            </div>
-
-            {/* Editorial Stories Section */}
-            <div className="space-y-1">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-[#5B5B5B] px-3 mb-1.5">
-                Editorial CMS
-              </div>
-
-              <button
-                onClick={() => {
-                  setCurrentView("blogs-list");
-                  setMobileSidebarOpen(false);
-                }}
-                className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                  currentView === "blogs-list"
-                    ? "bg-[#F5F0E8] text-[#9A7219] font-bold border border-[#EDE8DF]"
-                    : "text-[#5B5B5B] hover:bg-gray-50 hover:text-[#1A1A1A]"
-                }`}
-              >
-                <span>📝</span>
-                <span>Journal Stories</span>
-                <span className="ml-auto text-[10px] bg-gray-100 px-2 py-0.5 rounded-full font-bold">
-                  {articles.length}
-                </span>
-              </button>
-
-              <button
-                onClick={startCreateStory}
-                className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                  currentView === "blog-form" && !editingArticleId
-                    ? "bg-[#F5F0E8] text-[#9A7219] font-bold border border-[#EDE8DF]"
-                    : "text-[#5B5B5B] hover:bg-gray-50 hover:text-[#1A1A1A]"
-                }`}
-              >
-                <span>➕</span>
-                <span>Write New Story</span>
-              </button>
-            </div>
-
-            {/* Operations Section */}
-            <div className="space-y-1">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-[#5B5B5B] px-3 mb-1.5">
-                Operations
-              </div>
-
-              <button
-                onClick={() => {
-                  setCurrentView("bookings");
-                  setMobileSidebarOpen(false);
-                }}
-                className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                  currentView === "bookings"
-                    ? "bg-[#F5F0E8] text-[#9A7219] font-bold border border-[#EDE8DF]"
-                    : "text-[#5B5B5B] hover:bg-gray-50 hover:text-[#1A1A1A]"
-                }`}
-              >
-                <span>🎪</span>
-                <span>Booking Leads</span>
-                <span className="ml-auto text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold">
-                  {bookingInquiries.length}
-                </span>
-              </button>
-
-              <button
-                onClick={() => {
-                  setCurrentView("settings");
-                  setMobileSidebarOpen(false);
-                }}
-                className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                  currentView === "settings"
-                    ? "bg-[#F5F0E8] text-[#9A7219] font-bold border border-[#EDE8DF]"
-                    : "text-[#5B5B5B] hover:bg-gray-50 hover:text-[#1A1A1A]"
-                }`}
-              >
-                <span>⚙️</span>
-                <span>Settings &amp; Reset</span>
-              </button>
-            </div>
-          </nav>
-
-          {/* Footer Actions */}
-          <div className="p-4 border-t border-[#EDE8DF] space-y-2">
-            <button
-              onClick={onExitToClient}
-              className="w-full py-2.5 rounded-xl text-xs font-semibold bg-gray-50 hover:bg-[#F5F0E8] text-[#1A1A1A] hover:text-[#9A7219] border border-[#EDE8DF] transition-colors cursor-pointer flex items-center justify-center gap-1.5"
-            >
-              <span>👁️</span>
-              <span>View Live Website</span>
-            </button>
-
-            <button
-              onClick={onLogout}
-              className="w-full py-2.5 rounded-xl text-xs font-semibold bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 transition-colors cursor-pointer flex items-center justify-center gap-1.5"
-            >
-              <span>🚪</span>
-              <span>Logout</span>
-            </button>
-          </div>
+        {/* Bottom Actions */}
+        <div className="p-3 border-t border-[#EDE8DF] space-y-1 bg-[#FAF7F2]/50">
+          <button
+            onClick={() => setIsPreviewModalOpen(true)}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-[#4A4845] hover:text-[#1A1916] hover:bg-white transition-all cursor-pointer"
+            title="Preview Website (Responsive Simulator)"
+          >
+            <Icon path={["M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"]} />
+            {!sidebarCollapsed && <span>Preview Website</span>}
+          </button>
+          <button
+            onClick={onExitToClient}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-[#4A4845] hover:text-[#1A1916] hover:bg-white transition-all cursor-pointer"
+            title="View Live Website"
+          >
+            <Icon path="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            {!sidebarCollapsed && <span>View Live Website</span>}
+          </button>
+          <button
+            onClick={onLogout}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-red-600 hover:bg-red-50 transition-all cursor-pointer"
+            title="Logout"
+          >
+            <Icon path={["M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"]} />
+            {!sidebarCollapsed && <span>Logout</span>}
+          </button>
         </div>
       </aside>
 
-      {/* Backdrop for mobile */}
-      {mobileSidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/40 z-30 md:hidden"
-          onClick={() => setMobileSidebarOpen(false)}
-        />
-      )}
-
-      {/* ── RIGHT MAIN CONTENT AREA ────────────────────────────────────────── */}
-      <main className="flex-1 md:ml-64 p-4 sm:p-8 min-h-screen overflow-y-auto">
-        {/* Mobile Header Bar */}
-        <div className="md:hidden flex items-center justify-between bg-white p-4 rounded-2xl border border-[#EDE8DF] mb-6 shadow-xs">
-          <button
-            onClick={() => setMobileSidebarOpen(true)}
-            className="text-xs font-bold bg-[#F5F0E8] text-[#9A7219] px-3.5 py-2 rounded-xl flex items-center gap-1.5"
-          >
-            <span>☰</span>
-            <span>Admin Menu</span>
-          </button>
-
-          <span className="font-display font-bold text-sm text-[#1A1A1A]">StageBridge Console</span>
-
-          <button
-            onClick={onExitToClient}
-            className="text-xs font-semibold text-[#5B5B5B] hover:text-[#1A1A1A]"
-          >
-            Live Site →
-          </button>
-        </div>
-
-        {/* ═══════════════════════════════════════════════════════════════════ */}
-        {/* VIEW 1: ARTISTS DIRECTORY TABLE */}
-        {/* ═══════════════════════════════════════════════════════════════════ */}
-        {currentView === "artists-list" && (
-          <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      {/* ─── MOBILE DRAWER (Slide-out navigation) ─── */}
+      {mobileDrawerOpen && (
+        <div className="fixed inset-0 z-50 md:hidden flex">
+          <div
+            className="fixed inset-0 bg-black/50 backdrop-blur-xs"
+            onClick={() => setMobileDrawerOpen(false)}
+          />
+          <div className="relative w-72 bg-white h-full flex flex-col z-10 shadow-2xl">
+            <div className="h-16 px-5 border-b border-[#EDE8DF] flex items-center justify-between">
               <div>
-                <h2 className="font-display font-bold text-2xl text-[#1A1A1A]">
-                  Artists &amp; Performers Directory
-                </h2>
-                <p className="text-xs text-[#5B5B5B] mt-0.5">
-                  Manage profiles, pricing rate cards, instruments, setlists, and Home Top 6 spotlight.
-                </p>
-              </div>
-
-              <button
-                onClick={startCreateArtist}
-                className="px-4 py-2.5 rounded-xl bg-[#C4952A] hover:bg-[#9A7219] text-white text-xs font-bold shadow-sm hover:shadow transition-all cursor-pointer flex items-center gap-1.5"
-              >
-                <span>➕</span>
-                <span>Add New Performer</span>
-              </button>
-            </div>
-
-            {/* Filter Bar */}
-            <div className="bg-white p-4 rounded-2xl border border-[#EDE8DF] shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
-              <div className="flex items-center gap-2 w-full sm:w-auto">
-                <input
-                  type="text"
-                  placeholder="Search artist name, city..."
-                  value={artistSearch}
-                  onChange={e => setArtistSearch(e.target.value)}
-                  className="text-xs bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3.5 py-2 text-[#1A1A1A] w-full sm:w-64 focus:outline-none"
-                />
-
-                <select
-                  value={selectedGenreFilter}
-                  onChange={e => setSelectedGenreFilter(e.target.value)}
-                  className="text-xs bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3 py-2 text-[#1A1A1A] cursor-pointer"
-                >
-                  <option value="all">All Genres</option>
-                  <option value="sufi">Sufi</option>
-                  <option value="rock">Rock</option>
-                  <option value="gazal">Ghazal</option>
-                  <option value="bollywood">Bollywood</option>
-                  <option value="carnival">Carnival</option>
-                  <option value="devotional">Devotional</option>
-                </select>
-              </div>
-
-              <div className="text-xs text-[#5B5B5B] font-medium">
-                Showing {filteredArtists.length} of {artists.length} performers
-              </div>
-            </div>
-
-            {/* Clean Data Table */}
-            <div className="bg-white border border-[#EDE8DF] rounded-2xl overflow-hidden shadow-xs">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-[#FAF7F2] text-[#5B5B5B] uppercase text-[10px] border-b border-[#EDE8DF]">
-                  <tr>
-                    <th className="py-3.5 px-4">Performer</th>
-                    <th className="py-3.5 px-4">Genre</th>
-                    <th className="py-3.5 px-4">Location</th>
-                    <th className="py-3.5 px-4">Starting Fee</th>
-                    <th className="py-3.5 px-4 text-center">Home Top 6</th>
-                    <th className="py-3.5 px-4 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#EDE8DF]">
-                  {filteredArtists.map(artist => {
-                    const isTopPerformer = featuredArtistIds.includes(artist.id);
-
-                    return (
-                      <tr key={artist.id} className="hover:bg-[#FAF7F2] transition-colors">
-                        <td className="py-3.5 px-4">
-                          <div className="flex items-center gap-3">
-                            <img
-                              src={artist.img}
-                              alt={artist.name}
-                              className="w-10 h-10 rounded-xl object-cover border border-[#EDE8DF]"
-                            />
-                            <div>
-                              <div className="font-display font-bold text-sm text-[#1A1A1A]">
-                                {artist.name}
-                              </div>
-                              <div className="text-[10px] text-[#5B5B5B]">
-                                {artist.bandType} • ★ {artist.rating} ({artist.reviewsCount} reviews)
-                              </div>
-                            </div>
-                          </div>
-                        </td>
-
-                        <td className="py-3.5 px-4">
-                          <span
-                            className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold text-white shadow-2xs"
-                            style={{ backgroundColor: artist.themeColor }}
-                          >
-                            {artist.genreTitle}
-                          </span>
-                        </td>
-
-                        <td className="py-3.5 px-4 text-[#5B5B5B]">
-                          {artist.city}, {artist.state}
-                        </td>
-
-                        <td className="py-3.5 px-4 font-display font-bold text-sm text-[#9A7219]">
-                          {artist.price}
-                        </td>
-
-                        <td className="py-3.5 px-4 text-center">
-                          <button
-                            onClick={() => handleToggleTopPerformer(artist.id)}
-                            className={`px-3 py-1 rounded-full text-[11px] font-bold transition-all cursor-pointer border ${
-                              isTopPerformer
-                                ? "bg-amber-100 text-amber-900 border-amber-300 shadow-xs"
-                                : "bg-gray-100 text-gray-500 border-gray-200 hover:bg-amber-50 hover:text-amber-800"
-                            }`}
-                            title={isTopPerformer ? "Featured on Home Top 6" : "Click to feature on Home Top 6"}
-                          >
-                            {isTopPerformer ? "⭐ Featured" : "+ Set Top 6"}
-                          </button>
-                        </td>
-
-                        <td className="py-3.5 px-4 text-right">
-                          <div className="flex items-center justify-end gap-1.5">
-                            <button
-                              onClick={() => startEditArtist(artist)}
-                              className="px-3 py-1 rounded-lg bg-[#F5F0E8] hover:bg-[#C4952A] text-[#9A7219] hover:text-white font-bold transition-colors cursor-pointer border border-[#EDE8DF]"
-                            >
-                              Edit
-                            </button>
-
-                            <button
-                              onClick={() => {
-                                if (window.confirm(`Delete performer ${artist.name}?`)) {
-                                  onDeleteArtist(artist.id);
-                                  showToast(`Deleted ${artist.name}`);
-                                }
-                              }}
-                              className="px-2.5 py-1 rounded-lg bg-red-50 hover:bg-red-600 text-red-600 hover:text-white border border-red-200 transition-colors cursor-pointer"
-                            >
-                              🗑️
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {/* ═══════════════════════════════════════════════════════════════════ */}
-        {/* VIEW 2: IN-PAGE ARTIST EDITOR FORM (NO TILES / NO POPUP MODAL) */}
-        {/* ═══════════════════════════════════════════════════════════════════ */}
-        {currentView === "artist-form" && (
-          <div className="space-y-6 max-w-4xl mx-auto">
-            {/* Header with Back button */}
-            <div className="flex items-center justify-between border-b border-[#EDE8DF] pb-4">
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => setCurrentView("artists-list")}
-                  className="w-8 h-8 rounded-full bg-gray-100 hover:bg-[#F5F0E8] text-[#5B5B5B] hover:text-[#9A7219] flex items-center justify-center font-bold text-sm transition-colors cursor-pointer"
-                >
-                  ←
-                </button>
-                <div>
-                  <h2 className="font-display font-bold text-2xl text-[#1A1A1A]">
-                    {editingArtistId ? `Edit Performer: ${artistFormData.name}` : "Add New Performer"}
-                  </h2>
-                  <p className="text-xs text-[#5B5B5B]">
-                    Complete all details, rates, audio samples, and technical riders.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setCurrentView("artists-list")}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold text-[#5B5B5B] hover:bg-gray-100 cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={handleSaveArtist}
-                  className="px-5 py-2 rounded-xl bg-[#C4952A] hover:bg-[#9A7219] text-white text-xs font-bold shadow-sm transition-colors cursor-pointer"
-                >
-                  Save Performer
-                </button>
-              </div>
-            </div>
-
-            {/* In-Page Form Body */}
-            <form onSubmit={handleSaveArtist} className="space-y-6">
-              {/* Section 1: Basic Identity */}
-              <div className="bg-white p-6 rounded-3xl border border-[#EDE8DF] shadow-xs space-y-4">
-                <h3 className="font-display font-bold text-sm text-[#9A7219] uppercase tracking-wider">
-                  1. Basic Identity &amp; Genre
-                </h3>
-
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-[#3A3A3A] mb-1">
-                      Performer / Troupe Name *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="e.g. Zakir Khan & Sufi Souls"
-                      value={artistFormData.name || ""}
-                      onChange={e => setArtistFormData(p => ({ ...p, name: e.target.value }))}
-                      className="w-full text-xs bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3.5 py-2.5 text-[#1A1A1A] focus:outline-none focus:ring-2 focus:ring-[#C4952A]/30 font-medium"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-[#3A3A3A] mb-1">
-                      Stage Moniker (Optional)
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. The Soul Qawwal"
-                      value={artistFormData.stageName || ""}
-                      onChange={e => setArtistFormData(p => ({ ...p, stageName: e.target.value }))}
-                      className="w-full text-xs bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3.5 py-2.5 text-[#1A1A1A]"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-[#3A3A3A] mb-1">
-                      Primary Genre
-                    </label>
-                    <select
-                      value={artistFormData.genre || "sufi"}
-                      onChange={e => {
-                        const g = e.target.value as any;
-                        const meta = GENRE_METADATA[g];
-                        setArtistFormData(p => ({
-                          ...p,
-                          genre: g,
-                          genreTitle: meta ? meta.title : g.toUpperCase(),
-                          themeColor: "#9A7219",
-                        }));
-                      }}
-                      className="w-full text-xs bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3.5 py-2.5 text-[#1A1A1A] cursor-pointer"
-                    >
-                      {GENRE_OPTIONS.map(g => (
-                        <option key={g} value={g}>
-                          {g.toUpperCase()}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-[#3A3A3A] mb-1">
-                      Ensemble Format
-                    </label>
-                    <select
-                      value={artistFormData.bandType || "4-6 Piece Band"}
-                      onChange={e => setArtistFormData(p => ({ ...p, bandType: e.target.value as any }))}
-                      className="w-full text-xs bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3.5 py-2.5 text-[#1A1A1A] cursor-pointer"
-                    >
-                      {BAND_TYPES.map(b => (
-                        <option key={b} value={b}>
-                          {b}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-[#3A3A3A] mb-1">
-                    Headline Tagline
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Contemporary & Traditional Qawwali Ensemble"
-                    value={artistFormData.tagline || ""}
-                    onChange={e => setArtistFormData(p => ({ ...p, tagline: e.target.value }))}
-                    className="w-full text-xs bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3.5 py-2.5 text-[#1A1A1A]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-[#3A3A3A] mb-1">
-                    Biography / Story
-                  </label>
-                  <textarea
-                    rows={3}
-                    placeholder="Describe artist history, prestigious concerts performed..."
-                    value={artistFormData.bio || ""}
-                    onChange={e => setArtistFormData(p => ({ ...p, bio: e.target.value }))}
-                    className="w-full text-xs bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3.5 py-2.5 text-[#1A1A1A]"
-                  />
-                </div>
-              </div>
-
-              {/* Section 2: Photography & Rates */}
-              <div className="bg-white p-6 rounded-3xl border border-[#EDE8DF] shadow-xs space-y-4">
-                <h3 className="font-display font-bold text-sm text-[#9A7219] uppercase tracking-wider">
-                  2. Photography, Location &amp; Rates
-                </h3>
-
-                <div className="grid sm:grid-cols-3 gap-5 items-start">
-                  <div className="sm:col-span-2 space-y-4">
-                    {/* Photo Uploader */}
-                    <div>
-                      <div className="flex items-center justify-between mb-1.5">
-                        <label className="text-xs font-semibold text-[#3A3A3A]">
-                          Performer Photo *
-                        </label>
-                        <div className="flex items-center gap-1 bg-[#FAF7F2] border border-[#EDE8DF] p-0.5 rounded-lg text-[10px]">
-                          <button
-                            type="button"
-                            onClick={() => setArtistImageSourceMode("upload")}
-                            className={`px-2 py-0.5 rounded font-semibold cursor-pointer transition-colors ${
-                              artistImageSourceMode === "upload"
-                                ? "bg-[#C4952A] text-white"
-                                : "text-[#5B5B5B]"
-                            }`}
-                          >
-                            📁 Upload File
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setArtistImageSourceMode("url")}
-                            className={`px-2 py-0.5 rounded font-semibold cursor-pointer transition-colors ${
-                              artistImageSourceMode === "url"
-                                ? "bg-[#C4952A] text-white"
-                                : "text-[#5B5B5B]"
-                            }`}
-                          >
-                            🔗 Web URL
-                          </button>
-                        </div>
-                      </div>
-
-                      {artistImageSourceMode === "upload" ? (
-                        <div className="relative border-2 border-dashed border-[#E5D5D8] hover:border-[#C4952A] rounded-2xl p-5 bg-[#FFFDFD] text-center cursor-pointer transition-colors group">
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleArtistImageFileUpload}
-                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                          />
-                          <div className="space-y-1">
-                            <div className="text-2xl group-hover:scale-110 transition-transform inline-block">📸</div>
-                            <div className="text-xs font-semibold text-[#1A1A1A]">
-                              Click or Drag photo from computer to upload
-                            </div>
-                            <div className="text-[10px] text-[#5B5B5B]">
-                              Supports PNG, JPG, WEBP formats
-                            </div>
-                          </div>
-                        </div>
-                      ) : (
-                        <input
-                          type="url"
-                          placeholder="https://images.unsplash.com/..."
-                          value={artistFormData.img || ""}
-                          onChange={e => setArtistFormData(p => ({ ...p, img: e.target.value }))}
-                          className="w-full text-xs bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3.5 py-2.5 text-[#1A1A1A]"
-                        />
-                      )}
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-xs font-semibold text-[#3A3A3A] mb-1">Base City</label>
-                        <input
-                          type="text"
-                          placeholder="e.g. Mumbai"
-                          value={artistFormData.city || ""}
-                          onChange={e => setArtistFormData(p => ({ ...p, city: e.target.value }))}
-                          className="w-full text-xs bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3.5 py-2.5 text-[#1A1A1A]"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-semibold text-[#3A3A3A] mb-1">State</label>
-                        <input
-                          type="text"
-                          placeholder="e.g. Maharashtra"
-                          value={artistFormData.state || ""}
-                          onChange={e => setArtistFormData(p => ({ ...p, state: e.target.value }))}
-                          className="w-full text-xs bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3.5 py-2.5 text-[#1A1A1A]"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-xs font-semibold text-[#3A3A3A] mb-1">Starting Booking Fee (₹)</label>
-                        <input
-                          type="text"
-                          placeholder="e.g. 50000"
-                          value={artistFormData.priceNum ? String(artistFormData.priceNum) : ""}
-                          onChange={e => {
-                            const num = parseInt(e.target.value.replace(/[^0-9]/g, ""), 10) || 0;
-                            const formatted = num > 0 ? `₹${num.toLocaleString("en-IN")}` : "₹0";
-                            setArtistFormData(p => ({ ...p, price: formatted, priceNum: num }));
-                          }}
-                          className="w-full text-xs bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3.5 py-2.5 text-[#1A1A1A]"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-semibold text-[#3A3A3A] mb-1">Duration</label>
-                        <input
-                          type="text"
-                          placeholder="e.g. 90–120 mins"
-                          value={artistFormData.performanceDuration || ""}
-                          onChange={e => setArtistFormData(p => ({ ...p, performanceDuration: e.target.value }))}
-                          className="w-full text-xs bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3.5 py-2.5 text-[#1A1A1A]"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Live Photo Preview */}
-                  <div className="text-center">
-                    <span className="block text-[11px] font-semibold text-[#5B5B5B] mb-1">Live Photo Preview</span>
-                    <div className="w-full h-44 rounded-2xl overflow-hidden bg-gray-100 border border-[#EDE8DF] shadow-inner relative group">
-                      {artistFormData.img ? (
-                        <>
-                          <img
-                            src={artistFormData.img}
-                            alt="Artist Preview"
-                            className="w-full h-full object-cover"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setArtistFormData(p => ({ ...p, img: "" }))}
-                            className="absolute top-2 right-2 bg-black/70 hover:bg-red-600 text-white rounded-full w-6 h-6 text-xs flex items-center justify-center cursor-pointer transition-colors"
-                            title="Remove Photo"
-                          >
-                            ✕
-                          </button>
-                        </>
-                      ) : (
-                        <div className="w-full h-full flex flex-col items-center justify-center text-xs text-gray-400 p-2">
-                          <span>No Image Uploaded</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Section 3: Repertoire, Setlist & Tech Rider */}
-              <div className="bg-white p-6 rounded-3xl border border-[#EDE8DF] shadow-xs space-y-4">
-                <h3 className="font-display font-bold text-sm text-[#9A7219] uppercase tracking-wider">
-                  3. Instruments, Setlist &amp; Stage Rider
-                </h3>
-
-                <div>
-                  <label className="block text-xs font-semibold text-[#3A3A3A] mb-1">
-                    Primary Instruments (Comma-separated)
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Harmonium, Tabla, Dholak, Vocals"
-                    value={artistInstrumentsInput}
-                    onChange={e => setArtistInstrumentsInput(e.target.value)}
-                    className="w-full text-xs bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3.5 py-2.5 text-[#1A1A1A]"
-                  />
-                </div>
-
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-[#3A3A3A] mb-1">
-                      Sample Setlist (One track per line)
-                    </label>
-                    <textarea
-                      rows={4}
-                      placeholder="Dama Dam Mast Qalandar&#10;Kun Faya Kun&#10;Afreen Afreen"
-                      value={artistSetlistInput}
-                      onChange={e => setArtistSetlistInput(e.target.value)}
-                      className="w-full text-xs bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3.5 py-2.5 text-[#1A1A1A]"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-[#3A3A3A] mb-1">
-                      Technical Rider (One requirement per line)
-                    </label>
-                    <textarea
-                      rows={4}
-                      placeholder="4 Vocal Mics with boom stands&#10;2 DI Boxes&#10;Stage wedge monitors"
-                      value={artistTechRiderInput}
-                      onChange={e => setArtistTechRiderInput(e.target.value)}
-                      className="w-full text-xs bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3.5 py-2.5 text-[#1A1A1A]"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Section 4: Choose Acts & Performance Styles */}
-              <div className="bg-white p-6 rounded-3xl border border-[#EDE8DF] shadow-xs space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-display font-bold text-sm text-[#9A7219] uppercase tracking-wider">
-                      4. Choose Acts &amp; Performance Styles
-                    </h3>
-                    <p className="text-xs text-[#5B5B5B] mt-0.5">
-                      Configure the multi-genre acts and styles this artist performs (displayed on performer cards and profiles).
-                    </p>
-                  </div>
-                  <span className="text-xs font-bold bg-[#F5F0E8] text-[#9A7219] px-3 py-1 rounded-full border border-[#EDE8DF]">
-                    {(artistFormData.whatElseTheyDo || []).length} Active Acts
-                  </span>
-                </div>
-
-                {/* Quick Presets */}
-                <div>
-                  <label className="block text-xs font-semibold text-[#3A3A3A] mb-1.5">
-                    Quick Add Act Presets:
-                  </label>
-                  <div className="flex flex-wrap gap-2">
-                    {[
-                      { cat: "Gazal Mehfils", desc: "Intimate late-night acoustic baithaks" },
-                      { cat: "Bollywood Acoustic", desc: "Unplugged 90s & modern medleys" },
-                      { cat: "Sufi Fusion", desc: "Mystic trance and acoustic qawwalis" },
-                      { cat: "Wedding Sangeet Entry", desc: "Grand celebration entry performance" },
-                      { cat: "Retro 80s & 90s", desc: "Classic nostalgic Hindi favorites" },
-                      { cat: "Cocktail Unplugged", desc: "Mellow acoustic melodies for VIP soirees" },
-                      { cat: "Indie Rock Anthems", desc: "High-octane stadium-style festival set" },
-                      { cat: "Devotional Kirtan", desc: "Soulful morning bhajans & divine chants" },
-                    ].map(preset => (
-                      <button
-                        key={preset.cat}
-                        type="button"
-                        onClick={() => handleAddAct(preset.cat, preset.desc)}
-                        className="text-xs bg-[#FAF7F2] hover:bg-[#F5F0E8] text-[#9A7219] border border-[#EDE8DF] hover:border-[#9A7219]/40 px-3 py-1.5 rounded-xl font-medium transition-colors cursor-pointer flex items-center gap-1"
-                      >
-                        <span>+</span>
-                        <span>{preset.cat}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Current Acts List */}
-                <div className="space-y-3 pt-2">
-                  {(artistFormData.whatElseTheyDo || []).length === 0 ? (
-                    <div className="p-4 bg-gray-50 rounded-2xl text-center text-xs text-gray-500 border border-dashed border-gray-200">
-                      No additional acts configured yet. Add acts above or use custom input below.
-                    </div>
-                  ) : (
-                    (artistFormData.whatElseTheyDo || []).map((act, idx) => (
-                      <div
-                        key={idx}
-                        className="p-3.5 bg-[#FFFDFD] border border-[#EDE8DF] rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 group hover:border-[#C4952A]/30 transition-colors"
-                      >
-                        <div className="flex-1 grid sm:grid-cols-2 gap-3 w-full">
-                          <div>
-                            <label className="block text-[10px] font-semibold text-[#5B5B5B] mb-0.5 uppercase">
-                              Act Title / Category
-                            </label>
-                            <input
-                              type="text"
-                              value={act.category}
-                              onChange={e => {
-                                const newActs = [...(artistFormData.whatElseTheyDo || [])];
-                                newActs[idx] = { ...newActs[idx], category: e.target.value };
-                                setArtistFormData(p => ({ ...p, whatElseTheyDo: newActs }));
-                              }}
-                              className="w-full text-xs bg-white border border-[#EDE8DF] rounded-lg px-3 py-1.5 text-[#1A1A1A] font-semibold"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-[10px] font-semibold text-[#5B5B5B] mb-0.5 uppercase">
-                              Act Description
-                            </label>
-                            <input
-                              type="text"
-                              value={act.description}
-                              onChange={e => {
-                                const newActs = [...(artistFormData.whatElseTheyDo || [])];
-                                newActs[idx] = { ...newActs[idx], description: e.target.value };
-                                setArtistFormData(p => ({ ...p, whatElseTheyDo: newActs }));
-                              }}
-                              className="w-full text-xs bg-white border border-[#EDE8DF] rounded-lg px-3 py-1.5 text-[#1A1A1A]"
-                            />
-                          </div>
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveAct(idx)}
-                          className="text-gray-400 hover:text-red-600 p-2 rounded-lg hover:bg-red-50 text-xs transition-colors cursor-pointer flex-shrink-0"
-                          title="Remove Act"
-                        >
-                          ✕ Remove
-                        </button>
-                      </div>
-                    ))
-                  )}
-                </div>
-
-                {/* Custom Act Creator */}
-                <div className="p-4 bg-[#FAF7F2] border border-[#EDE8DF] rounded-2xl space-y-3">
-                  <div className="text-xs font-semibold text-[#1A1A1A]">
-                    Add Custom Act / Performance Style:
-                  </div>
-                  <div className="grid sm:grid-cols-2 gap-3">
-                    <input
-                      type="text"
-                      placeholder="Act Name (e.g. Unplugged Ghazals)"
-                      value={newActCategory}
-                      onChange={e => setNewActCategory(e.target.value)}
-                      className="text-xs bg-white border border-[#EDE8DF] rounded-xl px-3.5 py-2 text-[#1A1A1A]"
-                    />
-                    <input
-                      type="text"
-                      placeholder="Short Description (e.g. 60-min baithak with harmonium)"
-                      value={newActDescription}
-                      onChange={e => setNewActDescription(e.target.value)}
-                      className="text-xs bg-white border border-[#EDE8DF] rounded-xl px-3.5 py-2 text-[#1A1A1A]"
-                    />
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => handleAddAct(newActCategory, newActDescription)}
-                    className="px-4 py-2 bg-[#1A1A1A] hover:bg-black text-white text-xs font-semibold rounded-xl transition-colors cursor-pointer"
-                  >
-                    + Add Act to Profile
-                  </button>
-                </div>
-              </div>
-
-              {/* Form Bottom Save Actions */}
-              <div className="flex items-center justify-end gap-3 pt-4">
-                <button
-                  type="button"
-                  onClick={() => setCurrentView("artists-list")}
-                  className="px-5 py-2.5 rounded-xl text-xs font-semibold text-[#5B5B5B] hover:bg-gray-100 cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-6 py-2.5 rounded-xl bg-[#C4952A] hover:bg-[#9A7219] text-white text-xs font-bold shadow-md hover:shadow-lg transition-all cursor-pointer"
-                >
-                  Save Performer Profile
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
-
-        {/* ═══════════════════════════════════════════════════════════════════ */}
-        {/* VIEW: GENRE BANNER PAGES CMS LIST */}
-        {/* ═══════════════════════════════════════════════════════════════════ */}
-        {currentView === "genres-list" && (
-          <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div>
-                <h2 className="font-display font-bold text-2xl text-[#1A1A1A]">
-                  Genre Banner Pages CMS
-                </h2>
-                <p className="text-xs text-[#5B5B5B] mt-0.5">
-                  Manage headline banner imagery, titles, descriptions, and popular event occasions for each dedicated genre page.
-                </p>
-              </div>
-            </div>
-
-            {/* Grid of 6 Genres */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {GENRE_OPTIONS.map(genreId => {
-                const genre = (genres && genres[genreId]) || GENRE_METADATA[genreId];
-                if (!genre) return null;
-                return (
-                  <div
-                    key={genre.id}
-                    className="bg-white rounded-3xl border border-[#EDE8DF] overflow-hidden shadow-xs hover:shadow-lg transition-all flex flex-col justify-between group"
-                  >
-                    <div>
-                      {/* Hero Banner Preview */}
-                      <div className="relative h-44 overflow-hidden bg-gray-900">
-                        <img
-                          src={genre.heroImg}
-                          alt={genre.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-                        <div className="absolute top-3 left-3 bg-[#C4952A] text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm">
-                          {genre.tag}
-                        </div>
-                        <div className="absolute bottom-3 left-3.5 right-3.5 text-white">
-                          <div className="font-display font-bold text-xl drop-shadow">
-                            {genre.title}
-                          </div>
-                          <div className="text-[11px] text-white/80 line-clamp-1">
-                            {genre.avgPriceRange}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Content Details */}
-                      <div className="p-5 space-y-3">
-                        <p className="text-xs text-[#5B5B5B] leading-relaxed line-clamp-2">
-                          {genre.description}
-                        </p>
-
-                        <div className="space-y-1.5">
-                          <div className="text-[10px] font-bold text-[#9A7219] uppercase tracking-wider">
-                            Popular Event Occasions:
-                          </div>
-                          <div className="flex flex-wrap gap-1">
-                            {genre.popularOccasions.map((occ, i) => (
-                              <span
-                                key={i}
-                                className="text-[10px] bg-[#FAF7F2] text-[#4A4A4A] px-2 py-0.5 rounded-lg border border-[#EDE8DF]"
-                              >
-                                {occ}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Card Actions */}
-                    <div className="p-5 pt-0">
-                      <button
-                        onClick={() => startEditGenre(genre.id)}
-                        className="w-full py-2.5 bg-[#F5F0E8] hover:bg-[#C4952A] text-[#9A7219] hover:text-white border border-[#EDE8DF] hover:border-[#C4952A] rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5"
-                      >
-                        <span>✏️ Edit Banner &amp; Content</span>
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* ═══════════════════════════════════════════════════════════════════ */}
-        {/* VIEW: EDIT GENRE BANNER FORM */}
-        {/* ═══════════════════════════════════════════════════════════════════ */}
-        {currentView === "genre-form" && (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between border-b border-[#EDE8DF] pb-4">
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => setCurrentView("genres-list")}
-                  className="w-8 h-8 rounded-full bg-gray-100 hover:bg-[#F5F0E8] text-[#5B5B5B] hover:text-[#9A7219] flex items-center justify-center font-bold text-sm transition-colors cursor-pointer"
-                >
-                  ←
-                </button>
-                <div>
-                  <h2 className="font-display font-bold text-2xl text-[#1A1A1A]">
-                    Edit Banner Page: {genreFormData.title}
-                  </h2>
-                  <p className="text-xs text-[#5B5B5B]">
-                    Update banner hero photo, headline typography, long description, and event tags.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setCurrentView("genres-list")}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold text-[#5B5B5B] hover:bg-gray-100 cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={handleSaveGenre}
-                  className="px-5 py-2 rounded-xl bg-[#C4952A] hover:bg-[#9A7219] text-white text-xs font-bold shadow-sm transition-colors cursor-pointer"
-                >
-                  Save Banner Changes
-                </button>
-              </div>
-            </div>
-
-            <form onSubmit={handleSaveGenre} className="space-y-6">
-              {/* Section 1: Hero Banner Image */}
-              <div className="bg-white p-6 rounded-3xl border border-[#EDE8DF] shadow-xs space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-display font-bold text-sm text-[#9A7219] uppercase tracking-wider">
-                    1. Banner Hero Imagery
-                  </h3>
-                  <div className="flex items-center gap-1 bg-[#FAF7F2] border border-[#EDE8DF] p-0.5 rounded-lg text-[10px]">
-                    <button
-                      type="button"
-                      onClick={() => setGenreImageSourceMode("upload")}
-                      className={`px-2 py-0.5 rounded font-semibold cursor-pointer transition-colors ${
-                        genreImageSourceMode === "upload" ? "bg-[#C4952A] text-white" : "text-[#5B5B5B]"
-                      }`}
-                    >
-                      📁 Upload File
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setGenreImageSourceMode("url")}
-                      className={`px-2 py-0.5 rounded font-semibold cursor-pointer transition-colors ${
-                        genreImageSourceMode === "url" ? "bg-[#C4952A] text-white" : "text-[#5B5B5B]"
-                      }`}
-                    >
-                      🔗 Web URL
-                    </button>
-                  </div>
-                </div>
-
-                <div className="grid md:grid-cols-12 gap-6 items-center">
-                  <div className="md:col-span-7 space-y-3">
-                    {genreImageSourceMode === "upload" ? (
-                      <div className="relative border-2 border-dashed border-[#E5D5D8] hover:border-[#C4952A] rounded-2xl p-6 bg-[#FFFDFD] text-center cursor-pointer transition-colors group">
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={handleGenreImageFileUpload}
-                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                        />
-                        <div className="space-y-1">
-                          <div className="text-3xl group-hover:scale-110 transition-transform inline-block">🖼️</div>
-                          <div className="text-xs font-semibold text-[#1A1A1A]">
-                            Click or Drag new banner image to upload
-                          </div>
-                          <div className="text-[10px] text-[#5B5B5B]">
-                            High-resolution PNG, JPG, or WEBP recommended (1920x1080)
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      <div>
-                        <label className="block text-xs font-semibold text-[#3A3A3A] mb-1">
-                          Image Web URL
-                        </label>
-                        <input
-                          type="url"
-                          placeholder="https://images.unsplash.com/..."
-                          value={genreFormData.heroImg || ""}
-                          onChange={e => setGenreFormData(p => ({ ...p, heroImg: e.target.value }))}
-                          className="w-full text-xs bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3.5 py-2.5 text-[#1A1A1A]"
-                        />
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Live Wide Banner Preview */}
-                  <div className="md:col-span-5">
-                    <span className="block text-[11px] font-semibold text-[#5B5B5B] mb-1">
-                      Live Banner Hero Preview:
-                    </span>
-                    <div className="relative h-44 rounded-2xl overflow-hidden bg-black/80 border border-[#EDE8DF] shadow-md">
-                      {genreFormData.heroImg ? (
-                        <img
-                          src={genreFormData.heroImg}
-                          alt="Banner Preview"
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-xs text-gray-400">
-                          No banner image
-                        </div>
-                      )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                      <div className="absolute bottom-2.5 left-3 text-white">
-                        <div className="font-display font-bold text-base drop-shadow">
-                          {genreFormData.title}
-                        </div>
-                        <div className="text-[10px] text-white/80">
-                          {genreFormData.tag}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Section 2: Banner Copywriting & Content */}
-              <div className="bg-white p-6 rounded-3xl border border-[#EDE8DF] shadow-xs space-y-4">
-                <h3 className="font-display font-bold text-sm text-[#9A7219] uppercase tracking-wider">
-                  2. Banner Titles &amp; Narrative Story
-                </h3>
-
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-[#3A3A3A] mb-1">
-                      Genre Banner Title *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={genreFormData.title || ""}
-                      onChange={e => setGenreFormData(p => ({ ...p, title: e.target.value }))}
-                      className="w-full text-xs bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3.5 py-2.5 text-[#1A1A1A] font-semibold"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-[#3A3A3A] mb-1">
-                      Sub-Tagline *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={genreFormData.tag || ""}
-                      onChange={e => setGenreFormData(p => ({ ...p, tag: e.target.value }))}
-                      className="w-full text-xs bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3.5 py-2.5 text-[#1A1A1A]"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-[#3A3A3A] mb-1">
-                    Short Summary (Catalogue &amp; Preview Cards)
-                  </label>
-                  <input
-                    type="text"
-                    value={genreFormData.description || ""}
-                    onChange={e => setGenreFormData(p => ({ ...p, description: e.target.value }))}
-                    className="w-full text-xs bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3.5 py-2.5 text-[#1A1A1A]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-[#3A3A3A] mb-1">
-                    Long Banner Hero Story (Primary Headline Paragraph on Genre Page)
-                  </label>
-                  <textarea
-                    rows={4}
-                    value={genreFormData.longDescription || ""}
-                    onChange={e => setGenreFormData(p => ({ ...p, longDescription: e.target.value }))}
-                    className="w-full text-xs bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3.5 py-2.5 text-[#1A1A1A] leading-relaxed"
-                  />
-                </div>
-              </div>
-
-              {/* Section 3: Commercial & Occasions */}
-              <div className="bg-white p-6 rounded-3xl border border-[#EDE8DF] shadow-xs space-y-4">
-                <h3 className="font-display font-bold text-sm text-[#9A7219] uppercase tracking-wider">
-                  3. Rates &amp; Occasions
-                </h3>
-
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-[#3A3A3A] mb-1">
-                      Average Price Range Display
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. ₹35,000 – ₹2,50,000"
-                      value={genreFormData.avgPriceRange || ""}
-                      onChange={e => setGenreFormData(p => ({ ...p, avgPriceRange: e.target.value }))}
-                      className="w-full text-xs bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3.5 py-2.5 text-[#1A1A1A]"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-[#3A3A3A] mb-1">
-                      Popular Occasions (Comma-separated)
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Sufi Nights, Wedding Sangeet, Corporate Galas"
-                      value={genreOccasionsInput}
-                      onChange={e => setGenreOccasionsInput(e.target.value)}
-                      className="w-full text-xs bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3.5 py-2.5 text-[#1A1A1A]"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Form Bottom Save Actions */}
-              <div className="flex items-center justify-end gap-3 pt-4">
-                <button
-                  type="button"
-                  onClick={() => setCurrentView("genres-list")}
-                  className="px-5 py-2.5 rounded-xl text-xs font-semibold text-[#5B5B5B] hover:bg-gray-100 cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-6 py-2.5 rounded-xl bg-[#C4952A] hover:bg-[#9A7219] text-white text-xs font-bold shadow-md hover:shadow-lg transition-all cursor-pointer"
-                >
-                  Save Genre Banner Content
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
-
-        {/* ═══════════════════════════════════════════════════════════════════ */}
-        {/* VIEW 3: TOP 6 HOMEPAGE PERFORMERS MANAGER */}
-        {/* ═══════════════════════════════════════════════════════════════════ */}
-        {currentView === "top6" && (
-          <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div>
-                <h2 className="font-display font-bold text-2xl text-[#1A1A1A]">
-                  Home Top 6 Performers Showcase
-                </h2>
-                <p className="text-xs text-[#5B5B5B] mt-0.5">
-                  Pick the exact 6 artists that will appear in the &ldquo;Featured Performers&rdquo; section on the main website.
-                </p>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-[#9A7219] bg-[#F5F0E8] px-3.5 py-1.5 rounded-full border border-[#EDE8DF]">
-                  {featuredArtistIds.length} of 6 selected
+                <span className="font-serif text-lg font-medium text-[#1A1916]">MANNAT ARTS</span>
+                <span className="font-ui text-[8px] font-bold text-[#C4952A] block tracking-wider">
+                  CMS PORTAL
                 </span>
-                <button
-                  onClick={handleAutoPickTop6}
-                  className="text-xs font-bold bg-[#C4952A] hover:bg-[#9A7219] text-white px-4 py-2 rounded-full transition-colors cursor-pointer shadow-xs"
-                >
-                  ⚡ Auto-Pick Top 6 by Rating
-                </button>
               </div>
-            </div>
-
-            {/* Currently Live Slots */}
-            <div className="space-y-3">
-              <h3 className="font-display font-bold text-sm text-[#1A1A1A] uppercase tracking-wider">
-                Currently Live on Homepage (Slots 1 to {homeFeaturedArtists.length}):
-              </h3>
-
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {homeFeaturedArtists.map((artist, idx) => (
-                  <div
-                    key={artist.id}
-                    className="bg-white rounded-2xl p-4 border-2 border-amber-300 shadow-xs flex items-center justify-between gap-3 relative group"
-                  >
-                    <span className="absolute -top-2.5 -left-2.5 bg-amber-400 text-black text-[10px] font-black w-6 h-6 rounded-full flex items-center justify-center shadow-md">
-                      #{idx + 1}
-                    </span>
-
-                    <div className="flex items-center gap-3">
-                      <img
-                        src={artist.img}
-                        alt={artist.name}
-                        className="w-12 h-12 rounded-xl object-cover border border-[#EDE8DF]"
-                      />
-                      <div>
-                        <h4 className="font-display font-bold text-sm text-[#1A1A1A] line-clamp-1">
-                          {artist.name}
-                        </h4>
-                        <div className="text-[11px] text-[#9A7219] font-semibold">
-                          {artist.genreTitle} • {artist.price}
-                        </div>
-                        <div className="text-[10px] text-[#5B5B5B]">
-                          ★ {artist.rating} ({artist.city})
-                        </div>
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={() => handleToggleTopPerformer(artist.id)}
-                      className="text-xs text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 p-2 rounded-xl border border-red-200 transition-colors cursor-pointer"
-                      title="Remove from Top 6"
-                    >
-                      ✕ Remove
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Available to Add */}
-            <div className="space-y-3 pt-4 border-t border-[#EDE8DF]">
-              <h3 className="font-display font-bold text-sm text-[#5B5B5B] uppercase tracking-wider">
-                Available Artists (Click to Add to Top 6):
-              </h3>
-
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {artists
-                  .filter(a => !featuredArtistIds.includes(a.id))
-                  .map(artist => (
-                    <div
-                      key={artist.id}
-                      className="bg-white rounded-2xl p-3 border border-[#EDE8DF] flex items-center justify-between gap-3 hover:border-[#C4952A]/40 transition-colors"
-                    >
-                      <div className="flex items-center gap-2.5">
-                        <img
-                          src={artist.img}
-                          alt={artist.name}
-                          className="w-9 h-9 rounded-lg object-cover"
-                        />
-                        <div>
-                          <div className="font-bold text-xs text-[#1A1A1A] line-clamp-1">
-                            {artist.name}
-                          </div>
-                          <div className="text-[10px] text-[#5B5B5B]">
-                            {artist.genreTitle} • {artist.price}
-                          </div>
-                        </div>
-                      </div>
-
-                      <button
-                        onClick={() => handleToggleTopPerformer(artist.id)}
-                        disabled={featuredArtistIds.length >= 6}
-                        className="text-xs font-bold bg-[#F5F0E8] hover:bg-[#C4952A] text-[#9A7219] hover:text-white px-3 py-1.5 rounded-xl border border-[#EDE8DF] transition-colors cursor-pointer disabled:opacity-40"
-                      >
-                        + Add to Top 6
-                      </button>
-                    </div>
-                  ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ═══════════════════════════════════════════════════════════════════ */}
-        {/* VIEW 4: JOURNAL & BLOG STORIES LIST */}
-        {/* ═══════════════════════════════════════════════════════════════════ */}
-        {currentView === "blogs-list" && (
-          <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div>
-                <h2 className="font-display font-bold text-2xl text-[#1A1A1A]">
-                  Journal &amp; Guides CMS
-                </h2>
-                <p className="text-xs text-[#5B5B5B] mt-0.5">
-                  Publish event planning masterclasses, soundcheck checklists, and backstage guides.
-                </p>
-              </div>
-
               <button
-                onClick={startCreateStory}
-                className="px-4 py-2.5 rounded-xl bg-[#C4952A] hover:bg-[#9A7219] text-white text-xs font-bold shadow-sm hover:shadow transition-all cursor-pointer flex items-center gap-1.5"
+                onClick={() => setMobileDrawerOpen(false)}
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-[#7A776F]"
               >
-                <span>➕</span>
-                <span>Write New Story</span>
+                ✕
               </button>
             </div>
 
-            {/* Search */}
-            <div className="bg-white p-4 rounded-2xl border border-[#EDE8DF] shadow-xs flex items-center justify-between">
-              <input
-                type="text"
-                placeholder="Search stories by headline or author..."
-                value={blogSearch}
-                onChange={e => setBlogSearch(e.target.value)}
-                className="text-xs bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3.5 py-2 text-[#1A1A1A] w-full sm:w-80 focus:outline-none"
-              />
-              <div className="text-xs text-[#5B5B5B] font-medium hidden sm:block">
-                {filteredArticles.length} published stories
-              </div>
-            </div>
-
-            {/* Stories Grid */}
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {filteredArticles.map(art => (
-                <div
-                  key={art.id}
-                  className="bg-white rounded-3xl p-5 border border-[#EDE8DF] shadow-xs flex flex-col justify-between space-y-4 hover:shadow-md transition-shadow"
-                >
-                  <div className="space-y-3">
-                    <div className="relative h-40 rounded-2xl overflow-hidden bg-gray-100">
-                      <img
-                        src={art.coverImg}
-                        alt={art.title}
-                        className="w-full h-full object-cover"
-                      />
-                      <span
-                        className="absolute top-2.5 left-2.5 text-[10px] font-bold text-white px-2.5 py-0.5 rounded-full shadow-md"
-                        style={{ backgroundColor: art.categoryColor }}
-                      >
-                        {art.category}
-                      </span>
-                    </div>
-
-                    <h3 className="font-display font-bold text-base text-[#1A1A1A] line-clamp-2 leading-snug">
-                      {art.title}
-                    </h3>
-                    <p className="text-xs text-[#5B5B5B] line-clamp-2 leading-relaxed">
-                      {art.summary}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              {navSections.map((section, idx) => (
+                <div key={idx} className="space-y-1">
+                  {section.group && (
+                    <p className="px-3 text-[10px] font-bold text-[#7A776F] tracking-wider uppercase mb-1">
+                      {section.group}
                     </p>
-                  </div>
-
-                  <div className="pt-3 border-t border-[#EDE8DF] flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <img
-                        src={art.author.avatar}
-                        alt={art.author.name}
-                        className="w-6 h-6 rounded-full object-cover"
-                      />
-                      <span className="text-[11px] font-semibold text-[#1A1A1A]">
-                        {art.author.name}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-1.5">
-                      <button
-                        onClick={() => startEditStory(art)}
-                        className="px-3 py-1 rounded-lg bg-[#F5F0E8] hover:bg-[#C4952A] text-[#9A7219] hover:text-white text-xs font-bold transition-colors cursor-pointer"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => {
-                          if (window.confirm(`Delete "${art.title}"?`)) {
-                            onDeleteArticle(art.id);
-                            showToast(`Deleted ${art.title}`);
-                          }
-                        }}
-                        className="px-2 py-1 rounded-lg bg-red-50 hover:bg-red-600 text-red-600 hover:text-white text-xs transition-colors cursor-pointer"
-                      >
-                        🗑️
-                      </button>
-                    </div>
-                  </div>
+                  )}
+                  {section.items.map((item) => (
+                    <button
+                      key={item.id}
+                      onClick={() => {
+                        setCurrentView(item.id as AdminCMSView);
+                        setMobileDrawerOpen(false);
+                      }}
+                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-left ${
+                        currentView === item.id
+                          ? "bg-[#1A1916] text-[#FAF7F2]"
+                          : "text-[#4A4845] hover:bg-[#FAF7F2]"
+                      }`}
+                    >
+                      <span className="shrink-0">{item.icon}</span>
+                      <span>{item.label}</span>
+                    </button>
+                  ))}
                 </div>
               ))}
             </div>
-          </div>
-        )}
 
-        {/* ═══════════════════════════════════════════════════════════════════ */}
-        {/* VIEW 5: IN-PAGE STORY EDITOR FORM (NO TILES / NO POPUP MODAL) */}
-        {/* ═══════════════════════════════════════════════════════════════════ */}
-        {currentView === "blog-form" && (
-          <div className="space-y-6 max-w-4xl mx-auto">
-            {/* Header with Back button */}
-            <div className="flex items-center justify-between border-b border-[#EDE8DF] pb-4">
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => setCurrentView("blogs-list")}
-                  className="w-8 h-8 rounded-full bg-gray-100 hover:bg-[#F5F0E8] text-[#5B5B5B] hover:text-[#9A7219] flex items-center justify-center font-bold text-sm transition-colors cursor-pointer"
-                >
-                  ←
-                </button>
-                <div>
-                  <h2 className="font-display font-bold text-2xl text-[#1A1A1A]">
-                    {editingArticleId ? `Edit Story: ${blogTitle}` : "Write New Journal Guide"}
-                  </h2>
-                  <p className="text-xs text-[#5B5B5B]">
-                    Compose tactical event planning masterclasses and checklists.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setCurrentView("blogs-list")}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold text-[#5B5B5B] hover:bg-gray-100 cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={handleSaveStory}
-                  className="px-5 py-2 rounded-xl bg-[#C4952A] hover:bg-[#9A7219] text-white text-xs font-bold shadow-sm transition-colors cursor-pointer"
-                >
-                  Publish Story
-                </button>
-              </div>
-            </div>
-
-            {/* In-Page Form Body */}
-            <form onSubmit={handleSaveStory} className="space-y-6">
-              {/* Section 1: Title & Category */}
-              <div className="bg-white p-6 rounded-3xl border border-[#EDE8DF] shadow-xs space-y-4">
-                <h3 className="font-display font-bold text-sm text-[#9A7219] uppercase tracking-wider">
-                  1. Title &amp; Publishing Info
-                </h3>
-
-                <div>
-                  <label className="block text-xs font-semibold text-[#3A3A3A] mb-1">
-                    Article Headline *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. How to Sequence Live Music for a 500-Guest Wedding"
-                    value={blogTitle}
-                    onChange={e => setBlogTitle(e.target.value)}
-                    className="w-full text-xs bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3.5 py-2.5 text-[#1A1A1A] font-medium"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-[#3A3A3A] mb-1">
-                    Subtitle / Deck
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. A comprehensive guide on acoustic flow and DJ handoffs..."
-                    value={blogSubtitle}
-                    onChange={e => setBlogSubtitle(e.target.value)}
-                    className="w-full text-xs bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3.5 py-2.5 text-[#1A1A1A]"
-                  />
-                </div>
-
-                <div className="grid sm:grid-cols-4 gap-3">
-                  <div>
-                    <label className="block text-xs font-semibold text-[#3A3A3A] mb-1">Category</label>
-                    <select
-                      value={blogCategory}
-                      onChange={e => {
-                        const val = e.target.value;
-                        const match = BLOG_CATEGORY_OPTIONS.find(c => c.id === val);
-                        setBlogCategory(val);
-                        if (match) setBlogCategoryColor(match.color);
-                      }}
-                      className="w-full text-xs bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3 py-2 text-[#1A1A1A] cursor-pointer"
-                    >
-                      {BLOG_CATEGORY_OPTIONS.map(c => (
-                        <option key={c.id} value={c.id}>
-                          {c.id}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-[#3A3A3A] mb-1">Read Time</label>
-                    <input
-                      type="text"
-                      value={blogReadTime}
-                      onChange={e => setBlogReadTime(e.target.value)}
-                      className="w-full text-xs bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3 py-2 text-[#1A1A1A]"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-[#3A3A3A] mb-1">Publish Date</label>
-                    <input
-                      type="text"
-                      value={blogPublishedDate}
-                      onChange={e => setBlogPublishedDate(e.target.value)}
-                      className="w-full text-xs bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3 py-2 text-[#1A1A1A]"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-[#3A3A3A] mb-1">Featured Spotlight</label>
-                    <label className="flex items-center gap-2 mt-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={blogFeatured}
-                        onChange={e => setBlogFeatured(e.target.checked)}
-                        className="rounded text-[#C4952A]"
-                      />
-                      <span className="text-xs font-medium text-[#1A1A1A]">Spotlight Hero</span>
-                    </label>
-                  </div>
-                </div>
-              </div>
-
-              {/* Section 2: Media & Author */}
-              <div className="bg-white p-6 rounded-3xl border border-[#EDE8DF] shadow-xs space-y-4">
-                <h3 className="font-display font-bold text-sm text-[#9A7219] uppercase tracking-wider">
-                  2. Cover Photo &amp; Author Credentials
-                </h3>
-
-                <div className="grid sm:grid-cols-3 gap-5 items-start">
-                  <div className="sm:col-span-2 space-y-4">
-                    {/* Cover Uploader */}
-                    <div>
-                      <div className="flex items-center justify-between mb-1.5">
-                        <label className="text-xs font-semibold text-[#3A3A3A]">Cover Photo *</label>
-                        <div className="flex items-center gap-1 bg-[#FAF7F2] border border-[#EDE8DF] p-0.5 rounded-lg text-[10px]">
-                          <button
-                            type="button"
-                            onClick={() => setBlogCoverMode("upload")}
-                            className={`px-2 py-0.5 rounded font-semibold cursor-pointer ${
-                              blogCoverMode === "upload" ? "bg-[#C4952A] text-white" : "text-[#5B5B5B]"
-                            }`}
-                          >
-                            📁 Upload File
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setBlogCoverMode("url")}
-                            className={`px-2 py-0.5 rounded font-semibold cursor-pointer ${
-                              blogCoverMode === "url" ? "bg-[#C4952A] text-white" : "text-[#5B5B5B]"
-                            }`}
-                          >
-                            🔗 Web URL
-                          </button>
-                        </div>
-                      </div>
-
-                      {blogCoverMode === "upload" ? (
-                        <div className="relative border-2 border-dashed border-[#E5D5D8] hover:border-[#C4952A] rounded-2xl p-5 bg-[#FFFDFD] text-center cursor-pointer transition-colors group">
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleBlogCoverUpload}
-                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                          />
-                          <div className="space-y-1">
-                            <div className="text-2xl group-hover:scale-110 transition-transform inline-block">🖼️</div>
-                            <div className="text-xs font-semibold text-[#1A1A1A]">
-                              Click or Drag cover image to upload
-                            </div>
-                            <div className="text-[10px] text-[#5B5B5B]">
-                              PNG, JPG, WEBP (Landscape recommended)
-                            </div>
-                          </div>
-                        </div>
-                      ) : (
-                        <input
-                          type="url"
-                          placeholder="https://images.unsplash.com/..."
-                          value={blogCoverImg}
-                          onChange={e => setBlogCoverImg(e.target.value)}
-                          className="w-full text-xs bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3.5 py-2 text-[#1A1A1A]"
-                        />
-                      )}
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-xs font-semibold text-[#3A3A3A] mb-1">Author Name</label>
-                        <input
-                          type="text"
-                          value={blogAuthorName}
-                          onChange={e => setBlogAuthorName(e.target.value)}
-                          className="w-full text-xs bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3.5 py-2 text-[#1A1A1A]"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-semibold text-[#3A3A3A] mb-1">Author Role</label>
-                        <input
-                          type="text"
-                          value={blogAuthorRole}
-                          onChange={e => setBlogAuthorRole(e.target.value)}
-                          className="w-full text-xs bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3.5 py-2 text-[#1A1A1A]"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Author Avatar */}
-                    <div>
-                      <label className="block text-xs font-semibold text-[#3A3A3A] mb-1">Author Avatar</label>
-                      <div className="flex items-center gap-3 bg-[#FAF7F2] p-2.5 border border-[#EDE8DF] rounded-xl">
-                        <img
-                          src={blogAuthorAvatar}
-                          alt="Avatar"
-                          className="w-8 h-8 rounded-full object-cover border border-[#EDE8DF]"
-                        />
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={handleBlogAvatarUpload}
-                          className="text-xs text-[#5B5B5B] file:mr-2 file:py-1 file:px-2.5 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-[#F5F0E8] file:text-[#9A7219] cursor-pointer"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Live Cover Preview */}
-                  <div className="text-center">
-                    <span className="block text-[11px] font-semibold text-[#5B5B5B] mb-1">Cover Preview</span>
-                    <div className="w-full h-44 rounded-2xl overflow-hidden bg-gray-100 border border-[#EDE8DF] shadow-inner relative">
-                      {blogCoverImg ? (
-                        <img
-                          src={blogCoverImg}
-                          alt="Cover Preview"
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-xs text-gray-400">
-                          No Image
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-[#3A3A3A] mb-1">Executive Summary</label>
-                  <textarea
-                    rows={2}
-                    value={blogSummary}
-                    onChange={e => setBlogSummary(e.target.value)}
-                    placeholder="Brief 2-sentence takeaway..."
-                    className="w-full text-xs bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3.5 py-2 text-[#1A1A1A]"
-                  />
-                </div>
-              </div>
-
-              {/* Form Bottom Save Actions */}
-              <div className="flex items-center justify-end gap-3 pt-4">
-                <button
-                  type="button"
-                  onClick={() => setCurrentView("blogs-list")}
-                  className="px-5 py-2.5 rounded-xl text-xs font-semibold text-[#5B5B5B] hover:bg-gray-100 cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-6 py-2.5 rounded-xl bg-[#C4952A] hover:bg-[#9A7219] text-white text-xs font-bold shadow-md hover:shadow-lg transition-all cursor-pointer"
-                >
-                  Publish Story
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
-
-        {/* ═══════════════════════════════════════════════════════════════════ */}
-        {/* VIEW 6: BOOKING LEADS TABLE */}
-        {/* ═══════════════════════════════════════════════════════════════════ */}
-        {currentView === "bookings" && (
-          <div className="space-y-6">
-            <div>
-              <h2 className="font-display font-bold text-2xl text-[#1A1A1A]">
-                Client Booking Leads &amp; Requests
-              </h2>
-              <p className="text-xs text-[#5B5B5B] mt-0.5">
-                Review high-intent client inquiries and confirm artist bookings.
-              </p>
-            </div>
-
-            <div className="bg-white border border-[#EDE8DF] rounded-2xl overflow-hidden shadow-xs">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-[#FAF7F2] text-[#5B5B5B] uppercase text-[10px] border-b border-[#EDE8DF]">
-                  <tr>
-                    <th className="py-3.5 px-4">Client</th>
-                    <th className="py-3.5 px-4">Performer</th>
-                    <th className="py-3.5 px-4">Occasion &amp; City</th>
-                    <th className="py-3.5 px-4">Event Date</th>
-                    <th className="py-3.5 px-4">Budget</th>
-                    <th className="py-3.5 px-4">Status</th>
-                    <th className="py-3.5 px-4 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#EDE8DF]">
-                  {bookingInquiries.map(inq => (
-                    <tr key={inq.id} className="hover:bg-[#FAF7F2]">
-                      <td className="py-3.5 px-4">
-                        <div className="font-bold text-[#1A1A1A]">{inq.clientName}</div>
-                        <div className="text-[10px] text-[#5B5B5B]">{inq.clientPhone} • {inq.clientEmail}</div>
-                      </td>
-
-                      <td className="py-3.5 px-4 font-bold text-[#9A7219]">
-                        {inq.artistName}
-                      </td>
-
-                      <td className="py-3.5 px-4 text-[#5B5B5B]">
-                        {inq.eventType} ({inq.city})
-                      </td>
-
-                      <td className="py-3.5 px-4 text-[#5B5B5B]">
-                        {inq.eventDate}
-                      </td>
-
-                      <td className="py-3.5 px-4 font-display font-bold text-emerald-700">
-                        {inq.budget}
-                      </td>
-
-                      <td className="py-3.5 px-4">
-                        <span
-                          className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                            inq.status === "Confirmed"
-                              ? "bg-emerald-100 text-emerald-800"
-                              : inq.status === "Pending"
-                              ? "bg-amber-100 text-amber-800"
-                              : "bg-gray-100 text-gray-700"
-                          }`}
-                        >
-                          {inq.status}
-                        </span>
-                      </td>
-
-                      <td className="py-3.5 px-4 text-right">
-                        {inq.status === "Pending" && (
-                          <button
-                            onClick={() => {
-                              onUpdateInquiryStatus(inq.id, "Confirmed");
-                              showToast(`Confirmed booking for ${inq.clientName}`);
-                            }}
-                            className="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold cursor-pointer transition-colors"
-                          >
-                            Confirm Booking
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {/* ═══════════════════════════════════════════════════════════════════ */}
-        {/* VIEW 7: SYSTEM SETTINGS & FACTORY RESET */}
-        {/* ═══════════════════════════════════════════════════════════════════ */}
-        {currentView === "settings" && (
-          <div className="space-y-6 max-w-3xl">
-            <div>
-              <h2 className="font-display font-bold text-2xl text-[#1A1A1A]">
-                Platform Settings &amp; Data Maintenance
-              </h2>
-              <p className="text-xs text-[#5B5B5B] mt-0.5">
-                Manage local storage backups, demo credentials, and factory reset.
-              </p>
-            </div>
-
-            <div className="bg-white p-6 rounded-3xl border border-[#EDE8DF] shadow-xs space-y-4">
-              <h3 className="font-display font-bold text-sm text-[#1A1A1A] uppercase tracking-wider">
-                Active System Metrics
-              </h3>
-              <div className="grid grid-cols-3 gap-4 text-center">
-                <div className="bg-[#FAF7F2] p-4 rounded-2xl border border-[#EDE8DF]">
-                  <div className="font-display font-bold text-xl text-[#9A7219]">{artists.length}</div>
-                  <div className="text-[10px] text-[#5B5B5B] uppercase font-bold mt-0.5">Total Artists</div>
-                </div>
-                <div className="bg-[#FAF7F2] p-4 rounded-2xl border border-[#EDE8DF]">
-                  <div className="font-display font-bold text-xl text-[#9A7219]">{articles.length}</div>
-                  <div className="text-[10px] text-[#5B5B5B] uppercase font-bold mt-0.5">Journal Guides</div>
-                </div>
-                <div className="bg-[#FAF7F2] p-4 rounded-2xl border border-[#EDE8DF]">
-                  <div className="font-display font-bold text-xl text-[#9A7219]">{bookingInquiries.length}</div>
-                  <div className="text-[10px] text-[#5B5B5B] uppercase font-bold mt-0.5">Inquiries</div>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-3xl border border-[#EDE8DF] shadow-xs flex items-center justify-between">
-              <div>
-                <h3 className="font-display font-bold text-sm text-red-600">
-                  Restore Factory Defaults
-                </h3>
-                <p className="text-xs text-[#5B5B5B] max-w-md">
-                  Wipe custom additions and restore original artists, blog articles, and Top 6 showcase.
-                </p>
-              </div>
-
+            <div className="p-4 border-t border-[#EDE8DF] space-y-2">
               <button
                 onClick={() => {
-                  if (window.confirm("Reset all platform data to initial state?")) {
-                    onResetToDefaults();
-                    showToast("Platform data restored to defaults.");
-                  }
+                  setIsPreviewModalOpen(true);
+                  setMobileDrawerOpen(false);
                 }}
-                className="px-4 py-2.5 rounded-xl bg-red-50 hover:bg-red-600 text-red-600 hover:text-white border border-red-200 text-xs font-bold transition-colors cursor-pointer"
+                className="w-full flex items-center justify-center gap-2 text-xs font-semibold py-2 bg-[#FAF7F2] rounded-xl text-center"
               >
-                Reset Everything
+                <Icon path={["M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"]} />
+                <span>Preview Website</span>
+              </button>
+              <button
+                onClick={onExitToClient}
+                className="w-full flex items-center justify-center gap-2 text-xs font-semibold py-2 bg-[#FAF7F2] rounded-xl text-center"
+              >
+                <Icon path="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                <span>View Live Website</span>
+              </button>
+              <button
+                onClick={onLogout}
+                className="w-full flex items-center justify-center gap-2 text-xs font-semibold py-2 text-red-600 rounded-xl text-center"
+              >
+                <Icon path={["M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"]} />
+                <span>Logout</span>
               </button>
             </div>
           </div>
-        )}
-      </main>
+        </div>
+      )}
+
+      {/* ─── MAIN CONTENT AREA ─── */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        {/* Top Header Bar */}
+        <header className="h-16 bg-white border-b border-[#EDE8DF] px-6 flex items-center justify-between z-20">
+          <div className="flex items-center gap-4">
+            {/* Mobile Hamburger */}
+            <button
+              onClick={() => setMobileDrawerOpen(true)}
+              className="md:hidden w-8 h-8 rounded-lg border border-[#EDE8DF] flex items-center justify-center text-sm"
+              aria-label="Open menu"
+            >
+              ☰
+            </button>
+
+            <div className="flex items-center gap-3">
+              <h1 className="font-serif text-xl font-medium text-[#1A1916] hidden sm:block">
+                {currentViewTitle}
+              </h1>
+
+              {/* Live Status indicator */}
+              <div className="hidden lg:flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-semibold">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span>Website Live</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Header Actions */}
+          <div className="flex items-center gap-3">
+            {/* Global Search Trigger */}
+            <button
+              onClick={() => setIsSearchOpen(true)}
+              className="flex items-center gap-2 bg-[#FAF7F2] hover:bg-[#EDE8DF]/60 border border-[#EDE8DF] px-3.5 py-1.5 rounded-full text-xs font-ui text-[#7A776F] transition-all cursor-pointer"
+            >
+              <Icon path="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              <span className="hidden sm:inline">Search CMS...</span>
+              <kbd className="hidden sm:inline text-[10px] bg-white px-1.5 py-0.5 rounded border border-[#EDE8DF]">
+                ⌘K
+              </kbd>
+            </button>
+
+            {/* Quick Preview Button */}
+            <button
+              onClick={() => setIsPreviewModalOpen(true)}
+              className="hidden sm:flex items-center gap-1.5 text-xs font-semibold px-4 py-2 rounded-full border border-[#EDE8DF] hover:border-[#C4952A] text-[#1A1916] bg-white transition-all cursor-pointer"
+            >
+              <Icon path={["M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"]} />
+              <span>Preview</span>
+            </button>
+
+            {/* Publish Changes Button */}
+            <button
+              onClick={handlePublishAllChanges}
+              className="text-xs font-semibold px-5 py-2 rounded-full bg-[#1A1916] hover:bg-[#2E2C28] text-[#FAF7F2] shadow-sm hover:shadow-md transition-all cursor-pointer flex items-center gap-1.5"
+            >
+              <span>✓</span> Publish to Live
+            </button>
+
+            {/* User Profile Avatar */}
+            <div className="w-8 h-8 rounded-full bg-[#FAF7F2] border border-[#C4952A]/40 flex items-center justify-center font-serif text-xs text-[#C4952A] font-bold">
+              MS
+            </div>
+          </div>
+        </header>
+
+        {/* View Content (Scrollable) */}
+        <main className="flex-1 overflow-y-auto p-6 md:p-8">
+          <div className="max-w-6xl mx-auto">
+            {currentView === "dashboard" && (
+              <DashboardView
+                experiences={cmsStore.experiences}
+                artists={cmsStore.artists}
+                genres={cmsStore.genres}
+                occasions={cmsStore.occasions}
+                stories={cmsStore.articles}
+                activityLog={cmsStore.activityLog}
+                lastPublished={cmsStore.settings.lastPublished}
+                isLive={cmsStore.settings.isLive}
+                onNavigate={(v) => setCurrentView(v as AdminCMSView)}
+                onOpenAddExperience={() => setCurrentView("experiences")}
+                onOpenAddArtist={() => setCurrentView("artists")}
+                onOpenAddStory={() => setCurrentView("stories")}
+                onPreviewWebsite={() => setIsPreviewModalOpen(true)}
+                onViewLiveWebsite={onExitToClient}
+              />
+            )}
+
+            {currentView === "homepage" && (
+              <HomepageCMSView
+                homepage={cmsStore.homepage}
+                onUpdateHomepage={onUpdateHomepage}
+                mediaList={cmsStore.media}
+                onUploadMedia={onUploadMedia}
+                onShowToast={addToast}
+                onPreviewWebsite={() => setIsPreviewModalOpen(true)}
+              />
+            )}
+
+            {currentView === "experiences" && (
+              <ExperiencesCMSView
+                experiences={cmsStore.experiences}
+                genres={cmsStore.genres}
+                moods={cmsStore.moods}
+                occasions={cmsStore.occasions}
+                mediaList={cmsStore.media}
+                onUploadMedia={onUploadMedia}
+                onAddExperience={onAddExperience}
+                onUpdateExperience={onUpdateExperience}
+                onDeleteExperience={onDeleteExperience}
+                onShowToast={addToast}
+                onPreviewExperience={() => setIsPreviewModalOpen(true)}
+              />
+            )}
+
+            {currentView === "artists" && (
+              <ArtistsCMSView
+                artists={cmsStore.artists}
+                genres={cmsStore.genres}
+                featuredArtistIds={featuredArtistIds}
+                onSetFeaturedArtistIds={onSetFeaturedArtistIds}
+                onAddArtist={onAddArtist}
+                onUpdateArtist={onUpdateArtist}
+                onDeleteArtist={onDeleteArtist}
+                mediaList={cmsStore.media}
+                onUploadMedia={onUploadMedia}
+                onShowToast={addToast}
+                onPreviewArtist={onPreviewArtist}
+              />
+            )}
+
+            {currentView === "genres" && (
+              <GenresCMSView
+                genres={cmsStore.genres}
+                onUpdateGenre={onUpdateGenre}
+                mediaList={cmsStore.media}
+                onUploadMedia={onUploadMedia}
+                onShowToast={addToast}
+              />
+            )}
+
+            {currentView === "moods" && (
+              <MoodsCMSView
+                moods={cmsStore.moods}
+                genres={cmsStore.genres}
+                onUpdateMoods={onUpdateMoods}
+                mediaList={cmsStore.media}
+                onUploadMedia={onUploadMedia}
+                onShowToast={addToast}
+              />
+            )}
+
+            {currentView === "occasions" && (
+              <OccasionsCMSView
+                occasions={cmsStore.occasions}
+                genres={cmsStore.genres}
+                onUpdateOccasions={onUpdateOccasions}
+                mediaList={cmsStore.media}
+                onUploadMedia={onUploadMedia}
+                onShowToast={addToast}
+              />
+            )}
+
+            {currentView === "stories" && (
+              <StoriesCMSView
+                articles={cmsStore.articles}
+                onAddArticle={onAddArticle}
+                onUpdateArticle={onUpdateArticle}
+                onDeleteArticle={onDeleteArticle}
+                mediaList={cmsStore.media}
+                onUploadMedia={onUploadMedia}
+                onShowToast={addToast}
+                onPreviewArticle={onPreviewArticle}
+              />
+            )}
+
+            {currentView === "testimonials" && (
+              <TestimonialsCMSView
+                testimonials={cmsStore.testimonials}
+                onUpdateTestimonials={onUpdateTestimonials}
+                mediaList={cmsStore.media}
+                onUploadMedia={onUploadMedia}
+                onShowToast={addToast}
+              />
+            )}
+
+            {currentView === "recommendations" && (
+              <RecommendationsView
+                moods={cmsStore.moods}
+                occasions={cmsStore.occasions}
+                genres={cmsStore.genres}
+                experiences={cmsStore.experiences}
+                onShowToast={addToast}
+              />
+            )}
+
+            {currentView === "featured" && (
+              <FeaturedContentView
+                experiences={cmsStore.experiences}
+                onUpdateExperience={onUpdateExperience}
+                artists={cmsStore.artists}
+                featuredArtistIds={featuredArtistIds}
+                onSetFeaturedArtistIds={onSetFeaturedArtistIds}
+                stories={cmsStore.articles}
+                onUpdateStory={onUpdateArticle}
+                genres={cmsStore.genres}
+                onShowToast={addToast}
+              />
+            )}
+
+            {currentView === "media" && (
+              <MediaLibraryView
+                mediaList={cmsStore.media}
+                onUploadMedia={onUploadMedia}
+                onDeleteMedia={onDeleteMedia}
+                onShowToast={addToast}
+              />
+            )}
+
+            {currentView === "navigation" && (
+              <NavigationCMSView
+                navigation={cmsStore.navigation}
+                onUpdateNavigation={onUpdateNavigation}
+                onShowToast={addToast}
+              />
+            )}
+
+            {currentView === "footer" && (
+              <FooterCMSView
+                footer={cmsStore.footer}
+                onUpdateFooter={onUpdateFooter}
+                onShowToast={addToast}
+              />
+            )}
+
+            {currentView === "seo" && (
+              <SEOCMSView
+                seo={cmsStore.seo}
+                onUpdateSEO={onUpdateSEO}
+                mediaList={cmsStore.media}
+                onUploadMedia={onUploadMedia}
+                onShowToast={addToast}
+              />
+            )}
+
+            {currentView === "settings" && (
+              <SettingsCMSView
+                settings={cmsStore.settings}
+                onUpdateSettings={onUpdateSettings}
+                onResetAllToDefaults={onResetAllToDefaults}
+                onShowToast={addToast}
+              />
+            )}
+
+            {currentView === "users" && (
+              <UsersCMSView
+                users={cmsStore.users}
+                currentUserRole={currentUserRole}
+                onChangeCurrentUserRole={setCurrentUserRole}
+                onShowToast={addToast}
+              />
+            )}
+
+            {currentView === "activity" && (
+              <ActivityLogView
+                activityLog={cmsStore.activityLog}
+                onShowToast={addToast}
+              />
+            )}
+          </div>
+        </main>
+      </div>
+
+      {/* ─── MODALS & OVERLAYS ─── */}
+      {/* Global Cmd+K Search */}
+      <GlobalSearchModal
+        isOpen={isSearchOpen}
+        onClose={() => setIsSearchOpen(false)}
+        experiences={cmsStore.experiences}
+        artists={cmsStore.artists}
+        genres={cmsStore.genres}
+        moods={cmsStore.moods}
+        occasions={cmsStore.occasions}
+        stories={cmsStore.articles}
+        onNavigateToView={(view) => setCurrentView(view as AdminCMSView)}
+      />
+
+      {/* Multi-Device Live Preview Simulator */}
+      <WebsitePreviewModal
+        isOpen={isPreviewModalOpen}
+        onClose={() => setIsPreviewModalOpen(false)}
+        onPublishNow={handlePublishAllChanges}
+      />
+
+      {/* Toast Notifications */}
+      <ToastNotification toasts={toasts} onDismiss={removeToast} />
     </div>
   );
 }

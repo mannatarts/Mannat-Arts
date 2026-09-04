@@ -36,6 +36,7 @@ export interface BlogArticle {
   relatedGenreId?: "sufi" | "rock" | "gazal" | "bollywood" | "carnival" | "devotional";
   featuredArtistName?: string;
   featuredArtistTag?: string;
+  status?: "published" | "draft";
 }
 
 export const BLOG_CATEGORIES: Array<{ id: string; label: string; icon: string }> = [

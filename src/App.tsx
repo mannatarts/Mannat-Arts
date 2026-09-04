@@ -8,9 +8,26 @@ import { ArtistDetailModal } from "./components/ArtistDetailModal";
 import { BookingModal } from "./components/BookingModal";
 import { JournalPage } from "./components/JournalPage";
 import { BlogDetailPage } from "./components/BlogDetailPage";
-import { AdminPortal, BookingInquiry } from "./components/admin/AdminPortal";
+import { AdminPortal } from "./components/admin/AdminPortal";
 import { AdminLogin } from "./components/admin/AdminLogin";
-import { ClassicHomePage } from "./components/ClassicHomePage";
+import { loadCMSStore, saveCMSStore, resetCMSStore } from "./data/cmsData";
+import {
+  CMSDataStore,
+  Experience,
+  MoodItem,
+  OccasionItem,
+  TestimonialItem,
+  MediaItem,
+  NavLinkItem,
+  FooterConfig,
+  GlobalSEOConfig,
+  GeneralSettingsConfig,
+  HomepageConfig,
+  HeroConfig,
+  FinalCtaConfig,
+  BookingInquiry,
+} from "./data/cmsTypes";
+
 
 export const INITIAL_BOOKING_INQUIRIES: BookingInquiry[] = [
   {
@@ -74,9 +91,23 @@ interface NavbarProps {
   onScrollToBlog: () => void;
   onOpenAdmin: () => void;
   onPlanEvent: () => void;
+  navLinks?: NavLinkItem[];
+  siteName?: string;
+  logoSubtitle?: string;
 }
 
-function Navbar({ onHome, onBrowseGenres, onScrollToFeatured, onBrowseArtists, onScrollToBlog, onOpenAdmin, onPlanEvent }: NavbarProps) {
+function Navbar({
+  onHome,
+  onBrowseGenres,
+  onScrollToFeatured,
+  onBrowseArtists,
+  onScrollToBlog,
+  onOpenAdmin,
+  onPlanEvent,
+  navLinks,
+  siteName = "MANNAT ARTS",
+  logoSubtitle = "CULTURAL EXPERIENCES",
+}: NavbarProps) {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -87,6 +118,26 @@ function Navbar({ onHome, onBrowseGenres, onScrollToFeatured, onBrowseArtists, o
   }, []);
 
   const navLinkClass = "font-ui text-[13px] font-medium text-[#4A4845] hover:text-[#1A1916] transition-colors duration-200 cursor-pointer tracking-wide";
+
+  const resolveTargetAction = (target: string) => {
+    switch (target) {
+      case "experiences":
+      case "genres":
+        return onBrowseGenres;
+      case "artists":
+        return onBrowseArtists;
+      case "occasions":
+        return onScrollToFeatured;
+      case "stories":
+        return onScrollToBlog;
+      case "about":
+      case "home":
+      default:
+        return onHome;
+    }
+  };
+
+  const dynamicLinks = navLinks && navLinks.length > 0 ? navLinks.filter(l => l.isVisible) : null;
 
   return (
     <nav
@@ -103,28 +154,42 @@ function Navbar({ onHome, onBrowseGenres, onScrollToFeatured, onBrowseArtists, o
         {/* Logo */}
         <button
           onClick={() => { onHome(); setOpen(false); }}
-          className="flex flex-col leading-none cursor-pointer group select-none"
+          className="flex flex-col leading-none cursor-pointer group select-none text-left"
           aria-label="Mannat Arts Home"
         >
           <span
-            className="font-serif text-[22px] font-light tracking-[0.06em] text-[#1A1916] group-hover:text-[#C4952A] transition-colors duration-300"
+            className="font-serif text-[22px] font-light tracking-[0.06em] text-[#1A1916] group-hover:text-[#C4952A] transition-colors duration-300 uppercase"
             style={{ fontFamily: "'Cormorant Garamond', serif", letterSpacing: "0.08em" }}
           >
-            MANNAT ARTS
+            {siteName}
           </span>
-          <span className="label-editorial text-[#C4952A] tracking-[0.22em]" style={{ fontSize: "7px" }}>
-            CULTURAL EXPERIENCES
+          <span className="label-editorial text-[#C4952A] tracking-[0.22em] uppercase" style={{ fontSize: "7px" }}>
+            {logoSubtitle}
           </span>
         </button>
 
         {/* Desktop Links */}
         <div className="hidden md:flex items-center gap-7">
-          <button onClick={onBrowseGenres} className={navLinkClass}>Experiences</button>
-          <button onClick={onBrowseGenres} className={navLinkClass}>Genres</button>
-          <button onClick={onBrowseArtists} className={navLinkClass}>Artists</button>
-          <button onClick={onScrollToFeatured} className={navLinkClass}>Occasions</button>
-          <button onClick={onScrollToBlog} className={navLinkClass}>Stories</button>
-          <button onClick={onHome} className={navLinkClass}>About</button>
+          {dynamicLinks ? (
+            dynamicLinks.map(l => (
+              <button
+                key={l.id}
+                onClick={resolveTargetAction(l.target)}
+                className={navLinkClass}
+              >
+                {l.label}
+              </button>
+            ))
+          ) : (
+            <>
+              <button onClick={onBrowseGenres} className={navLinkClass}>Experiences</button>
+              <button onClick={onBrowseGenres} className={navLinkClass}>Genres</button>
+              <button onClick={onBrowseArtists} className={navLinkClass}>Artists</button>
+              <button onClick={onScrollToFeatured} className={navLinkClass}>Occasions</button>
+              <button onClick={onScrollToBlog} className={navLinkClass}>Stories</button>
+              <button onClick={onHome} className={navLinkClass}>About</button>
+            </>
+          )}
         </div>
 
         {/* Right Actions */}
@@ -200,20 +265,31 @@ function Navbar({ onHome, onBrowseGenres, onScrollToFeatured, onBrowseArtists, o
 /* ── Hero Section ───────────────────────────────────────────────────────── */
 
 function HeroSection({
+  heroConfig,
   onExplore,
   onFindByMood,
   onSelectGenre,
 }: {
+  heroConfig?: HeroConfig;
   onExplore: () => void;
   onFindByMood: () => void;
   onSelectGenre: (g: "sufi" | "rock" | "gazal" | "bollywood" | "carnival" | "devotional") => void;
 }) {
+  const bg = heroConfig?.bgImage || "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=1920&h=1080&fit=crop&auto=format&q=85";
+  const eyebrow = (heroConfig?.eyebrow && heroConfig.eyebrow.trim() !== "xyz") ? heroConfig.eyebrow : "· CULTURAL EXPERIENCE DISCOVERY ·";
+  const headline = heroConfig?.headline || "Find the art that";
+  const headlineItalic = heroConfig?.headlineItalic || "fits the moment.";
+  const description = heroConfig?.description || "Discover performances, artists and experiences curated around your mood, occasion and purpose.";
+  const primaryCta = heroConfig?.primaryCtaLabel || "Explore Experiences";
+  const secondaryCta = heroConfig?.secondaryCtaLabel || "Find by Mood ↓";
+  const overlayOpacity = heroConfig?.overlayOpacity ?? 0.72;
+
   return (
     <section className="relative min-h-screen flex flex-col justify-end overflow-hidden" style={{ paddingTop: "68px" }}>
       {/* Full-bleed background image */}
       <div className="absolute inset-0 z-0">
         <img
-          src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=1920&h=1080&fit=crop&auto=format&q=85"
+          src={bg}
           alt="Live performance"
           className="w-full h-full object-cover"
         />
@@ -221,7 +297,7 @@ function HeroSection({
         <div
           className="absolute inset-0"
           style={{
-            background: "linear-gradient(to top, rgba(26,25,22,0.95) 0%, rgba(26,25,22,0.72) 35%, rgba(26,25,22,0.32) 65%, rgba(26,25,22,0.12) 100%)"
+            background: `linear-gradient(to top, rgba(26,25,22,${overlayOpacity * 1.3 > 0.98 ? 0.98 : overlayOpacity * 1.3}) 0%, rgba(26,25,22,${overlayOpacity}) 35%, rgba(26,25,22,${overlayOpacity * 0.45}) 65%, rgba(26,25,22,0.12) 100%)`
           }}
         />
       </div>
@@ -231,7 +307,7 @@ function HeroSection({
         {/* Eyebrow */}
         <div className="mb-6">
           <span className="label-editorial text-[#DDB96A] tracking-[0.28em]" style={{ fontSize: "10px" }}>
-            · CULTURAL EXPERIENCE DISCOVERY ·
+            {eyebrow}
           </span>
         </div>
 
@@ -240,8 +316,8 @@ function HeroSection({
           className="font-serif text-white font-light leading-[1.08] tracking-[-0.01em] mb-6"
           style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(48px, 7vw, 96px)" }}
         >
-          Find the art that<br />
-          <em style={{ fontStyle: "italic", color: "#DDB96A" }}>fits the moment.</em>
+          {headline}<br />
+          <em style={{ fontStyle: "italic", color: "#DDB96A" }}>{headlineItalic}</em>
         </h1>
 
         {/* Supporting copy */}
@@ -249,8 +325,7 @@ function HeroSection({
           className="font-ui text-[#A8A49A] font-light leading-relaxed mb-10 max-w-xl"
           style={{ fontSize: "clamp(15px, 1.6vw, 18px)" }}
         >
-          Discover performances, artists and experiences curated<br className="hidden lg:block" />
-          around your mood, occasion and purpose.
+          {description}
         </p>
 
         {/* CTA Row */}
@@ -259,28 +334,14 @@ function HeroSection({
             onClick={onExplore}
             className="font-ui font-semibold text-[14px] bg-[#C4952A] hover:bg-[#DDB96A] text-[#1A1916] px-7 py-3.5 rounded-full transition-all duration-300 cursor-pointer tracking-wide shadow-lg hover:shadow-xl hover:-translate-y-0.5"
           >
-            Explore Experiences
+            {primaryCta}
           </button>
           <button
             onClick={onFindByMood}
             className="font-ui font-medium text-[14px] text-white border border-white/30 hover:border-[#DDB96A] hover:text-[#DDB96A] px-7 py-3.5 rounded-full transition-all duration-300 cursor-pointer tracking-wide"
           >
-            Find by Mood ↓
+            {secondaryCta}
           </button>
-        </div>
-
-        {/* Floating genre chips — bottom right */}
-        <div className="hidden lg:flex absolute bottom-28 right-8 flex-col items-end gap-2">
-          {(["sufi", "rock", "gazal", "bollywood"] as const).map(g => (
-            <button
-              key={g}
-              onClick={() => onSelectGenre(g)}
-              className="label-editorial text-white/70 hover:text-[#DDB96A] border border-white/20 hover:border-[#DDB96A]/50 px-4 py-1.5 rounded-full cursor-pointer transition-all duration-200 backdrop-blur-sm"
-              style={{ fontSize: "9px", background: "rgba(26,25,22,0.3)" }}
-            >
-              {g.toUpperCase()}
-            </button>
-          ))}
         </div>
       </div>
 
@@ -381,8 +442,17 @@ const MOODS = [
   },
 ];
 
-function MoodDiscovery({ id, onSelectGenre }: { id?: string; onSelectGenre: (g: "sufi" | "rock" | "gazal" | "bollywood" | "carnival" | "devotional") => void }) {
+function MoodDiscovery({
+  id,
+  moods,
+  onSelectGenre,
+}: {
+  id?: string;
+  moods?: MoodItem[];
+  onSelectGenre: (g: "sufi" | "rock" | "gazal" | "bollywood" | "carnival" | "devotional") => void;
+}) {
   const [hovered, setHovered] = useState<string | null>(null);
+  const displayMoods = moods && moods.length > 0 ? moods : MOODS;
 
   return (
     <section id={id} className="py-24 lg:py-36" style={{ background: "#FAF7F2" }}>
@@ -406,7 +476,7 @@ function MoodDiscovery({ id, onSelectGenre }: { id?: string; onSelectGenre: (g: 
 
         {/* Cards — editorial varied layout */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 lg:gap-5">
-          {MOODS.map((mood, idx) => {
+          {displayMoods.map((mood, idx) => {
             const isLarge = idx === 0 || idx === 3;
             return (
               <button
@@ -496,7 +566,15 @@ const OCCASIONS = [
   { label: "Concert", icon: "◉", genre: "rock" as const },
 ];
 
-function OccasionDiscovery({ onSelectGenre }: { onSelectGenre: (g: "sufi" | "rock" | "gazal" | "bollywood" | "carnival" | "devotional") => void }) {
+function OccasionDiscovery({
+  occasions,
+  onSelectGenre,
+}: {
+  occasions?: OccasionItem[];
+  onSelectGenre: (g: "sufi" | "rock" | "gazal" | "bollywood" | "carnival" | "devotional") => void;
+}) {
+  const displayOccasions = occasions && occasions.length > 0 ? occasions : OCCASIONS;
+
   return (
     <section className="py-24 lg:py-32" style={{ background: "#F5F0E8" }}>
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
@@ -513,7 +591,7 @@ function OccasionDiscovery({ onSelectGenre }: { onSelectGenre: (g: "sufi" | "roc
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px" style={{ background: "#D6CFBF" }}>
-          {OCCASIONS.map(occ => (
+          {displayOccasions.map(occ => (
             <button
               key={occ.label}
               onClick={() => onSelectGenre(occ.genre)}
@@ -1059,7 +1137,9 @@ const TESTIMONIALS = [
   },
 ];
 
-function Testimonials() {
+function Testimonials({ testimonials }: { testimonials?: TestimonialItem[] }) {
+  const display = testimonials && testimonials.length > 0 ? testimonials : TESTIMONIALS;
+
   return (
     <section className="py-24 lg:py-36" style={{ background: "#F5F0E8" }}>
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
@@ -1077,7 +1157,7 @@ function Testimonials() {
         </div>
 
         <div className="grid md:grid-cols-3 gap-8">
-          {TESTIMONIALS.map((t, i) => (
+          {display.map((t, i) => (
             <div key={i} className="bg-[#FAF7F2] rounded-xl p-8 space-y-5 lift-card border border-[#EDE8DF]">
               {/* Opening quote mark */}
               <div
@@ -1116,7 +1196,22 @@ function Testimonials() {
 
 /* ── Final CTA ──────────────────────────────────────────────────────────── */
 
-function FinalCTA({ onPlanEvent, onExplore }: { onPlanEvent: () => void; onExplore: () => void }) {
+function FinalCTA({
+  finalCtaConfig,
+  onPlanEvent,
+  onExplore,
+}: {
+  finalCtaConfig?: FinalCtaConfig;
+  onPlanEvent: () => void;
+  onExplore: () => void;
+}) {
+  const eyebrow = finalCtaConfig?.eyebrow || "YOUR NEXT MOMENT AWAITS";
+  const headline = finalCtaConfig?.headline || "You bring the occasion.";
+  const italic = finalCtaConfig?.headlineItalic || "We'll find the experience.";
+  const desc = finalCtaConfig?.description || "Whether you know exactly what you want or you're starting with a feeling, Mannat Arts guides you to an experience that creates a memory.";
+  const primary = finalCtaConfig?.primaryCtaLabel || "Plan Your Event";
+  const secondary = finalCtaConfig?.secondaryCtaLabel || "Explore Experiences";
+
   return (
     <section className="relative py-28 lg:py-44 overflow-hidden">
       {/* Full-bleed art image */}
@@ -1135,31 +1230,30 @@ function FinalCTA({ onPlanEvent, onExplore }: { onPlanEvent: () => void; onExplo
       <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-8">
         <div className="max-w-2xl">
           <span className="label-editorial text-[#DDB96A]/70 tracking-[0.22em] block mb-6" style={{ fontSize: "10px" }}>
-            YOUR NEXT MOMENT AWAITS
+            {eyebrow}
           </span>
           <h2
-            className="font-serif font-light text-white leading-tight mb-6"
+            className="font-serif text-white leading-tight mb-6"
             style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(40px, 5.5vw, 72px)" }}
           >
-            You bring the occasion.<br />
-            <em style={{ fontStyle: "italic", color: "#DDB96A" }}>We'll find the experience.</em>
+            {headline}<br />
+            <em style={{ fontStyle: "italic", color: "#DDB96A" }}>{italic}</em>
           </h2>
           <p className="font-ui text-[#A8A49A] text-[15px] leading-relaxed mb-10">
-            Whether you know exactly what you want or you're starting with a feeling,<br />
-            Mannat Arts guides you to an experience that creates a memory.
+            {desc}
           </p>
           <div className="flex items-center gap-4 flex-wrap">
             <button
               onClick={onPlanEvent}
               className="font-ui font-semibold text-[14px] bg-[#C4952A] hover:bg-[#DDB96A] text-[#1A1916] px-8 py-4 rounded-full transition-all duration-300 cursor-pointer tracking-wide shadow-xl hover:shadow-2xl hover:-translate-y-1"
             >
-              Plan Your Event
+              {primary}
             </button>
             <button
               onClick={onExplore}
               className="font-ui font-medium text-[14px] text-white border border-white/30 hover:border-[#DDB96A] hover:text-[#DDB96A] px-8 py-4 rounded-full transition-all duration-300 cursor-pointer tracking-wide"
             >
-              Explore Experiences
+              {secondary}
             </button>
           </div>
         </div>
@@ -1176,9 +1270,13 @@ interface FooterProps {
   onScrollToBlog: () => void;
   onSelectArticle: (a: BlogArticle) => void;
   articles: BlogArticle[];
+  footerConfig?: FooterConfig;
 }
 
-function Footer({ onSelectGenre, onBrowseArtists, onScrollToBlog }: FooterProps) {
+function Footer({ onSelectGenre, onBrowseArtists, onScrollToBlog, footerConfig }: FooterProps) {
+  const desc = footerConfig?.description || "Discover experiences that make moments memorable.";
+  const copyright = footerConfig?.copyrightText || "© 2026 Mannat Arts. All rights reserved.";
+
   return (
     <footer style={{ background: "#1A1916", color: "#7A776F" }}>
       {/* Main footer */}
@@ -1197,8 +1295,8 @@ function Footer({ onSelectGenre, onBrowseArtists, onScrollToBlog }: FooterProps)
                 CULTURAL EXPERIENCES
               </span>
             </div>
-            <p className="font-ui text-[13px] text-[#4A4845] leading-relaxed">
-              Discover experiences that make moments memorable.
+            <p className="font-ui text-[13px] text-[#A8A49A] leading-relaxed">
+              {desc}
             </p>
           </div>
 
@@ -1212,7 +1310,7 @@ function Footer({ onSelectGenre, onBrowseArtists, onScrollToBlog }: FooterProps)
                 <button
                   key={l}
                   onClick={l === "Artists" ? onBrowseArtists : onScrollToBlog}
-                  className="block font-ui text-[13px] text-[#4A4845] hover:text-[#C4952A] transition-colors cursor-pointer"
+                  className="block font-ui text-[13px] text-[#A8A49A] hover:text-[#C4952A] transition-colors cursor-pointer"
                 >
                   {l}
                 </button>
@@ -1230,7 +1328,7 @@ function Footer({ onSelectGenre, onBrowseArtists, onScrollToBlog }: FooterProps)
                 <button
                   key={l}
                   onClick={onBrowseArtists}
-                  className="block font-ui text-[13px] text-[#4A4845] hover:text-[#C4952A] transition-colors cursor-pointer"
+                  className="block font-ui text-[13px] text-[#A8A49A] hover:text-[#C4952A] transition-colors cursor-pointer"
                 >
                   {l}
                 </button>
@@ -1248,7 +1346,7 @@ function Footer({ onSelectGenre, onBrowseArtists, onScrollToBlog }: FooterProps)
                 <button
                   key={l}
                   onClick={onScrollToBlog}
-                  className="block font-ui text-[13px] text-[#4A4845] hover:text-[#C4952A] transition-colors cursor-pointer"
+                  className="block font-ui text-[13px] text-[#A8A49A] hover:text-[#C4952A] transition-colors cursor-pointer"
                 >
                   {l}
                 </button>
@@ -1261,15 +1359,15 @@ function Footer({ onSelectGenre, onBrowseArtists, onScrollToBlog }: FooterProps)
       {/* Bottom bar */}
       <div className="border-t border-white/5">
         <div className="max-w-7xl mx-auto px-6 lg:px-8 py-5 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p className="font-ui text-[12px] text-[#4A4845]">
-            © 2026 Mannat Arts. All rights reserved.
+          <p className="font-ui text-[12px] text-[#7A776F]">
+            {copyright}
           </p>
           <div className="flex items-center gap-5">
             {["Genres", "Sufi", "Rock", "Ghazal", "Bollywood"].map((g, i) => (
               <button
                 key={g}
                 onClick={() => i > 0 && onSelectGenre(["sufi", "rock", "gazal", "bollywood", "carnival"][i - 1] as any)}
-                className="font-ui text-[11px] text-[#4A4845] hover:text-[#C4952A] transition-colors cursor-pointer"
+                className="font-ui text-[11px] text-[#A8A49A] hover:text-[#C4952A] transition-colors cursor-pointer"
               >
                 {g}
               </button>
@@ -1296,24 +1394,18 @@ export default function App() {
   const [articleLikes, setArticleLikes] = useState<Record<string, number>>({});
   const moodRef = useRef<HTMLElement | null>(null);
 
-  // View mode: "discovery" = new editorial homepage, "classic" = original homepage
-  const [viewMode, setViewMode] = useState<"discovery" | "classic">("discovery");
 
-  // Stateful, Persistent Artist Directory (with LocalStorage fallback)
-  const [artistsList, setArtistsList] = useState<Artist[]>(() => {
-    try {
-      const saved = localStorage.getItem("stagebridge_artists");
-      return saved ? JSON.parse(saved) : ALL_ARTISTS;
-    } catch { return ALL_ARTISTS; }
-  });
 
-  // Stateful, Persistent Blog Articles
-  const [articlesList, setArticlesList] = useState<BlogArticle[]>(() => {
-    try {
-      const saved = localStorage.getItem("stagebridge_blogs");
-      return saved ? JSON.parse(saved) : BLOG_ARTICLES;
-    } catch { return BLOG_ARTICLES; }
-  });
+  // Unified, persistent CMS Data Store (backed by localStorage with rich seed defaults)
+  const [cmsStore, setCmsStore] = useState<CMSDataStore>(() => loadCMSStore());
+
+  useEffect(() => {
+    saveCMSStore(cmsStore);
+  }, [cmsStore]);
+
+  const artistsList = cmsStore.artists;
+  const articlesList = cmsStore.articles;
+  const genresMap = cmsStore.genres;
 
   // Stateful Booking Inquiries
   const [inquiriesList, setInquiriesList] = useState<BookingInquiry[]>(() => {
@@ -1327,26 +1419,239 @@ export default function App() {
   const [featuredArtistIds, setFeaturedArtistIds] = useState<string[]>(() => {
     try {
       const saved = localStorage.getItem("stagebridge_featured_ids");
-      return saved ? JSON.parse(saved) : artistsList.slice(0, 6).map(a => a.id);
-    } catch { return artistsList.slice(0, 6).map(a => a.id); }
+      return saved ? JSON.parse(saved) : cmsStore.artists.slice(0, 6).map(a => a.id);
+    } catch { return cmsStore.artists.slice(0, 6).map(a => a.id); }
   });
 
-  // Stateful Genres Map
-  const [genresMap, setGenresMap] = useState<Record<string, GenreInfo>>(() => {
-    try {
-      const saved = localStorage.getItem("stagebridge_genres");
-      return saved ? { ...GENRE_METADATA, ...JSON.parse(saved) } : GENRE_METADATA;
-    } catch { return GENRE_METADATA; }
-  });
+  // CMS Handlers
+  const handleUpdateHomepage = (homepage: HomepageConfig) => {
+    setCmsStore(prev => ({ ...prev, homepage }));
+  };
+
+  const handleAddExperience = (exp: Experience) => {
+    setCmsStore(prev => ({
+      ...prev,
+      experiences: [exp, ...prev.experiences],
+      activityLog: [
+        {
+          id: `act-${Date.now()}`,
+          user: "Mannat Sharma",
+          action: "Added",
+          entity: "Experience",
+          entityName: exp.name,
+          timestamp: "Just now",
+        },
+        ...prev.activityLog,
+      ],
+    }));
+  };
+
+  const handleUpdateExperience = (exp: Experience) => {
+    setCmsStore(prev => ({
+      ...prev,
+      experiences: prev.experiences.map(e => e.id === exp.id ? exp : e),
+      activityLog: [
+        {
+          id: `act-${Date.now()}`,
+          user: "Mannat Sharma",
+          action: "Updated",
+          entity: "Experience",
+          entityName: exp.name,
+          timestamp: "Just now",
+        },
+        ...prev.activityLog,
+      ],
+    }));
+  };
+
+  const handleDeleteExperience = (id: string) => {
+    const target = cmsStore.experiences.find(e => e.id === id);
+    setCmsStore(prev => ({
+      ...prev,
+      experiences: prev.experiences.filter(e => e.id !== id),
+      activityLog: [
+        {
+          id: `act-${Date.now()}`,
+          user: "Mannat Sharma",
+          action: "Deleted",
+          entity: "Experience",
+          entityName: target?.name || id,
+          timestamp: "Just now",
+        },
+        ...prev.activityLog,
+      ],
+    }));
+  };
+
+  const handleAddArtist = (a: Artist) => {
+    setCmsStore(prev => ({
+      ...prev,
+      artists: [...prev.artists, a],
+      activityLog: [
+        {
+          id: `act-${Date.now()}`,
+          user: "Mannat Sharma",
+          action: "Added",
+          entity: "Artist",
+          entityName: a.name,
+          timestamp: "Just now",
+        },
+        ...prev.activityLog,
+      ],
+    }));
+  };
+
+  const handleUpdateArtist = (a: Artist) => {
+    setCmsStore(prev => ({
+      ...prev,
+      artists: prev.artists.map(x => x.id === a.id ? a : x),
+      activityLog: [
+        {
+          id: `act-${Date.now()}`,
+          user: "Mannat Sharma",
+          action: "Updated",
+          entity: "Artist",
+          entityName: a.name,
+          timestamp: "Just now",
+        },
+        ...prev.activityLog,
+      ],
+    }));
+  };
+
+  const handleDeleteArtist = (id: string) => {
+    const target = cmsStore.artists.find(a => a.id === id);
+    setCmsStore(prev => ({
+      ...prev,
+      artists: prev.artists.filter(x => x.id !== id),
+      activityLog: [
+        {
+          id: `act-${Date.now()}`,
+          user: "Mannat Sharma",
+          action: "Deleted",
+          entity: "Artist",
+          entityName: target?.name || id,
+          timestamp: "Just now",
+        },
+        ...prev.activityLog,
+      ],
+    }));
+  };
+
+  const handleAddArticle = (a: BlogArticle) => {
+    setCmsStore(prev => ({
+      ...prev,
+      articles: [a, ...prev.articles],
+      activityLog: [
+        {
+          id: `act-${Date.now()}`,
+          user: "Rahul Verma",
+          action: "Published",
+          entity: "Story",
+          entityName: a.title,
+          timestamp: "Just now",
+        },
+        ...prev.activityLog,
+      ],
+    }));
+  };
+
+  const handleUpdateArticle = (a: BlogArticle) => {
+    setCmsStore(prev => ({
+      ...prev,
+      articles: prev.articles.map(x => x.id === a.id ? a : x),
+      activityLog: [
+        {
+          id: `act-${Date.now()}`,
+          user: "Rahul Verma",
+          action: "Updated",
+          entity: "Story",
+          entityName: a.title,
+          timestamp: "Just now",
+        },
+        ...prev.activityLog,
+      ],
+    }));
+  };
+
+  const handleDeleteArticle = (id: string) => {
+    const target = cmsStore.articles.find(a => a.id === id);
+    setCmsStore(prev => ({
+      ...prev,
+      articles: prev.articles.filter(x => x.id !== id),
+      activityLog: [
+        {
+          id: `act-${Date.now()}`,
+          user: "Rahul Verma",
+          action: "Deleted",
+          entity: "Story",
+          entityName: target?.title || id,
+          timestamp: "Just now",
+        },
+        ...prev.activityLog,
+      ],
+    }));
+  };
 
   const handleUpdateGenre = (genreId: string, updated: Partial<GenreInfo>) => {
-    setGenresMap(prev => {
-      const current = prev[genreId] || GENRE_METADATA[genreId];
-      const updatedGenre = { ...current, ...updated };
-      const nextMap = { ...prev, [genreId]: updatedGenre };
-      try { localStorage.setItem("stagebridge_genres", JSON.stringify(nextMap)); } catch {}
-      return nextMap;
+    setCmsStore(prev => {
+      const current = prev.genres[genreId] || GENRE_METADATA[genreId];
+      return { ...prev, genres: { ...prev.genres, [genreId]: { ...current, ...updated } } };
     });
+  };
+
+  const handleUpdateMoods = (moods: MoodItem[]) => {
+    setCmsStore(prev => ({ ...prev, moods }));
+  };
+
+  const handleUpdateOccasions = (occasions: OccasionItem[]) => {
+    setCmsStore(prev => ({ ...prev, occasions }));
+  };
+
+  const handleUpdateTestimonials = (testimonials: TestimonialItem[]) => {
+    setCmsStore(prev => ({ ...prev, testimonials }));
+  };
+
+  const handleUploadMedia = (media: MediaItem) => {
+    setCmsStore(prev => ({ ...prev, media: [media, ...prev.media] }));
+  };
+
+  const handleDeleteMedia = (id: string) => {
+    setCmsStore(prev => ({ ...prev, media: prev.media.filter(m => m.id !== id) }));
+  };
+
+  const handleUpdateNavigation = (navigation: NavLinkItem[]) => {
+    setCmsStore(prev => ({ ...prev, navigation }));
+  };
+
+  const handleUpdateFooter = (footer: FooterConfig) => {
+    setCmsStore(prev => ({ ...prev, footer }));
+  };
+
+  const handleUpdateSEO = (seo: GlobalSEOConfig) => {
+    setCmsStore(prev => ({ ...prev, seo }));
+  };
+
+  const handleUpdateSettings = (settings: GeneralSettingsConfig) => {
+    setCmsStore(prev => ({ ...prev, settings }));
+  };
+
+  const handleSetFeaturedArtistIds = (ids: string[]) => {
+    setFeaturedArtistIds(ids);
+    try { localStorage.setItem("stagebridge_featured_ids", JSON.stringify(ids)); } catch {}
+  };
+
+  const handleUpdateInquiryStatus = (id: string, status: BookingInquiry["status"]) => {
+    const updated = inquiriesList.map(x => x.id === id ? { ...x, status } : x);
+    setInquiriesList(updated);
+    try { localStorage.setItem("stagebridge_inquiries", JSON.stringify(updated)); } catch {}
+  };
+
+  const handleResetToDefaults = () => {
+    const fresh = resetCMSStore();
+    setCmsStore(fresh);
+    setFeaturedArtistIds(fresh.artists.slice(0, 6).map(a => a.id));
+    setInquiriesList(INITIAL_BOOKING_INQUIRIES);
   };
 
   // Hash routing
@@ -1363,66 +1668,6 @@ export default function App() {
     handleHashRouting();
     return () => window.removeEventListener("hashchange", handleHashRouting);
   }, [isAdminAuthenticated, currentPage]);
-
-  // Artists CRUD
-  const handleAddArtist = (a: Artist) => {
-    const updated = [...artistsList, a];
-    setArtistsList(updated);
-    try { localStorage.setItem("stagebridge_artists", JSON.stringify(updated)); } catch {}
-  };
-  const handleUpdateArtist = (a: Artist) => {
-    const updated = artistsList.map(x => x.id === a.id ? a : x);
-    setArtistsList(updated);
-    try { localStorage.setItem("stagebridge_artists", JSON.stringify(updated)); } catch {}
-  };
-  const handleDeleteArtist = (id: string) => {
-    const updated = artistsList.filter(x => x.id !== id);
-    setArtistsList(updated);
-    try { localStorage.setItem("stagebridge_artists", JSON.stringify(updated)); } catch {}
-  };
-
-  // Articles CRUD
-  const handleAddArticle = (a: BlogArticle) => {
-    const updated = [...articlesList, a];
-    setArticlesList(updated);
-    try { localStorage.setItem("stagebridge_blogs", JSON.stringify(updated)); } catch {}
-  };
-  const handleUpdateArticle = (a: BlogArticle) => {
-    const updated = articlesList.map(x => x.id === a.id ? a : x);
-    setArticlesList(updated);
-    try { localStorage.setItem("stagebridge_blogs", JSON.stringify(updated)); } catch {}
-  };
-  const handleDeleteArticle = (id: string) => {
-    const updated = articlesList.filter(x => x.id !== id);
-    setArticlesList(updated);
-    try { localStorage.setItem("stagebridge_blogs", JSON.stringify(updated)); } catch {}
-  };
-
-  const handleSetFeaturedArtistIds = (ids: string[]) => {
-    setFeaturedArtistIds(ids);
-    try { localStorage.setItem("stagebridge_featured_ids", JSON.stringify(ids)); } catch {}
-  };
-
-  const handleUpdateInquiryStatus = (id: string, status: BookingInquiry["status"]) => {
-    const updated = inquiriesList.map(x => x.id === id ? { ...x, status } : x);
-    setInquiriesList(updated);
-    try { localStorage.setItem("stagebridge_inquiries", JSON.stringify(updated)); } catch {}
-  };
-
-  const handleResetToDefaults = () => {
-    setArtistsList(ALL_ARTISTS);
-    setArticlesList(BLOG_ARTICLES);
-    setInquiriesList(INITIAL_BOOKING_INQUIRIES);
-    setFeaturedArtistIds(ALL_ARTISTS.slice(0, 6).map(a => a.id));
-    setGenresMap(GENRE_METADATA);
-    try {
-      localStorage.removeItem("stagebridge_artists");
-      localStorage.removeItem("stagebridge_blogs");
-      localStorage.removeItem("stagebridge_inquiries");
-      localStorage.removeItem("stagebridge_featured_ids");
-      localStorage.removeItem("stagebridge_genres");
-    } catch {}
-  };
 
   const handleToggleArticleLike = (articleId: string) => {
     setArticleLikes(prev => {
@@ -1509,6 +1754,7 @@ export default function App() {
     onScrollToBlog: handleOpenJournal,
     onSelectArticle: handleSelectBlogArticle,
     articles: articlesList,
+    footerConfig: cmsStore.footer,
   };
 
   return (
@@ -1522,6 +1768,9 @@ export default function App() {
           onBrowseArtists={handleOpenArtists}
           onScrollToBlog={handleOpenJournal}
           onPlanEvent={handlePlanEvent}
+          navLinks={cmsStore.navigation}
+          siteName={cmsStore.settings.logoText}
+          logoSubtitle={cmsStore.settings.logoSubtitle}
           onOpenAdmin={() => {
             setCurrentPage(isAdminAuthenticated ? "admin" : "admin-login");
             window.location.hash = "#admin";
@@ -1534,25 +1783,35 @@ export default function App() {
         <AdminLogin onLoginSuccess={handleLoginSuccess} onBackToSite={handleBackHome} />
       ) : currentPage === "admin" ? (
         <AdminPortal
-          artists={artistsList}
-          featuredArtistIds={featuredArtistIds}
-          onSetFeaturedArtistIds={handleSetFeaturedArtistIds}
+          cmsStore={cmsStore}
+          onUpdateHomepage={handleUpdateHomepage}
+          onAddExperience={handleAddExperience}
+          onUpdateExperience={handleUpdateExperience}
+          onDeleteExperience={handleDeleteExperience}
           onAddArtist={handleAddArtist}
           onUpdateArtist={handleUpdateArtist}
           onDeleteArtist={handleDeleteArtist}
-          articles={articlesList}
+          featuredArtistIds={featuredArtistIds}
+          onSetFeaturedArtistIds={handleSetFeaturedArtistIds}
+          onUpdateGenre={handleUpdateGenre}
+          onUpdateMoods={handleUpdateMoods}
+          onUpdateOccasions={handleUpdateOccasions}
           onAddArticle={handleAddArticle}
           onUpdateArticle={handleUpdateArticle}
           onDeleteArticle={handleDeleteArticle}
-          bookingInquiries={inquiriesList}
-          onUpdateInquiryStatus={handleUpdateInquiryStatus}
-          onResetToDefaults={handleResetToDefaults}
+          onUpdateTestimonials={handleUpdateTestimonials}
+          onUploadMedia={handleUploadMedia}
+          onDeleteMedia={handleDeleteMedia}
+          onUpdateNavigation={handleUpdateNavigation}
+          onUpdateFooter={handleUpdateFooter}
+          onUpdateSEO={handleUpdateSEO}
+          onUpdateSettings={handleUpdateSettings}
+          onResetAllToDefaults={handleResetToDefaults}
           onExitToClient={handleBackHome}
           onLogout={handleLogout}
           onPreviewArtist={artist => setSelectedArtist(artist)}
           onPreviewArticle={handleSelectBlogArticle}
-          genres={genresMap}
-          onUpdateGenre={handleUpdateGenre}
+          onPublishAll={() => saveCMSStore(cmsStore)}
         />
       ) : currentPage === "genres" ? (
         <>
@@ -1611,83 +1870,78 @@ export default function App() {
           <Footer {...footerProps} />
         </>
       ) : (
-        /* ── HOMEPAGE — dual-view toggle ── */
+        /* ── HOMEPAGE — Discovery Driven by CMS ── */
         <>
-          {viewMode === "discovery" ? (
-            /* ── NEW: Editorial Discovery Homepage ── */
-            <>
-              <HeroSection
-                onExplore={handleOpenGenresPage}
-                onFindByMood={handleScrollToMood}
-                onSelectGenre={handleOpenGenre}
-              />
-              <GenreTicker onSelectGenre={handleOpenGenre} />
-              <MoodDiscovery id="mood-discovery" onSelectGenre={handleOpenGenre} />
-              <OccasionDiscovery onSelectGenre={handleOpenGenre} />
-              <SmartDiscovery onSelectGenre={handleOpenGenre} />
-              <FeaturedExperiences
-                artists={artistsList}
-                featuredArtistIds={featuredArtistIds}
-                onSelectArtist={setSelectedArtist}
-                onBookArtist={setBookingArtist}
-                onViewAll={handleOpenArtists}
-              />
-              <GenreExploration onSelectGenre={handleOpenGenre} />
-              <SurpriseMe onSelectGenre={handleOpenGenre} />
-              <HowItWorks />
-              <Testimonials />
-              <FinalCTA onPlanEvent={handlePlanEvent} onExplore={handleOpenGenresPage} />
-              <Footer {...footerProps} />
-            </>
-          ) : (
-            /* ── CLASSIC: Original Homepage ── */
-            <>
-              <ClassicHomePage
-                artists={artistsList}
-                featuredArtistIds={featuredArtistIds}
-                onSelectArtist={setSelectedArtist}
-                onBookArtist={setBookingArtist}
-                onViewAllArtists={handleOpenArtists}
-                onBrowseGenres={handleOpenGenresPage}
-                onScrollToFeatured={handleScrollToFeatured}
-                onSelectGenre={handleOpenGenre}
-              />
-              <Footer {...footerProps} />
-            </>
-          )}
-
-          {/* ── View Toggle Pill (floating, bottom-center) ── */}
-          <div
-            className="fixed bottom-6 left-1/2 z-50 flex items-center rounded-full shadow-2xl border border-white/20 overflow-hidden"
-            style={{
-              transform: "translateX(-50%)",
-              background: "rgba(26, 25, 22, 0.92)",
-              backdropFilter: "blur(20px)",
-              WebkitBackdropFilter: "blur(20px)",
-            }}
-          >
-            <button
-              onClick={() => { setViewMode("discovery"); window.scrollTo({ top: 0, behavior: "smooth" }); }}
-              className="font-ui font-semibold text-[12px] px-5 py-2.5 tracking-wide transition-all duration-300 cursor-pointer"
-              style={{
-                background: viewMode === "discovery" ? "#C4952A" : "transparent",
-                color: viewMode === "discovery" ? "#1A1916" : "rgba(255,255,255,0.5)",
-              }}
-            >
-              Discovery
-            </button>
-            <div className="w-px h-5 bg-white/10" />
-            <button
-              onClick={() => { setViewMode("classic"); window.scrollTo({ top: 0, behavior: "smooth" }); }}
-              className="font-ui font-semibold text-[12px] px-5 py-2.5 tracking-wide transition-all duration-300 cursor-pointer"
-              style={{
-                background: viewMode === "classic" ? "#E11D48" : "transparent",
-                color: viewMode === "classic" ? "white" : "rgba(255,255,255,0.5)",
-              }}
-            >
-              Classic
-            </button>
-          </div>
+          {cmsStore.homepage.sections
+            .slice()
+            .sort((a, b) => a.order - b.order)
+            .filter(section => section.isVisible)
+            .map(section => {
+              switch (section.id) {
+                case "hero":
+                  return (
+                    <HeroSection
+                      key={section.id}
+                      heroConfig={cmsStore.homepage.hero}
+                      onExplore={handleOpenGenresPage}
+                      onFindByMood={handleScrollToMood}
+                      onSelectGenre={handleOpenGenre}
+                    />
+                  );
+                case "ticker":
+                  return <GenreTicker key={section.id} onSelectGenre={handleOpenGenre} />;
+                case "mood-discovery":
+                  return (
+                    <MoodDiscovery
+                      key={section.id}
+                      id="mood-discovery"
+                      moods={cmsStore.moods}
+                      onSelectGenre={handleOpenGenre}
+                    />
+                  );
+                case "occasion-discovery":
+                  return (
+                    <OccasionDiscovery
+                      key={section.id}
+                      occasions={cmsStore.occasions}
+                      onSelectGenre={handleOpenGenre}
+                    />
+                  );
+                case "smart-discovery":
+                  return <SmartDiscovery key={section.id} onSelectGenre={handleOpenGenre} />;
+                case "featured-experiences":
+                  return (
+                    <FeaturedExperiences
+                      key={section.id}
+                      artists={artistsList}
+                      featuredArtistIds={featuredArtistIds}
+                      onSelectArtist={setSelectedArtist}
+                      onBookArtist={setBookingArtist}
+                      onViewAll={handleOpenArtists}
+                    />
+                  );
+                case "genre-exploration":
+                  return <GenreExploration key={section.id} onSelectGenre={handleOpenGenre} />;
+                case "surprise-me":
+                  return <SurpriseMe key={section.id} onSelectGenre={handleOpenGenre} />;
+                case "how-it-works":
+                  return <HowItWorks key={section.id} />;
+                case "testimonials":
+                  return <Testimonials key={section.id} testimonials={cmsStore.testimonials} />;
+                case "final-cta":
+                  return (
+                    <FinalCTA
+                      key={section.id}
+                      finalCtaConfig={cmsStore.homepage.finalCta}
+                      onPlanEvent={handlePlanEvent}
+                      onExplore={handleOpenGenresPage}
+                    />
+                  );
+                default:
+                  return null;
+              }
+            })}
+          <Footer {...footerProps} />
         </>
       )}
 

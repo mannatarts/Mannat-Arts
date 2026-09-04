@@ -241,38 +241,43 @@ export function ArtistEditorModal({ artist, isOpen, onClose, onSave }: ArtistEdi
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/75 backdrop-blur-md flex items-center justify-center p-3 sm:p-6">
       <div className="fixed inset-0" onClick={onClose} />
 
-      <div className="relative w-full max-w-4xl bg-white rounded-3xl shadow-2xl overflow-hidden z-10 my-8 border border-white/40 flex flex-col max-h-[92vh]">
+      <div className="relative w-full max-w-6xl bg-white rounded-3xl shadow-2xl overflow-hidden z-10 my-8 border border-white/40 flex flex-col max-h-[92vh]">
         {/* Header */}
         <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-md border-b border-[#EDE8DF] px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#C4952A] to-[#9333EA] flex items-center justify-center text-white text-sm">
-              🎭
+            <div className="w-8 h-8 rounded-xl bg-[#FAF7F2] border border-[#EDE8DF] flex items-center justify-center text-[#1A1916]">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.8}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
             </div>
             <div>
-              <h2 className="font-display font-bold text-lg text-[#1A1A1A]">
+              <h2 className="font-serif text-xl font-medium text-[#1A1A1A]">
                 {artist ? `Edit Artist: ${artist.name}` : "Add New Verified Artist"}
               </h2>
-              <p className="font-body text-xs text-[#5B5B5B]">
-                Configure profile details, pricing, versatility tags, and technical riders
+              <p className="font-ui text-xs text-[#7A776F]">
+                Configure profile details with live preview of the public card
               </p>
             </div>
           </div>
 
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-gray-100 hover:bg-[#F5F0E8] text-[#5B5B5B] hover:text-[#C4952A] flex items-center justify-center text-sm font-bold transition-colors cursor-pointer"
+            className="w-8 h-8 rounded-full bg-gray-100 hover:bg-[#F5F0E8] text-[#5B5B5B] hover:text-[#1A1916] flex items-center justify-center text-sm font-bold transition-colors cursor-pointer"
           >
             ✕
           </button>
         </div>
 
         {/* Form Container */}
-        <form onSubmit={handleSubmit} className="overflow-y-auto px-6 sm:px-8 py-6 space-y-6">
-          {/* Section 1: Basic Identity */}
-          <div className="bg-[#FAF7F2] p-5 rounded-2xl border border-[#EDE8DF] space-y-4">
-            <h3 className="font-display font-bold text-sm text-[#9A7219] uppercase tracking-wider">
-              1. Basic Information &amp; Genre
-            </h3>
+        <form onSubmit={handleSubmit} className="overflow-y-auto px-6 sm:px-8 py-6">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            {/* Left Column: Form Inputs (7 cols) */}
+            <div className="lg:col-span-7 space-y-6">
+              {/* Section 1: Basic Identity */}
+              <div className="bg-[#FAF7F2] p-5 rounded-2xl border border-[#EDE8DF] space-y-4">
+                <h3 className="font-ui font-bold text-xs text-[#C4952A] uppercase tracking-wider">
+                  1. Basic Information &amp; Genre
+                </h3>
 
             <div className="grid sm:grid-cols-2 gap-4">
               <div>
@@ -665,26 +670,112 @@ export function ArtistEditorModal({ artist, isOpen, onClose, onSave }: ArtistEdi
               </div>
             </div>
           </div>
+        </div>
 
-          {/* Footer Actions */}
-          <div className="sticky bottom-0 bg-white/95 backdrop-blur-md pt-4 pb-2 border-t border-[#EDE8DF] flex items-center justify-end gap-3">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-5 py-2.5 rounded-full border border-[#EDE8DF] text-xs font-semibold text-[#5B5B5B] hover:bg-gray-100 transition-colors cursor-pointer"
-            >
-              Cancel
-            </button>
+        {/* Right Column: Sticky Live Artist Card Preview */}
+        <div className="lg:col-span-5">
+          <div className="sticky top-0 space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="font-ui text-[11px] font-bold text-[#C4952A] tracking-wider uppercase flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                Live Card Preview
+              </span>
+              <span className="text-[10px] font-ui text-[#7A776F]">Updates in real-time</span>
+            </div>
 
-            <button
-              type="submit"
-              className="px-6 py-2.5 rounded-full bg-gradient-to-r from-[#C4952A] to-[#9A7219] text-white text-xs font-bold shadow-md hover:shadow-lg hover:scale-105 transition-all cursor-pointer"
-            >
-              {artist ? "Save Artist Changes" : "Create Verified Artist Profile"}
-            </button>
+            {/* Exact 1:1 Public Artist Card */}
+            <div className="bg-[#FAF7F2] rounded-2xl overflow-hidden shadow-md border border-[#EDE8DF] hover:border-[#C4952A]/50 transition-all flex flex-col">
+              {/* Photo Banner */}
+              <div className="relative h-64 overflow-hidden bg-gray-900">
+                <img
+                  src={formData.img || "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=600&h=400&fit=crop&auto=format"}
+                  alt={formData.name || "Performer"}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
+
+                {/* Genre & Verified Badges */}
+                <span className="absolute top-3.5 left-3.5 bg-white/95 backdrop-blur-md text-[#1A1916] font-ui text-[10px] font-bold px-3 py-1 rounded-full shadow-sm capitalize">
+                  {formData.genreTitle || formData.genre || "Sufi & Qawwali"}
+                </span>
+                <span className="absolute top-3.5 right-3.5 bg-black/60 backdrop-blur-md text-[#DDB96A] border border-[#DDB96A]/30 font-ui text-[10px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm">
+                  ✓ Verified
+                </span>
+
+                {/* Bottom Image Overlay text */}
+                <div className="absolute bottom-4 left-4 right-4 text-white">
+                  <h3
+                    className="font-serif font-light text-2xl text-white drop-shadow-md leading-tight"
+                    style={{ fontFamily: "'Cormorant Garamond', serif" }}
+                  >
+                    {formData.name || "Performer / Troupe Name"}
+                  </h3>
+                  <p className="font-ui text-[11px] text-white/80 font-light mt-0.5 line-clamp-1">
+                    {formData.tagline || "Professional Live Performer"}
+                  </p>
+                </div>
+              </div>
+
+              {/* Card Body */}
+              <div className="p-4 space-y-3">
+                {/* Meta stats */}
+                <div className="flex items-center justify-between text-[11px] font-ui text-[#7A776F] border-b border-[#EDE8DF] pb-2.5">
+                  <div className="flex items-center gap-1 text-[#C4952A] font-bold">
+                    <span>★</span>
+                    <span>{formData.rating || 4.9}</span>
+                    <span className="text-[#7A776F] font-normal">({formData.reviewsCount || 10})</span>
+                  </div>
+                  <span>{formData.city || "Mumbai"}</span>
+                  <span>{formData.bandType || "4-6 Piece Band"}</span>
+                </div>
+
+                {/* Bio snippet */}
+                <p className="font-ui text-xs text-[#4A4845] line-clamp-2 leading-relaxed">
+                  {formData.bio || "Performer biography and signature artistic repertoire will appear here."}
+                </p>
+
+                {/* Price and CTA */}
+                <div className="flex items-center justify-between pt-1">
+                  <div>
+                    <span className="text-[10px] font-ui text-[#7A776F] block uppercase tracking-wider">Starting from</span>
+                    <span className="font-serif text-lg font-bold text-[#1A1916]">{formData.price || "₹35,000"}</span>
+                  </div>
+                  <span className="font-ui text-xs font-semibold px-4 py-2 rounded-full bg-[#1A1916] text-[#FAF7F2] shadow-sm">
+                    View Profile →
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-[#FAF7F2] p-3.5 rounded-xl border border-[#EDE8DF] text-[11px] font-ui text-[#7A776F] space-y-1">
+              <p className="font-semibold text-[#1A1916] flex items-center gap-1.5">
+                <span>👁️</span> What Visitors See
+              </p>
+              <p>This is the exact card guests see when browsing your website. Type or change photos on the left to see the result here instantly.</p>
+            </div>
           </div>
-        </form>
+        </div>
       </div>
-    </div>
+
+      {/* Footer Actions */}
+      <div className="sticky bottom-0 bg-white/95 backdrop-blur-md pt-4 pb-4 px-6 border-t border-[#EDE8DF] flex items-center justify-end gap-3 z-20 mt-6">
+        <button
+          type="button"
+          onClick={onClose}
+          className="px-5 py-2.5 rounded-full border border-[#EDE8DF] text-xs font-semibold text-[#5B5B5B] hover:bg-[#FAF7F2] transition-colors cursor-pointer"
+        >
+          Cancel
+        </button>
+
+        <button
+          type="submit"
+          className="px-6 py-2.5 rounded-full bg-[#1A1916] hover:bg-[#2E2C28] text-white text-xs font-semibold shadow-md hover:shadow-lg transition-all cursor-pointer"
+        >
+          {artist ? "Save Artist Changes" : "Create Verified Artist Profile"}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
   );
 }
