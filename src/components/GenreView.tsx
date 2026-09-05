@@ -26,7 +26,7 @@ export function GenreView({
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCity, setSelectedCity] = useState("All");
   const [selectedBandType, setSelectedBandType] = useState("All");
-  const [maxBudget, setMaxBudget] = useState<number>(100000);
+  const [maxBudget, setMaxBudget] = useState<number>(500000);
 
   // Filter artists belonging to this genre
   const artists = useMemo(() => {
@@ -34,12 +34,12 @@ export function GenreView({
       if (a.genre !== genreId) return false;
       if (selectedCity !== "All" && a.city !== selectedCity) return false;
       if (selectedBandType !== "All" && a.bandType !== selectedBandType) return false;
-      if (a.priceNum > maxBudget) return false;
+      if (maxBudget < 500000 && a.priceNum && a.priceNum > maxBudget) return false;
       if (searchTerm) {
         const query = searchTerm.toLowerCase();
-        const matchesName = a.name.toLowerCase().includes(query) || (a.stageName && a.stageName.toLowerCase().includes(query));
-        const matchesSkills = a.whatElseTheyDo.some(s => s.category.toLowerCase().includes(query) || s.description.toLowerCase().includes(query));
-        const matchesInst = a.primaryInstruments.some(i => i.toLowerCase().includes(query));
+        const matchesName = (a.name || "").toLowerCase().includes(query) || (a.stageName && a.stageName.toLowerCase().includes(query));
+        const matchesSkills = (a.whatElseTheyDo || []).some(s => s.category?.toLowerCase().includes(query) || s.description?.toLowerCase().includes(query));
+        const matchesInst = (a.primaryInstruments || []).some(i => i.toLowerCase().includes(query));
         if (!matchesName && !matchesSkills && !matchesInst) return false;
       }
       return true;
@@ -48,7 +48,7 @@ export function GenreView({
 
   const allCities = useMemo(() => {
     const cities = new Set<string>();
-    sourceArtists.filter(a => a.genre === genreId).forEach(a => cities.add(a.city));
+    sourceArtists.filter(a => a.genre === genreId).forEach(a => { if (a.city) cities.add(a.city); });
     return ["All", ...Array.from(cities)];
   }, [sourceArtists, genreId]);
 
@@ -212,7 +212,9 @@ export function GenreView({
           <div>
             <div className="flex justify-between items-center mb-2">
               <label className="label-editorial text-white/60" style={{ fontSize: "9px" }}>MAX BUDGET</label>
-              <span className="font-ui text-xs font-bold text-[#DDB96A]">₹{maxBudget.toLocaleString()}</span>
+              <span className="font-ui text-xs font-bold text-[#DDB96A]">
+                {maxBudget >= 500000 ? "Any / All Budgets" : `₹${maxBudget.toLocaleString("en-IN")}`}
+              </span>
             </div>
             <input
               type="range"

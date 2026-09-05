@@ -34,6 +34,7 @@ import { SEOCMSView } from "./views/SEOCMSView";
 import { SettingsCMSView } from "./views/SettingsCMSView";
 import { UsersCMSView } from "./views/UsersCMSView";
 import { ActivityLogView } from "./views/ActivityLogView";
+import { AdminApplicationsEnquiriesView } from "./views/AdminApplicationsEnquiriesView";
 
 import { ToastNotification, ToastMessage } from "./ToastNotification";
 import { GlobalSearchModal } from "./GlobalSearchModal";
@@ -44,6 +45,7 @@ export type { BookingInquiry } from "../../data/cmsTypes";
 
 export type AdminCMSView =
   | "dashboard"
+  | "platform-desk"
   | "homepage"
   | "experiences"
   | "artists"
@@ -92,6 +94,7 @@ export interface AdminPortalProps {
   onPreviewArtist?: (artist: Artist) => void;
   onPreviewArticle?: (article: BlogArticle) => void;
   onPublishAll?: () => void;
+  onSyncArtistToCMS?: (artist: any) => void;
 
   // Legacy fallback props
   artists?: Artist[];
@@ -132,6 +135,7 @@ export function AdminPortal({
   onPreviewArtist,
   onPreviewArticle,
   onPublishAll,
+  onSyncArtistToCMS,
 }: AdminPortalProps) {
   const fallbackStore = loadCMSStore();
   const cmsStore = propStore || fallbackStore;
@@ -208,6 +212,11 @@ export function AdminPortal({
           id: "dashboard",
           label: "Dashboard & Stats",
           icon: <Icon path="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />,
+        },
+        {
+          id: "platform-desk",
+          label: "Artist Approvals & Enquiries",
+          icon: <Icon path={["M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z", "M12 2a10 10 0 100 20 10 10 0 000-20z"]} />,
         },
       ],
     },
@@ -619,6 +628,13 @@ export function AdminPortal({
                 onOpenAddStory={() => setCurrentView("stories")}
                 onPreviewWebsite={() => setIsPreviewModalOpen(true)}
                 onViewLiveWebsite={onExitToClient}
+              />
+            )}
+
+            {currentView === "platform-desk" && (
+              <AdminApplicationsEnquiriesView
+                onSyncArtistToCMS={onSyncArtistToCMS || onAddArtist}
+                onToast={addToast}
               />
             )}
 

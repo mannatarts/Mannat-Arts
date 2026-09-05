@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Artist } from "../data/artistsData";
+import { PlatformStore } from "../services/platformStore";
 
 interface BookingModalProps {
   artist: Artist | null;
@@ -8,6 +9,7 @@ interface BookingModalProps {
 
 export function BookingModal({ artist, onClose }: BookingModalProps) {
   const [step, setStep] = useState<"form" | "confirmed">("form");
+  const [generatedEnqId, setGeneratedEnqId] = useState<string>("");
   const [formData, setFormData] = useState({
     eventType: "Wedding / Sangeet",
     eventDate: "2026-09-15",
@@ -31,6 +33,26 @@ export function BookingModal({ artist, onClose }: BookingModalProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    try {
+      const enq = PlatformStore.createEnquiry({
+        clientName: formData.contactName || "Patron",
+        clientEmail: formData.contactEmail || "client@mannatarts.com",
+        clientPhone: formData.contactPhone || "+91 98201 45678",
+        artistId: artist.id,
+        artistNameSnapshot: artist.name,
+        artistSlugSnapshot: artist.id,
+        eventType: formData.eventType,
+        eventDate: formData.eventDate,
+        eventLocation: formData.eventCity,
+        audienceSize: formData.guestCount,
+        budgetRange: `₹${totalEstimated.toLocaleString()}`,
+        message: formData.specialNotes || `Booking enquiry for ${artist.name} (${formData.duration}) at ${formData.venueType}`,
+        consentAgreed: true,
+      });
+      setGeneratedEnqId(enq.id);
+    } catch (err) {
+      console.warn("Could not save to PlatformStore:", err);
+    }
     setStep("confirmed");
   };
 
@@ -230,8 +252,13 @@ export function BookingModal({ artist, onClose }: BookingModalProps) {
               >
                 Inquiry Received
               </h3>
+              {generatedEnqId && (
+                <div className="inline-block bg-[#F5F0E8] border border-[#EDE8DF] px-4 py-1.5 rounded-full text-xs font-mono font-bold text-[#C4952A]">
+                  Ref: {generatedEnqId}
+                </div>
+              )}
               <p className="font-ui text-xs sm:text-sm text-[#7A776F] max-w-md mx-auto leading-relaxed">
-                Our cultural curator and the artist management team will review your event details and respond within 4 business hours with exact availability.
+                Our cultural curator and the artist management team will review your event details and respond directly in the client portal.
               </p>
               <div className="pt-4">
                 <button

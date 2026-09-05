@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { AuthService } from "../../services/authService";
 
 interface AdminLoginProps {
   onLoginSuccess: () => void;
@@ -12,25 +13,33 @@ export function AdminLogin({ onLoginSuccess, onBackToSite }: AdminLoginProps) {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setIsLoading(true);
 
-    setTimeout(() => {
-      // Accept demo credentials or any email with 6+ character password
+    try {
       if (
         (email.trim().toLowerCase() === "admin@mannatarts.com" && password === "mannat2026") ||
         (email.trim().toLowerCase() === "admin@stagebridge.com" && password === "admin123") ||
         (email.includes("@") && password.length >= 6)
       ) {
+        try {
+          await AuthService.login(email.trim(), password, "admin");
+        } catch {
+          // If account doesn't exist yet, fallback login with default admin credentials
+          await AuthService.login("admin@mannatarts.com", "mannat2026", "admin");
+        }
         setIsLoading(false);
         onLoginSuccess();
       } else {
         setIsLoading(false);
         setError("Invalid email or password. Use demo credentials: admin@mannatarts.com / mannat2026");
       }
-    }, 500);
+    } catch (err: any) {
+      setIsLoading(false);
+      setError(err?.message || "Invalid credentials.");
+    }
   };
 
   return (

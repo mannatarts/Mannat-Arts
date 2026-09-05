@@ -3,6 +3,7 @@ import { Artist, GenreInfo } from "../../../data/artistsData";
 import { MediaItem } from "../../../data/cmsTypes";
 import { MediaPickerModal } from "../MediaPickerModal";
 import { ConfirmDeleteModal } from "../ConfirmDeleteModal";
+import { ArtistEditorModal } from "../ArtistEditorModal";
 
 interface ArtistsCMSViewProps {
   artists: Artist[];
@@ -37,7 +38,6 @@ export function ArtistsCMSView({
   const [editingArtist, setEditingArtist] = useState<Artist | null>(null);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Artist | null>(null);
-  const [isMediaPickerOpen, setIsMediaPickerOpen] = useState(false);
 
   const filtered = useMemo(() => {
     return artists.filter((a) => {
@@ -58,34 +58,7 @@ export function ArtistsCMSView({
   };
 
   const handleOpenAdd = () => {
-    const newArtist: Artist = {
-      id: `artist-${Date.now()}`,
-      name: "",
-      genre: "sufi",
-      genreTitle: "Sufi & Mystic",
-      tagline: "",
-      bio: "",
-      img: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=800&h=1000&fit=crop&auto=format&q=80",
-      rating: 5.0,
-      reviewsCount: 1,
-      price: "₹75,000",
-      priceNum: 75000,
-      city: "Jaipur",
-      state: "Rajasthan",
-      travelsPanIndia: true,
-      performanceDuration: "90 - 120 minutes",
-      bandType: "4-6 Piece Band",
-      experienceYears: 8,
-      eventsCompleted: 45,
-      primaryInstruments: ["Harmonium", "Tabla", "Vocals"],
-      themeColor: "#C4952A",
-      whatElseTheyDo: [],
-      sampleSetlist: ["Dama Dam Mast Qalandar", "Chhap Tilak", "Afreen Afreen"],
-      sampleTracks: [],
-      techRider: ["4 Vocal Mics", "2 D.I. Boxes", "Monitors"],
-      reviews: [],
-    };
-    setEditingArtist(newArtist);
+    setEditingArtist(null);
     setIsEditorOpen(true);
   };
 
@@ -94,23 +67,17 @@ export function ArtistsCMSView({
     setIsEditorOpen(true);
   };
 
-  const handleSaveArtist = () => {
-    if (!editingArtist) return;
-    if (!editingArtist.name.trim()) {
-      onShowToast("Artist name is required", "warning");
-      return;
-    }
+  const handleSaveArtist = (updated: Artist) => {
+    const genreTitle = genres[updated.genre]?.title || updated.genreTitle || "Artistic Performer";
+    const fullArtist = { ...updated, genreTitle };
 
-    const genreTitle = genres[editingArtist.genre]?.title || "Artistic Performer";
-    const updated = { ...editingArtist, genreTitle };
-
-    const exists = artists.some((a) => a.id === updated.id);
+    const exists = artists.some((a) => a.id === fullArtist.id);
     if (exists) {
-      onUpdateArtist(updated);
-      onShowToast(`Artist "${updated.name}" updated`, "success");
+      onUpdateArtist(fullArtist);
+      onShowToast(`Artist "${fullArtist.name}" updated`, "success");
     } else {
-      onAddArtist(updated);
-      onShowToast(`Artist "${updated.name}" added`, "success");
+      onAddArtist(fullArtist);
+      onShowToast(`Artist "${fullArtist.name}" added`, "success");
     }
     setIsEditorOpen(false);
   };
@@ -322,175 +289,15 @@ export function ArtistsCMSView({
         </div>
       )}
 
-      {/* Artist Profile Editor Modal */}
-      {isEditorOpen && editingArtist && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn">
-          <div className="bg-[#FAF7F2] w-full max-w-3xl rounded-2xl shadow-2xl border border-[#EDE8DF] flex flex-col max-h-[90vh] overflow-hidden">
-            <div className="px-6 py-4 bg-white border-b border-[#EDE8DF] flex items-center justify-between">
-              <div>
-                <h3 className="font-serif text-xl font-medium text-[#1A1916]">
-                  {editingArtist.name ? `Edit: ${editingArtist.name}` : "Add New Artist"}
-                </h3>
-                <p className="font-ui text-xs text-[#7A776F]">Performer credentials, genre, and pricing</p>
-              </div>
-              <button
-                onClick={() => setIsEditorOpen(false)}
-                className="w-8 h-8 rounded-full flex items-center justify-center text-[#7A776F] hover:text-[#1A1916]"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="flex-1 overflow-y-auto p-6 space-y-4">
-              <div className="bg-white p-6 rounded-2xl border border-[#EDE8DF] space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block font-ui text-xs font-semibold text-[#1A1916] mb-1">
-                      Artist / Ensemble Name *
-                    </label>
-                    <input
-                      type="text"
-                      value={editingArtist.name}
-                      onChange={(e) => setEditingArtist({ ...editingArtist, name: e.target.value })}
-                      placeholder="e.g. Zakir Khan & Sufi Souls"
-                      className="w-full text-xs font-ui bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-4 py-2.5"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block font-ui text-xs font-semibold text-[#1A1916] mb-1">
-                      Primary Genre
-                    </label>
-                    <select
-                      value={editingArtist.genre}
-                      onChange={(e) => setEditingArtist({ ...editingArtist, genre: e.target.value as any })}
-                      className="w-full text-xs font-ui bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-4 py-2.5 capitalize"
-                    >
-                      {Object.keys(genres).map((k) => (
-                        <option key={k} value={k}>{genres[k].title}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block font-ui text-xs font-semibold text-[#1A1916] mb-1">
-                    Tagline / One-liner
-                  </label>
-                  <input
-                    type="text"
-                    value={editingArtist.tagline}
-                    onChange={(e) => setEditingArtist({ ...editingArtist, tagline: e.target.value })}
-                    placeholder="e.g. Transcendent acoustic qawwali for grand celebrations"
-                    className="w-full text-xs font-ui bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-4 py-2.5"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-ui text-xs font-semibold text-[#1A1916] mb-1">
-                    Biography
-                  </label>
-                  <textarea
-                    rows={4}
-                    value={editingArtist.bio}
-                    onChange={(e) => setEditingArtist({ ...editingArtist, bio: e.target.value })}
-                    placeholder="Full artist background and musical heritage..."
-                    className="w-full text-xs font-ui bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-4 py-2.5"
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block font-ui text-xs font-semibold text-[#1A1916] mb-1">
-                      City
-                    </label>
-                    <input
-                      type="text"
-                      value={editingArtist.city}
-                      onChange={(e) => setEditingArtist({ ...editingArtist, city: e.target.value })}
-                      className="w-full text-xs font-ui bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-4 py-2.5"
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-ui text-xs font-semibold text-[#1A1916] mb-1">
-                      Band Format
-                    </label>
-                    <select
-                      value={editingArtist.bandType}
-                      onChange={(e) => setEditingArtist({ ...editingArtist, bandType: e.target.value as any })}
-                      className="w-full text-xs font-ui bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-4 py-2.5"
-                    >
-                      <option value="Solo">Solo</option>
-                      <option value="Duo">Duo</option>
-                      <option value="Trio">Trio</option>
-                      <option value="4-6 Piece Band">4-6 Piece Band</option>
-                      <option value="Full Troupe (8+ Members)">Full Troupe (8+ Members)</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block font-ui text-xs font-semibold text-[#1A1916] mb-1">
-                      Starting Honorarium
-                    </label>
-                    <input
-                      type="text"
-                      value={editingArtist.price}
-                      onChange={(e) => setEditingArtist({ ...editingArtist, price: e.target.value })}
-                      placeholder="e.g. ₹1,20,000"
-                      className="w-full text-xs font-ui bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-4 py-2.5"
-                    />
-                  </div>
-                </div>
-
-                {/* Profile Photo */}
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <label className="font-ui text-xs font-semibold text-[#1A1916]">
-                      Profile Photo
-                    </label>
-                    <button
-                      type="button"
-                      onClick={() => setIsMediaPickerOpen(true)}
-                      className="font-ui text-xs text-[#C4952A] hover:underline font-semibold"
-                    >
-                      🖼️ Choose from Media Library
-                    </button>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <img
-                      src={editingArtist.img}
-                      alt="Artist preview"
-                      className="w-20 h-20 rounded-xl object-cover border border-[#EDE8DF]"
-                    />
-                    <input
-                      type="text"
-                      value={editingArtist.img}
-                      onChange={(e) => setEditingArtist({ ...editingArtist, img: e.target.value })}
-                      className="flex-1 text-xs font-ui bg-[#FAF7F2] border border-[#EDE8DF] rounded-xl px-3 py-2"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="px-6 py-4 bg-white border-t border-[#EDE8DF] flex items-center justify-end gap-3">
-              <button
-                type="button"
-                onClick={() => setIsEditorOpen(false)}
-                className="font-ui text-xs font-semibold px-4 py-2.5 rounded-full border border-[#EDE8DF] text-[#4A4845]"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleSaveArtist}
-                className="font-ui text-xs font-semibold px-6 py-2.5 rounded-full bg-[#C4952A] hover:bg-[#DDB96A] text-[#1A1916]"
-              >
-                Save Artist
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Artist Profile Editor Modal with Side-by-Side Live Preview */}
+      <ArtistEditorModal
+        artist={editingArtist}
+        isOpen={isEditorOpen}
+        onClose={() => setIsEditorOpen(false)}
+        onSave={handleSaveArtist}
+        mediaList={mediaList}
+        onUploadMedia={onUploadMedia}
+      />
 
       {/* Confirm Delete */}
       <ConfirmDeleteModal
@@ -506,18 +313,6 @@ export function ArtistsCMSView({
             setDeleteTarget(null);
           }
         }}
-      />
-
-      {/* Media Picker */}
-      <MediaPickerModal
-        isOpen={isMediaPickerOpen}
-        onClose={() => setIsMediaPickerOpen(false)}
-        mediaList={mediaList}
-        onUploadMedia={onUploadMedia}
-        onSelectMedia={(url) => {
-          if (editingArtist) setEditingArtist({ ...editingArtist, img: url });
-        }}
-        title="Select Artist Profile Photo"
       />
     </div>
   );

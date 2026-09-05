@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { Artist, GenreInfo, ALL_ARTISTS, GENRE_METADATA } from "./data/artistsData";
 import { BlogArticle, BLOG_ARTICLES } from "./data/blogData";
 import { GenreView } from "./components/GenreView";
@@ -10,6 +10,16 @@ import { JournalPage } from "./components/JournalPage";
 import { BlogDetailPage } from "./components/BlogDetailPage";
 import { AdminPortal } from "./components/admin/AdminPortal";
 import { AdminLogin } from "./components/admin/AdminLogin";
+import { ArtistRegisterPage } from "./components/artist/ArtistRegisterPage";
+import { ArtistApplicationStatusPage } from "./components/artist/ArtistApplicationStatusPage";
+import { ArtistDashboard } from "./components/artist/ArtistDashboard";
+import { ArtistAuthModal } from "./components/artist/ArtistAuthModal";
+import { ClientAuthModal } from "./components/client/ClientAuthModal";
+import { ClientDashboard } from "./components/client/ClientDashboard";
+import { ClientEnquiryModal } from "./components/client/ClientEnquiryModal";
+import { AuthService } from "./services/authService";
+import { PlatformStore } from "./services/platformStore";
+import { User, ArtistApplicationProfile } from "./types/platform";
 import { loadCMSStore, saveCMSStore, resetCMSStore } from "./data/cmsData";
 import {
   CMSDataStore,
@@ -89,11 +99,19 @@ interface NavbarProps {
   onScrollToFeatured: () => void;
   onBrowseArtists: () => void;
   onScrollToBlog: () => void;
-  onOpenAdmin: () => void;
   onPlanEvent: () => void;
+  /** Opens artist registration / artist dashboard */
+  onOpenArtistPortal: () => void;
+  /** Opens client login / client dashboard */
+  onOpenClientPortal: () => void;
+  onOpenDashboard: () => void;
+  currentUser?: User | null;
+  onLogout?: () => void;
   navLinks?: NavLinkItem[];
   siteName?: string;
   logoSubtitle?: string;
+  /** Hidden admin route — not shown in UI */
+  onOpenAdmin?: () => void;
 }
 
 function Navbar({
@@ -102,19 +120,35 @@ function Navbar({
   onScrollToFeatured,
   onBrowseArtists,
   onScrollToBlog,
-  onOpenAdmin,
   onPlanEvent,
+  onOpenArtistPortal,
+  onOpenClientPortal,
+  onOpenDashboard,
+  currentUser,
+  onLogout,
   navLinks,
   siteName = "MANNAT ARTS",
   logoSubtitle = "CULTURAL EXPERIENCES",
 }: NavbarProps) {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 40);
     window.addEventListener("scroll", handler, { passive: true });
     return () => window.removeEventListener("scroll", handler);
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setProfileDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const navLinkClass = "font-ui text-[13px] font-medium text-[#4A4845] hover:text-[#1A1916] transition-colors duration-200 cursor-pointer tracking-wide";
@@ -204,13 +238,77 @@ function Navbar({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
             </svg>
           </button>
-          {/* Admin link — subtle */}
+
+          {/* Join as Artist */}
           <button
-            onClick={onOpenAdmin}
-            className="font-ui text-[11px] font-medium text-[#9A7219] hover:text-[#C4952A] transition-colors cursor-pointer tracking-wide"
+            onClick={onOpenArtistPortal}
+            className="font-ui text-[12px] font-semibold text-[#8C6B1F] hover:text-[#1A1916] px-3.5 py-1.5 rounded-full border border-[#DDB96A]/50 hover:border-[#C4952A] transition-all cursor-pointer tracking-wide"
           >
-            Admin
+            {currentUser?.role === "artist" ? "Artist Desk" : "Join as Artist"}
           </button>
+
+          {/* Sign In or Profile Icon */}
+          {!currentUser ? (
+            <button
+              onClick={onOpenClientPortal}
+              className="font-ui text-[12px] font-medium text-[#4A4845] hover:text-[#1A1916] px-3 py-1.5 rounded-full transition-colors cursor-pointer tracking-wide"
+            >
+              Sign In
+            </button>
+          ) : (
+            <div className="relative" ref={dropdownRef}>
+              <button
+                onClick={() => setProfileDropdownOpen((prev) => !prev)}
+                className="w-9 h-9 rounded-full bg-[#1A1916] text-[#FAF7F2] hover:bg-[#C4952A] transition-all flex items-center justify-center font-serif text-sm font-bold border border-[#EDE8DF] cursor-pointer shadow-xs"
+                aria-label="User Profile"
+              >
+                {currentUser.avatar ? (
+                  <img src={currentUser.avatar} alt={currentUser.name} className="w-full h-full rounded-full object-cover" />
+                ) : (
+                  currentUser.name.charAt(0).toUpperCase()
+                )}
+              </button>
+
+              {/* Profile Dropdown */}
+              {profileDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl border border-[#EDE8DF] shadow-xl py-2 z-50 animate-fade-in text-left">
+                  <div className="px-4 py-3 border-b border-[#EDE8DF]">
+                    <p className="text-xs font-bold text-[#1A1916] truncate">{currentUser.name}</p>
+                    <p className="text-[11px] text-[#7A776F] truncate">{currentUser.email}</p>
+                    <span className="inline-block mt-1 px-2 py-0.5 rounded-full bg-stone-100 text-[9px] font-bold uppercase tracking-wider text-stone-700">
+                      {currentUser.role}
+                    </span>
+                  </div>
+
+                  <div className="py-1">
+                    <button
+                      onClick={() => {
+                        setProfileDropdownOpen(false);
+                        onOpenDashboard();
+                      }}
+                      className="w-full text-left px-4 py-2 text-xs text-[#1A1916] hover:bg-[#FAF7F2] font-medium flex items-center gap-2 cursor-pointer"
+                    >
+                      <span>{currentUser.role === "artist" ? "🎨" : "✉"}</span>
+                      <span>{currentUser.role === "artist" ? "Artist Dashboard" : "My Enquiries"}</span>
+                    </button>
+                  </div>
+
+                  <div className="pt-1 border-t border-[#EDE8DF]">
+                    <button
+                      onClick={() => {
+                        setProfileDropdownOpen(false);
+                        onLogout?.();
+                      }}
+                      className="w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-50 font-medium cursor-pointer"
+                    >
+                      Sign Out
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Primary CTA */}
           <button
             onClick={onPlanEvent}
@@ -234,7 +332,7 @@ function Navbar({
 
       {/* Mobile menu */}
       {open && (
-        <div className="md:hidden bg-[#FAF7F2] border-t border-[#EDE8DF] px-6 py-6 space-y-4">
+        <div className="md:hidden bg-[#FAF7F2] border-t border-[#EDE8DF] px-6 py-6 space-y-3">
           {[
             { label: "Experiences", action: onBrowseGenres },
             { label: "Genres", action: onBrowseGenres },
@@ -245,14 +343,59 @@ function Navbar({
             <button
               key={item.label}
               onClick={() => { item.action(); setOpen(false); }}
-              className="block w-full text-left font-ui text-[15px] font-medium text-[#2E2C28] py-1 border-b border-[#EDE8DF] pb-3"
+              className="block w-full text-left font-ui text-[14px] font-medium text-[#2E2C28] py-1 border-b border-[#EDE8DF] pb-2.5"
             >
               {item.label}
             </button>
           ))}
+
+          <div className="pt-2 space-y-2">
+            <button
+              onClick={() => { onOpenArtistPortal(); setOpen(false); }}
+              className="w-full font-ui text-xs font-semibold py-2.5 px-4 rounded-xl border border-[#DDB96A] text-[#8C6B1F] bg-[#FAF7F2] text-center"
+            >
+              {currentUser?.role === "artist" ? "Artist Desk" : "Join as Artist"}
+            </button>
+
+            {!currentUser ? (
+              <button
+                onClick={() => { onOpenClientPortal(); setOpen(false); }}
+                className="w-full font-ui text-xs font-semibold py-2.5 px-4 rounded-xl border border-[#EDE8DF] text-stone-800 bg-white text-center"
+              >
+                Sign In
+              </button>
+            ) : (
+              <div className="p-3 bg-white rounded-xl border border-[#EDE8DF] space-y-2">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-full bg-[#1A1916] text-[#FAF7F2] flex items-center justify-center text-xs font-bold font-serif">
+                    {currentUser.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold text-[#1A1916] truncate">{currentUser.name}</p>
+                    <p className="text-[10px] text-[#7A776F] truncate">{currentUser.email}</p>
+                  </div>
+                </div>
+                <div className="pt-2 border-t border-[#EDE8DF] flex items-center justify-between">
+                  <button
+                    onClick={() => { onOpenDashboard(); setOpen(false); }}
+                    className="text-xs font-semibold text-[#C4952A]"
+                  >
+                    {currentUser.role === "artist" ? "Artist Dashboard →" : "My Enquiries →"}
+                  </button>
+                  <button
+                    onClick={() => { onLogout?.(); setOpen(false); }}
+                    className="text-xs text-red-600 font-semibold"
+                  >
+                    Sign Out
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
           <button
             onClick={() => { onPlanEvent(); setOpen(false); }}
-            className="w-full font-ui font-semibold text-sm bg-[#1A1916] text-[#FAF7F2] py-3 rounded-full mt-4"
+            className="w-full font-ui font-semibold text-xs bg-[#1A1916] text-[#FAF7F2] py-3 rounded-full mt-2"
           >
             Plan an Event
           </button>
@@ -1384,7 +1527,20 @@ function Footer({ onSelectGenre, onBrowseArtists, onScrollToBlog, footerConfig }
 ══════════════════════════════════════════════════════════════════ */
 
 export default function App() {
-  type Page = "home" | "genres" | "genre" | "artists" | "journal" | "blog-detail" | "admin" | "admin-login";
+  type Page =
+    | "home"
+    | "genres"
+    | "genre"
+    | "artists"
+    | "journal"
+    | "blog-detail"
+    | "admin"
+    | "admin-login"
+    | "artist-register"
+    | "artist-status"
+    | "artist-dashboard"
+    | "client-dashboard";
+
   const [currentPage, setCurrentPage] = useState<Page>("home");
   const [activeGenre, setActiveGenre] = useState<"sufi" | "rock" | "gazal" | "bollywood" | "carnival" | "devotional">("sufi");
   const [selectedArtist, setSelectedArtist] = useState<Artist | null>(null);
@@ -1393,6 +1549,15 @@ export default function App() {
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
   const [articleLikes, setArticleLikes] = useState<Record<string, number>>({});
   const moodRef = useRef<HTMLElement | null>(null);
+
+  // Platform Auth & Portal States
+  const [currentUser, setCurrentUser] = useState<User | null>(() => AuthService.getCurrentUser());
+  const [showArtistAuthModal, setShowArtistAuthModal] = useState(false);
+  const [showClientAuthModal, setShowClientAuthModal] = useState(false);
+  const [currentArtistProfile, setCurrentArtistProfile] = useState<ArtistApplicationProfile | null>(() => {
+    const u = AuthService.getCurrentUser();
+    return u ? PlatformStore.getArtistByUserId(u.id) || null : null;
+  });
 
 
 
@@ -1403,7 +1568,87 @@ export default function App() {
     saveCMSStore(cmsStore);
   }, [cmsStore]);
 
-  const artistsList = cmsStore.artists;
+  // Refresh trigger: incremented whenever an artist is approved so the merged list re-computes
+  const [artistRefreshTick, setArtistRefreshTick] = useState(0);
+
+  // Helper: convert ArtistApplicationProfile → Artist shape for display pages
+  const platformProfileToArtist = (p: ArtistApplicationProfile): Artist => ({
+    id: p.id,
+    name: p.name,
+    stageName: p.stageName || p.name,
+    genre: p.genre || "sufi",
+    genreTitle: p.genreTitle || "Sufi & Mystic",
+    tagline: p.shortBio || p.tagline || (p.bio ? p.bio.slice(0, 100) : "Master Performer"),
+    bio: p.bio || p.shortBio || "Dedicated cultural performing artist.",
+    img: p.img || "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=600&h=800&fit=crop&auto=format&q=75",
+    rating: p.rating ?? 5.0,
+    reviewsCount: p.reviewsCount ?? 0,
+    price: p.price || `₹${(p.priceNum || 50000).toLocaleString("en-IN")}`,
+    priceNum: p.priceNum || 50000,
+    city: p.city || "Delhi NCR",
+    state: p.state || "Delhi",
+    travelsPanIndia: p.travelsPanIndia ?? true,
+    travelsInternational: p.travelsInternational ?? false,
+    performanceDuration: p.performanceDuration || "90 - 120 minutes",
+    bandType: p.bandType || "4-6 Piece Band",
+    experienceYears: p.experienceYears || 5,
+    eventsCompleted: p.eventsCompleted ?? 0,
+    primaryInstruments: p.primaryInstruments && p.primaryInstruments.length > 0 ? p.primaryInstruments : ["Vocals", "Acoustic"],
+    themeColor: "#b45309",
+    whatElseTheyDo: [
+      {
+        category: "Performance Types",
+        description: p.performanceTypes?.join(", ") || "Live Concerts & Events",
+        icon: "🎭",
+      },
+    ],
+    sampleSetlist: p.sampleSetlist || ["Signature Baithak Piece", "Encore Cultural Classic"],
+    sampleTracks: [],
+    techRider: p.techRider || ["Standard PA System", "Vocal & Instrument Mics"],
+    reviews: [],
+  });
+
+  // Merge cmsStore artists with approved PlatformStore artists (deduplicated by id)
+  const artistsList = useMemo(() => {
+    const cmsIds = new Set(cmsStore.artists.map((a) => a.id));
+    const platformApproved = PlatformStore.getApprovedArtists()
+      .filter((p) => !cmsIds.has(p.id))
+      .map(platformProfileToArtist);
+    return [...cmsStore.artists, ...platformApproved];
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cmsStore.artists, artistRefreshTick]);
+
+  // Called when admin approves an artist — syncs to cmsStore AND triggers re-compute
+  const handleSyncArtistToCMS = (approvedProfile: any) => {
+    try {
+      const artistObj = platformProfileToArtist(approvedProfile);
+      setCmsStore((prev) => {
+        const exists = prev.artists.some((a) => a.id === artistObj.id);
+        const nextArtists = exists
+          ? prev.artists.map((a) => (a.id === artistObj.id ? { ...a, ...artistObj } : a))
+          : [artistObj, ...prev.artists];
+        return {
+          ...prev,
+          artists: nextArtists,
+          activityLog: [
+            {
+              id: `act-${Date.now()}`,
+              user: "Curation Desk",
+              action: exists ? "Updated" : "Approved & Published",
+              entity: "Artist",
+              entityName: artistObj.name,
+              timestamp: "Just now",
+            },
+            ...prev.activityLog,
+          ],
+        };
+      });
+    } catch (e) {
+      console.error("Error syncing approved artist to CMS:", e);
+    }
+    setArtistRefreshTick((t) => t + 1);
+  };
+
   const articlesList = cmsStore.articles;
   const genresMap = cmsStore.genres;
 
@@ -1660,6 +1905,28 @@ export default function App() {
       const hash = window.location.hash.toLowerCase();
       if (hash === "#admin" || hash === "#admin-login" || hash === "#login") {
         setCurrentPage(isAdminAuthenticated ? "admin" : "admin-login");
+      } else if (hash === "#artist/register" || hash === "#artist-register" || hash === "#register-artist") {
+        setCurrentPage("artist-register");
+      } else if (hash === "#artist/login" || hash === "#artist-login") {
+        setShowArtistAuthModal(true);
+      } else if (hash === "#artist/dashboard" || hash === "#artist-dashboard") {
+        const u = AuthService.getCurrentUser();
+        if (u?.role === "artist") {
+          setCurrentPage("artist-dashboard");
+        } else {
+          setShowArtistAuthModal(true);
+        }
+      } else if (hash === "#artist/status" || hash === "#artist-status") {
+        setCurrentPage("artist-status");
+      } else if (hash === "#client/login" || hash === "#client-login") {
+        setShowClientAuthModal(true);
+      } else if (hash === "#client/dashboard" || hash === "#client-dashboard" || hash === "#my-enquiries") {
+        const u = AuthService.getCurrentUser();
+        if (u?.role === "client") {
+          setCurrentPage("client-dashboard");
+        } else {
+          setShowClientAuthModal(true);
+        }
       } else if (hash === "" && (currentPage === "admin" || currentPage === "admin-login")) {
         setCurrentPage("home");
       }
@@ -1668,6 +1935,72 @@ export default function App() {
     handleHashRouting();
     return () => window.removeEventListener("hashchange", handleHashRouting);
   }, [isAdminAuthenticated, currentPage]);
+
+  const handleOpenArtistPortal = () => {
+    const u = AuthService.getCurrentUser();
+    if (!u) {
+      // Show the artist auth modal — user can sign in or register there
+      setShowArtistAuthModal(true);
+      return;
+    }
+    if (u.role === "artist") {
+      const art = PlatformStore.getArtistByUserId(u.id);
+      if (art && art.status === "APPROVED") {
+        setCurrentPage("artist-dashboard");
+      } else {
+        setCurrentPage("artist-status");
+      }
+    } else {
+      // Logged in but not as artist — show the artist auth modal
+      setShowArtistAuthModal(true);
+    }
+  };
+
+  const handleOpenClientPortal = () => {
+    const u = AuthService.getCurrentUser();
+    if (!u) {
+      setShowClientAuthModal(true);
+      return;
+    }
+    if (u.role === "client") {
+      setCurrentPage("client-dashboard");
+    } else {
+      setShowClientAuthModal(true);
+    }
+  };
+
+  const handleUserLogout = () => {
+    AuthService.logout();
+    setCurrentUser(null);
+    setCurrentArtistProfile(null);
+    setCurrentPage("home");
+    window.location.hash = "";
+  };
+
+  const handleArtistLoginSuccess = (user: User) => {
+    setCurrentUser(user);
+    setShowArtistAuthModal(false);
+    const art = PlatformStore.getArtistByUserId(user.id);
+    if (art) setCurrentArtistProfile(art);
+    if (art && art.status === "APPROVED") {
+      setCurrentPage("artist-dashboard");
+    } else {
+      setCurrentPage("artist-status");
+    }
+  };
+
+  const handleClientLoginSuccess = (user: User) => {
+    setCurrentUser(user);
+    setShowClientAuthModal(false);
+    setCurrentPage("client-dashboard");
+  };
+
+  const handleArtistRegistrationComplete = (profile: ArtistApplicationProfile) => {
+    setCurrentArtistProfile(profile);
+    const u = AuthService.getCurrentUser();
+    if (u) setCurrentUser(u);
+    setCurrentPage("artist-status");
+  };
 
   const handleToggleArticleLike = (articleId: string) => {
     setArticleLikes(prev => {
@@ -1768,6 +2101,18 @@ export default function App() {
           onBrowseArtists={handleOpenArtists}
           onScrollToBlog={handleOpenJournal}
           onPlanEvent={handlePlanEvent}
+          onOpenArtistPortal={handleOpenArtistPortal}
+          onOpenClientPortal={handleOpenClientPortal}
+          onOpenDashboard={() => {
+            const u = currentUser;
+            if (u?.role === "artist") {
+              setCurrentPage("artist-dashboard");
+            } else if (u?.role === "client") {
+              setCurrentPage("client-dashboard");
+            }
+          }}
+          currentUser={currentUser}
+          onLogout={handleUserLogout}
           navLinks={cmsStore.navigation}
           siteName={cmsStore.settings.logoText}
           logoSubtitle={cmsStore.settings.logoSubtitle}
@@ -1812,6 +2157,7 @@ export default function App() {
           onPreviewArtist={artist => setSelectedArtist(artist)}
           onPreviewArticle={handleSelectBlogArticle}
           onPublishAll={() => saveCMSStore(cmsStore)}
+          onSyncArtistToCMS={handleSyncArtistToCMS}
         />
       ) : currentPage === "genres" ? (
         <>
@@ -1835,6 +2181,37 @@ export default function App() {
           />
           <Footer {...footerProps} />
         </>
+      ) : currentPage === "artist-register" ? (
+        <ArtistRegisterPage
+          onSuccess={handleArtistRegistrationComplete}
+          onGoToLogin={() => setShowArtistAuthModal(true)}
+          onBackToSite={handleBackHome}
+        />
+      ) : currentPage === "artist-status" ? (
+        <ArtistApplicationStatusPage
+          artist={currentArtistProfile || PlatformStore.getArtists()[0]}
+          currentUser={currentUser}
+          onGoToDashboard={() => setCurrentPage("artist-dashboard")}
+          onEditProfile={() => setCurrentPage("artist-register")}
+          onLogout={handleUserLogout}
+          onBackToSite={handleBackHome}
+        />
+      ) : currentPage === "artist-dashboard" && currentUser ? (
+        <ArtistDashboard
+          currentUser={currentUser}
+          onLogout={handleUserLogout}
+          onViewPublicProfile={() => {
+            const found = artistsList.find(a => a.id === currentArtistProfile?.id) || artistsList[0];
+            setSelectedArtist(found);
+          }}
+          onBackToSite={handleBackHome}
+        />
+      ) : currentPage === "client-dashboard" && currentUser ? (
+        <ClientDashboard
+          currentUser={currentUser}
+          onLogout={handleUserLogout}
+          onBackToSite={handleBackHome}
+        />
       ) : currentPage === "artists" ? (
         <ArtistsPage
           onBackHome={handleBackHome}
@@ -1957,6 +2334,30 @@ export default function App() {
         artist={bookingArtist}
         onClose={() => setBookingArtist(null)}
       />
+
+      {/* Artist Auth Modal — full-screen overlay */}
+      {showArtistAuthModal && (
+        <div className="fixed inset-0 z-[200] overflow-y-auto">
+          <ArtistAuthModal
+            onLoginSuccess={handleArtistLoginSuccess}
+            onGoToRegister={() => {
+              setShowArtistAuthModal(false);
+              setCurrentPage("artist-register");
+            }}
+            onBackToSite={() => setShowArtistAuthModal(false)}
+          />
+        </div>
+      )}
+
+      {/* Client Auth Modal — full-screen overlay */}
+      {showClientAuthModal && (
+        <div className="fixed inset-0 z-[200] overflow-y-auto">
+          <ClientAuthModal
+            onLoginSuccess={handleClientLoginSuccess}
+            onClose={() => setShowClientAuthModal(false)}
+          />
+        </div>
+      )}
     </div>
   );
 }

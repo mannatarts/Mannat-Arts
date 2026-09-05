@@ -21,7 +21,7 @@ export function ArtistsPage({
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCity, setSelectedCity] = useState("All");
   const [selectedBandType, setSelectedBandType] = useState("All");
-  const [maxBudget, setMaxBudget] = useState<number>(120000);
+  const [maxBudget, setMaxBudget] = useState<number>(300000);
 
   // Artist Type options for dynamic banner and filtering
   const artistTypes = [
@@ -84,13 +84,13 @@ export function ArtistsPage({
       if (selectedType !== "all" && a.genre !== selectedType) return false;
       if (selectedCity !== "All" && a.city !== selectedCity) return false;
       if (selectedBandType !== "All" && a.bandType !== selectedBandType) return false;
-      if (a.priceNum > maxBudget) return false;
+      if (maxBudget < 300000 && a.priceNum && a.priceNum > maxBudget) return false;
       if (searchTerm) {
         const query = searchTerm.toLowerCase();
-        const matchesName = a.name.toLowerCase().includes(query) || (a.stageName && a.stageName.toLowerCase().includes(query));
-        const matchesSkills = a.whatElseTheyDo.some(s => s.category.toLowerCase().includes(query) || s.description.toLowerCase().includes(query));
-        const matchesInst = a.primaryInstruments.some(i => i.toLowerCase().includes(query));
-        const matchesCity = a.city.toLowerCase().includes(query);
+        const matchesName = (a.name || "").toLowerCase().includes(query) || (a.stageName && a.stageName.toLowerCase().includes(query));
+        const matchesSkills = (a.whatElseTheyDo || []).some(s => s.category?.toLowerCase().includes(query) || s.description?.toLowerCase().includes(query));
+        const matchesInst = (a.primaryInstruments || []).some(i => i.toLowerCase().includes(query));
+        const matchesCity = (a.city || "").toLowerCase().includes(query);
         if (!matchesName && !matchesSkills && !matchesInst && !matchesCity) return false;
       }
       return true;
@@ -99,13 +99,13 @@ export function ArtistsPage({
 
   // Spotlight Artist for the active type
   const activeSpotlightArtist = useMemo(() => {
-    if (selectedType === "all") return sourceArtists[0];
-    return sourceArtists.find(a => a.genre === selectedType) || sourceArtists[0];
+    if (selectedType === "all") return sourceArtists[0] || ALL_ARTISTS[0];
+    return sourceArtists.find(a => a.genre === selectedType) || sourceArtists[0] || ALL_ARTISTS[0];
   }, [sourceArtists, selectedType]);
 
   const allCities = useMemo(() => {
     const cities = new Set<string>();
-    sourceArtists.forEach(a => cities.add(a.city));
+    sourceArtists.forEach(a => { if (a.city) cities.add(a.city); });
     return ["All", ...Array.from(cities)];
   }, [sourceArtists]);
 
@@ -365,14 +365,14 @@ export function ArtistsPage({
                 MAX BUDGET
               </label>
               <span className="font-ui text-xs font-bold text-[#C4952A]">
-                ₹{maxBudget.toLocaleString("en-IN")}
+                {maxBudget >= 300000 ? "Any / All Budgets" : `₹${maxBudget.toLocaleString("en-IN")}`}
               </span>
             </div>
             <input
               type="range"
               min="20000"
-              max="150000"
-              step="5000"
+              max="300000"
+              step="10000"
               value={maxBudget}
               onChange={e => setMaxBudget(Number(e.target.value))}
               className="w-full accent-[#C4952A] cursor-pointer"
